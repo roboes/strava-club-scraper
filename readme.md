@@ -10,7 +10,7 @@ This tool also gives the possibility to athletes leave a club and have their dat
 
 ### Limitations
 
-Strava's dashboard activity feed is very limited in showing past activities. Scrolling until the bottom of the page is not limitless; after some scrolls the warning "No more activity in the last 60 days. To see your full activity history, visit your Profile or Training Calendar." is shown.
+Strava's dashboard activity feed is very limited in showing past activities. Scrolling until the bottom of the page is not endless; after some scrolls the warning "No more activity in the last 60 days. To see your full activity history, visit your Profile or Training Calendar." is shown.
 This warning is not necessarily shown after 60 days worth of activities are loaded to the dashboard activity feed.
 Strava has the ```num_entries``` URL query string (e.g. https://www.strava.com/dashboard?club_id=319098&feed_type=club&num_entries=1000), but still this variable does not load older activities to the feed.
 
