@@ -30,7 +30,7 @@ And that your Strava display language is ```English (US)```. To change the langu
 
 ### Python dependencies
 
-<code>python -m pip install python-dateutil numpy pandas pyjanitor selenium webdriver-manager</code>
+<code>python -m pip install python-dateutil lxml numpy pandas pyjanitor selenium webdriver-manager</code>
 
 ### Functions
 
