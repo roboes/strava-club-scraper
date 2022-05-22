@@ -1,4 +1,4 @@
-## Strava Club Reports
+## Strava Club scrapper
 # Last update: 2022-05-22
 
 
@@ -32,8 +32,16 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-## Set working directory to user's 'Downloads' folder
-os.chdir(os.path.join(os.path.expanduser('~'), 'Documents', 'Strava Club Activities'))
+## Locale settings
+if sys.platform=='win32':
+    locale.setlocale(locale.LC_ALL, 'de_DE')
+else:
+    locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+
+
+## Set working directory to user's 'Documents/Strava Club Activities' folder
+if sys.platform=='win32':
+    os.chdir(os.path.join(os.path.expanduser('~'), 'Documents', 'Strava Club Activities'))
 
 
 ## Settings
@@ -46,7 +54,7 @@ strava_password = 'Password12345'
 club_ids = ['319098']
 filter_activities_type = ['Ride', 'Run'] # Only for Strava Clubs with multiple sport types
 filter_date_min = '2022-05-09'
-filter_date_max = '2022-05-22'
+filter_date_max = '2022-05-29'
 
 # Google API
 google_api_key = os.path.join(os.getcwd(), 'files', 'keys.json')
@@ -163,8 +171,8 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
 
                 activities = driver.find_elements(by=By.XPATH, value="//div[@data-testid='activity_entry_container']")
                 activity_date = activities[-1].find_element(by=By.XPATH, value=".//..//..//..//..//..//time").text
-                activity_date = re.sub(r'^(Today at )(.*)$', datetime.now().strftime('%Y-%m-%d')+r' \2', activity_date)
-                activity_date = re.sub(r'^(Yesterday at )(.*)$', (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')+r' \2', activity_date)
+                activity_date = re.sub(r'^(Today at )(.*)$', str(datetime.now().date())+r' \2', activity_date)
+                activity_date = re.sub(r'^(Yesterday at )(.*)$', str((datetime.now() - timedelta(1)).date())+r' \2', activity_date)
                 activity_date = parser.parse(activity_date)
 
                 if activity_date > parser.parse(filter_date_min):
@@ -185,8 +193,8 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
         for activity in activities:
 
             activity_date = activity.find_element(by=By.XPATH, value=".//..//..//..//..//..//time").text
-            activity_date = re.sub(r'^(Today at )(.*)$', datetime.now().strftime('%Y-%m-%d')+r' \2', activity_date)
-            activity_date = re.sub(r'^(Yesterday at )(.*)$', (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')+r' \2', activity_date)
+            activity_date = re.sub(r'^(Today at )(.*)$', str(datetime.now())+r' \2', activity_date)
+            activity_date = re.sub(r'^(Yesterday at )(.*)$', str(datetime.now() - timedelta(1))+r' \2', activity_date)
             activity_date = parser.parse(activity_date)
 
             if parser.parse(filter_date_min) <= activity_date < (parser.parse(filter_date_max)+timedelta(days=1)):
@@ -911,6 +919,20 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
 
 
 
+### execution_time_to_google_sheets
+def execution_time_to_google_sheets(sheet_id, sheet_name):
+
+    ## Google API Credentials
+    service = google_api_credentials()
+
+    ## Clear sheet contents
+    service.spreadsheets().values().clear(spreadsheetId=sheet_id, range=sheet_name, body={}).execute()
+
+    ## Upload/Overwrite dataframe stored in Google Sheets
+    service.spreadsheets().values().update(spreadsheetId=sheet_id, range=sheet_name, valueInputOption='USER_ENTERED', body={"values":[['last_execution'], [str(datetime.now().replace(microsecond=0))]]}).execute()
+
+
+
 
 ##########################################
 # ---- strava-club-activities-scraper ----
@@ -949,3 +971,10 @@ strava_club_members(club_ids=club_ids)
 
 # Update Google Sheets sheet
 strava_club_to_google_sheets(df=club_members, sheet_id=sheet_id, sheet_name='Members')
+
+
+
+## Store execution time in Google Sheets
+
+# Update Google Sheets sheet
+execution_time_to_google_sheets(sheet_id=sheet_id, sheet_name='Execution Time')
