@@ -785,8 +785,8 @@ def google_api_credentials():
 
 
 
-### club_to_google_sheets
-def club_to_google_sheets(df, sheet_id, sheet_name):
+### strava_club_to_google_sheets
+def strava_club_to_google_sheets(df, sheet_id, sheet_name):
 
     ## Google API Credentials
     service = google_api_credentials()
@@ -925,7 +925,7 @@ strava_club_activities(club_ids=club_ids, filter_activities_type=filter_activiti
 # club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', index=False, encoding='utf8')
 
 # Update Google Sheets sheet
-club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='Activities')
+strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='Activities')
 
 # Export club activities to .gpx files
 # strava_export_gpx(activities=club_activities['activity_id'])
@@ -938,7 +938,7 @@ club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='Activit
 strava_club_leaderboard(club_ids=club_ids, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
 
 # Update Google Sheets sheet
-club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name='Leaderboard')
+strava_club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name='Leaderboard')
 
 
 
@@ -948,4 +948,4 @@ club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name='Leader
 strava_club_members(club_ids=club_ids)
 
 # Update Google Sheets sheet
-club_to_google_sheets(df=club_members, sheet_id=sheet_id, sheet_name='Members')
+strava_club_to_google_sheets(df=club_members, sheet_id=sheet_id, sheet_name='Members')
