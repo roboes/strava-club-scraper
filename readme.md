@@ -1,9 +1,9 @@
 ## Description
 
 This web-scraping tool aims to extract public activities data from Strava Clubs to complete the lack of features of the standard API, and includes:
-- Strava Club Activities scrapper: imports "Recent Activity" for public or activities that the user has access to a dataframe (requires a Strava account).
-- Strava Club Leaderboard scrapper: imports current week and previous leaderboard information, including athletes' ```id```, to a dataframe (requires a Strava account).
-- Strava Club Members scrapper: imports all members that joined a Strava Club, including athletes' ```id```, to a dataframe (requires a Strava account).
+- Strava Club Activities scraper: imports "Recent Activity" for public or activities that the user has access to a dataframe (requires a Strava account).
+- Strava Club Leaderboard scraper: imports current week and previous leaderboard information, including athletes' ```id```, to a dataframe (requires a Strava account).
+- Strava Club Members scraper: imports all members that joined a Strava Club, including athletes' ```id```, to a dataframe (requires a Strava account).
 - Strava Club to Google Sheets importer: automatically retrieves data and updates Strava Club Activities, Leaderboard and/or Members dataframe(s) into a Google Sheets (requires a Google API key).
 
 ### Strava API
@@ -17,7 +17,7 @@ Given that Strava does not offer an ```athlete id``` variable, athletes with the
 
 ### Limitations
 
-- Strava Club Activities scrapper: the main drawback/limitation of this tool is that Strava's dashboard activity feed is very limited in the number of activities shown. Scrolling until the bottom of the page is not endless; after some scrolls the warning *"No more activity in the last 60 days. To see your full activity history, visit your Profile or Training Calendar."* is shown.
+- Strava Club Activities scraper: the main drawback/limitation of this tool is that Strava's dashboard activity feed is very limited in the number of activities shown. Scrolling until the bottom of the page is not endless; after some scrolls the warning *"No more activity in the last 60 days. To see your full activity history, visit your Profile or Training Calendar."* is shown.
 This warning is not necessarily shown after 60 days of previous activities are loaded to the dashboard activity feed.
 Strava has the ```num_entries``` URL query string (e.g. https://www.strava.com/dashboard?club_id=319098&feed_type=club&num_entries=1000), but still this variable does not load older activities to the feed.  
 This tool also requires that the athletes' activities to be scrapped are either public or that the account that is scrapping the club activities data has access to the activities to be scrapped (by either following the athlete or by owning the activity).
