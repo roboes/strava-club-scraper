@@ -1,5 +1,5 @@
-## Strava Club scrapper
-# Last update: 2022-05-22
+## Strava Club Scraper
+# Last update: 2022-05-24
 
 
 #########################
@@ -32,15 +32,8 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-## Locale settings
-if sys.platform=='win32':
-    locale.setlocale(locale.LC_ALL, 'de_DE')
-else:
-    locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
-
-
 ## Set working directory to user's 'Documents/Strava Club Activities' folder
-if sys.platform=='win32':
+if sys.platform == 'win32':
     os.chdir(os.path.join(os.path.expanduser('~'), 'Documents', 'Strava Club Activities'))
 
 
@@ -175,7 +168,7 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
                 activity_date = re.sub(r'^(Yesterday at )(.*)$', str((datetime.now() - timedelta(1)).date())+r' \2', activity_date)
                 activity_date = parser.parse(activity_date)
 
-                if activity_date > parser.parse(filter_date_min):
+                if activity_date >= parser.parse(filter_date_min):
 
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                     time.sleep(6)
@@ -193,11 +186,11 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
         for activity in activities:
 
             activity_date = activity.find_element(by=By.XPATH, value=".//..//..//..//..//..//time").text
-            activity_date = re.sub(r'^(Today at )(.*)$', str(datetime.now())+r' \2', activity_date)
-            activity_date = re.sub(r'^(Yesterday at )(.*)$', str(datetime.now() - timedelta(1))+r' \2', activity_date)
+            activity_date = re.sub(r'^(Today at )(.*)$', str(datetime.now().date())+r' \2', activity_date)
+            activity_date = re.sub(r'^(Yesterday at )(.*)$', str((datetime.now() - timedelta(1)).date())+r' \2', activity_date)
             activity_date = parser.parse(activity_date)
 
-            if parser.parse(filter_date_min) <= activity_date < (parser.parse(filter_date_max)+timedelta(days=1)):
+            if parser.parse(filter_date_min) <= activity_date < (parser.parse(filter_date_max) + timedelta(days=1)):
 
                 activity_id = activity.find_element(by=By.XPATH, value=".//..//..//h3//a").get_attribute("href")
                 activity_id = re.sub(r'^.*/activities/(.*)$', r'\1', activity_id)
@@ -456,7 +449,7 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
     club_activities = club_activities[club_activities['activity_type'].isin(filter_activities_type)]
 
     ## Filter date interval
-    club_activities = club_activities[(club_activities['activity_date'] >= (pd.Timestamp(filter_date_min))) & (club_activities['activity_date'] < (pd.Timestamp(filter_date_max)))].reset_index(drop=True)
+    club_activities = club_activities[(club_activities['activity_date'] >= parser.parse(filter_date_min)) & (club_activities['activity_date'] < (parser.parse(filter_date_max) + timedelta(1)))].reset_index(drop=True)
 
     ## Rarrange rows
     club_activities = club_activities.sort_values(by=['club_id', 'activity_date'], ignore_index=True)
@@ -520,44 +513,60 @@ def strava_club_leaderboard(club_ids, filter_date_min, filter_date_max):
 
 
         ## Get this week's Strava Club Leaderboard
-        leaderboard_html = driver.find_element(by=By.XPATH, value="//table[@class='dense striped sortable']").get_attribute("outerHTML")
+        try:
+            driver.find_element(by=By.XPATH, value="//div[@class='leaderboard']//h4[@class='empty-results']").text
 
-        for d in pd.read_html(leaderboard_html):
-
-            # leaderboard_date_start
-            d['leaderboard_date_start'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
-            d['leaderboard_date_start'] = d['leaderboard_date_start'].dt.floor('d')
-
-            # leaderboard_date_end
-            d['leaderboard_date_end'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-1)) + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
-            d['leaderboard_date_end'] = d['leaderboard_date_end'].dt.floor('d')
-
-            # athlete_id
-            d['athlete_id'] = lh.fromstring(leaderboard_html).xpath(".//tr//td//div//a//@href")
-            d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+            club_leaderboard_import = pd.DataFrame(data=[], dtype='object')
 
 
-        club_leaderboard_import = d
+        except NoSuchElementException:
+
+            leaderboard_html = driver.find_element(by=By.XPATH, value="//table[@class='dense striped sortable']").get_attribute("outerHTML")
+
+            for d in pd.read_html(leaderboard_html):
+
+                # leaderboard_date_start
+                d['leaderboard_date_start'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
+                d['leaderboard_date_start'] = d['leaderboard_date_start'].dt.floor('d')
+
+                # leaderboard_date_end
+                d['leaderboard_date_end'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-1)) + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
+                d['leaderboard_date_end'] = d['leaderboard_date_end'].dt.floor('d')
+
+                # athlete_id
+                d['athlete_id'] = lh.fromstring(leaderboard_html).xpath(".//tr//td//div//a//@href")
+                d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+
+
+            club_leaderboard_import = d
 
 
         ## Get last week's Strava Club Leaderboard
         driver.find_element(by=By.XPATH, value="//span[@class='button last-week']").click()
 
-        leaderboard_html = driver.find_element(by=By.XPATH, value="//table[@class='dense striped sortable']").get_attribute("outerHTML")
+        try:
+            driver.find_element(by=By.XPATH, value="//div[@class='leaderboard']//h4[@class='empty-results']").text
 
-        for d in pd.read_html(leaderboard_html):
+            club_leaderboard_import = pd.DataFrame(data=[], dtype='object')
 
-            # leaderboard_date_start
-            d['leaderboard_date_start'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-2))
-            d['leaderboard_date_start'] = d['leaderboard_date_start'].dt.floor('d')
 
-            # leaderboard_date_end
-            d['leaderboard_date_end'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-2)) + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
-            d['leaderboard_date_end'] = d['leaderboard_date_end'].dt.floor('d')
+        except NoSuchElementException:
 
-            # athlete_id
-            d['athlete_id'] = lh.fromstring(leaderboard_html).xpath(".//tr//td//div//a//@href")
-            d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+            leaderboard_html = driver.find_element(by=By.XPATH, value="//table[@class='dense striped sortable']").get_attribute("outerHTML")
+
+            for d in pd.read_html(leaderboard_html):
+
+                # leaderboard_date_start
+                d['leaderboard_date_start'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-2))
+                d['leaderboard_date_start'] = d['leaderboard_date_start'].dt.floor('d')
+
+                # leaderboard_date_end
+                d['leaderboard_date_end'] = datetime.now() + relativedelta.relativedelta(weekday=relativedelta.MO(-2)) + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
+                d['leaderboard_date_end'] = d['leaderboard_date_end'].dt.floor('d')
+
+                # athlete_id
+                d['athlete_id'] = lh.fromstring(leaderboard_html).xpath(".//tr//td//div//a//@href")
+                d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
 
 
         ## Concatenate dataframes
@@ -672,7 +681,7 @@ def strava_club_leaderboard(club_ids, filter_date_min, filter_date_max):
     club_leaderboard = club_leaderboard.filter(['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'pace'])
 
     # Filter date interval
-    club_leaderboard = club_leaderboard[(club_leaderboard['leaderboard_date_start'] >= (pd.Timestamp(filter_date_min))) & (club_leaderboard['leaderboard_date_end'] <= (pd.Timestamp(filter_date_max)))].reset_index(drop=True)
+    club_leaderboard = club_leaderboard[(club_leaderboard['leaderboard_date_start'] >= parser.parse(filter_date_min)) & (club_leaderboard['leaderboard_date_end'] < (parser.parse(filter_date_max) + timedelta(1)))].reset_index(drop=True)
 
     ## Rarrange rows
     club_leaderboard = club_leaderboard.sort_values(by=['club_id', 'leaderboard_date_start', 'rank'], ignore_index=True)
@@ -768,8 +777,16 @@ def strava_club_members(club_ids):
     ## Drop duplicate rows
     club_members = club_members.drop_duplicates()
 
+
+    ## Create new variables
+
+    # join_date: this assumes that the web-scraping is run every day
+    club_members['join_date'] = datetime.now() - timedelta(1)
+    club_members['join_date'] = club_members['join_date'].dt.floor('d')
+
+
     ## Rearrange columns
-    club_members = club_members.filter(['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location'])
+    club_members = club_members.filter(['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'join_date'])
 
     ## Rarrange rows
     club_members = club_members.sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
@@ -812,61 +829,66 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
         ## Change dtypes
         df_import = df_import.replace(r'^\s*$', np.nan, regex=True)
 
-        ## club_activities and club_leaderboard
-        if 'activity_id' in df.columns or 'leaderboard_week' in df.columns:
+        # club_activities and club_leaderboard
+        try:
+            df_import = df_import.astype(dtype={'moving_time': 'float64', 'distance': 'float64', 'elevation_gain': 'float64'})
 
-            # club_activities and club_leaderboard
+        except:
+            pass
+
+
+        # club_activities
+        try:
+            df_import = df_import.astype(dtype={'elapsed_time': 'float64', 'max_speed': 'float64', 'average_speed': 'float64', 'pace': 'float64', 'calories': 'float64', 'activity_kudos': 'int64'})
+            df_import['activity_date'] = df_import['activity_date'].apply(parser.parse)
+
             try:
-                df_import = df_import.astype(dtype={'moving_time': 'float64', 'distance': 'float64', 'elevation_gain': 'float64'})
+                df_import = df_import.astype(dtype={'distance_longest': 'float64'})
 
             except:
                 pass
 
-
-            # club_activities
-            try:
-                df_import = df_import.astype(dtype={'elapsed_time': 'float64', 'max_speed': 'float64', 'average_speed': 'float64', 'pace': 'float64', 'calories': 'float64', 'activity_kudos': 'int64'})
-                df_import['activity_date'] = df_import['activity_date'].apply(parser.parse)
-
-                try:
-                    df_import = df_import.astype(dtype={'distance_longest': 'float64'})
-
-                except:
-                    pass
-
-            except:
-                pass
+        except:
+            pass
 
 
-            # club_leaderboard
-            try:
-                df_import = df_import.astype(dtype={'rank': 'int64', 'activities': 'int64'})
-                df_import['leaderboard_date_start'] = df_import['leaderboard_date_start'].apply(parser.parse)
-                df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(parser.parse)
+        # club_leaderboard
+        try:
+            df_import = df_import.astype(dtype={'rank': 'int64', 'activities': 'int64'})
+            df_import['leaderboard_date_start'] = df_import['leaderboard_date_start'].apply(parser.parse)
+            df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(parser.parse)
 
-            except:
-                pass
-
-
-            ## Delete Google Sheets dataframe rows present in club_activities, completely overwriting it
-            if 'activity_id' in df.columns:
-                df_import = df_import.merge(df.filter(['club_id', 'activity_id']).drop_duplicates(), how='outer', on=['club_id', 'activity_id'], indicator=True)
-                df_import = df_import.query('_merge=="left_only"')
-                df_import = df_import.drop('_merge', axis=1)
+        except:
+            pass
 
 
-            ## Delete Google Sheets dataframe rows present in club_leaderboard, completely overwriting it
-            if 'leaderboard_week' in df.columns:
-                df_import = df_import.merge(df.filter(['club_id', 'leaderboard_week']).drop_duplicates(), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
-                df_import = df_import.query('_merge=="left_only"')
-                df_import = df_import.drop('_merge', axis=1)
+        # club_members
+        try:
+            df_import['join_date'] = df_import['join_date'].apply(parser.parse)
+
+        except:
+            pass
 
 
-        ## Delete Google Sheets dataframe rows present in club_members, completely overwriting it
-        if 'athlete_location' in df.columns:
-            df_import = df_import.merge(df.filter(['club_id']).drop_duplicates(), how='outer', on=['club_id'], indicator=True)
+        ## Delete Google Sheets dataframe rows present in club_activities, completely overwriting it
+        if 'activity_id' in df.columns:
+            df_import = df_import.merge(df.filter(['club_id', 'activity_id']).drop_duplicates(), how='outer', on=['club_id', 'activity_id'], indicator=True)
             df_import = df_import.query('_merge=="left_only"')
             df_import = df_import.drop('_merge', axis=1)
+
+
+        ## Delete Google Sheets dataframe rows present in club_leaderboard, completely overwriting it
+        if 'leaderboard_week' in df.columns:
+            df_import = df_import.merge(df.filter(['club_id', 'leaderboard_week']).drop_duplicates(), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
+            df_import = df_import.query('_merge=="left_only"')
+            df_import = df_import.drop('_merge', axis=1)
+
+
+        ## Keep Google Sheets dataframe rows present in club_members, increment with new club members
+        if 'athlete_location' in df.columns:
+            df = df.merge(df_import.filter(['club_id', 'athlete_id']).drop_duplicates(), how='outer', on=['club_id', 'athlete_id'], indicator=True)
+            df = df.query('_merge=="left_only"')
+            df = df.drop('_merge', axis=1)
 
 
     else:
@@ -881,7 +903,7 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
     if 'activity_id' in df.columns:
 
         ## Change dtypes
-        df_updated['activity_date'] = df_updated['activity_date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+        df_updated['activity_date'] = df_updated['activity_date'].dt.strftime('%Y-%m-%d')
         df_updated.fillna('', inplace=True)
 
         ## Rarrange rows
@@ -902,6 +924,10 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
 
     ## club_members data transform
     if 'athlete_location' in df.columns:
+
+        ## Change dtypes
+        df_updated['join_date'] = df_updated['join_date'].dt.strftime('%Y-%m-%d')
+        df_updated.fillna('', inplace=True)
 
         ## Rarrange rows
         df_updated = df_updated.sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
@@ -940,7 +966,7 @@ def execution_time_to_google_sheets(sheet_id, sheet_name):
 
 ## Club activities
 
-# Get data (via web-scrapping)
+# Get data (via web-scraping)
 strava_club_activities(club_ids=club_ids, filter_activities_type=filter_activities_type, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
 
 # Save as .csv
@@ -956,7 +982,7 @@ strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='
 
 ## Club leaderboard
 
-# Get data (via web-scrapping)
+# Get data (via web-scraping)
 strava_club_leaderboard(club_ids=club_ids, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
 
 # Update Google Sheets sheet
@@ -966,7 +992,7 @@ strava_club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name=
 
 ## Club members
 
-# Get data (via web-scrapping)
+# Get data (via web-scraping)
 strava_club_members(club_ids=club_ids)
 
 # Update Google Sheets sheet
