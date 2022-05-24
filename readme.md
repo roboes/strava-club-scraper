@@ -22,7 +22,7 @@ This warning is not necessarily shown after 60 days of previous activities are l
 Strava has the ```num_entries``` URL query string (e.g. https://www.strava.com/dashboard?club_id=319098&feed_type=club&num_entries=1000), but still this variable does not load older activities to the feed.  
 This tool also requires that the athletes' activities to be scraped are either public or that the account that is scraping the club activities data has access to the activities to be scraped (by either following the athlete or by owning the activity).
 
-- Strava Club Leaderboard: the club leaderboards include only data for current and previous week; no historical data is provided by Strava.
+- Strava Club Leaderboard: the club leaderboards include only data for current and previous week; no historical data is provided by Strava. Additionally, club leaderboards display only the weekly top 100 members ([Source](https://support.strava.com/hc/en-us/articles/216918347-Clubs-on-Strava#:~:text=On%20the%20Strava%20website%2C%20club%20leaderboards%20will%20display%20the%20weekly%20top%20100%20members.%20On%20the%20mobile%20app%2C%20the%20top%2010%20members%20will%20appear%20on%20the%20weekly%20leaderboard.)).
 
 To avoid these limitations, this tool offers an integration to Google Sheets, updating club data for activities/leaderboard/members, overwriting current and previous week stats and incrementing/keeping the previous scraped data that cannot be accessed anymore in Strava Club.
 
