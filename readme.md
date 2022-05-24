@@ -20,11 +20,11 @@ Given that Strava does not offer an ```athlete id``` variable, athletes with the
 - Strava Club Activities scraper: the main drawback/limitation of this tool is that Strava's dashboard activity feed is very limited in the number of activities shown. Scrolling until the bottom of the page is not endless; after some scrolls the warning *"No more activity in the last 60 days. To see your full activity history, visit your Profile or Training Calendar."* is shown.
 This warning is not necessarily shown after 60 days of previous activities are loaded to the dashboard activity feed.
 Strava has the ```num_entries``` URL query string (e.g. https://www.strava.com/dashboard?club_id=319098&feed_type=club&num_entries=1000), but still this variable does not load older activities to the feed.  
-This tool also requires that the athletes' activities to be scrapped are either public or that the account that is scrapping the club activities data has access to the activities to be scrapped (by either following the athlete or by owning the activity).
+This tool also requires that the athletes' activities to be scraped are either public or that the account that is scraping the club activities data has access to the activities to be scraped (by either following the athlete or by owning the activity).
 
 - Strava Club Leaderboard: the club leaderboards include only data for current and previous week; no historical data is provided by Strava.
 
-To avoid these limitations, this tool offers an integration to Google Sheets, updating club data for activities/leaderboard/members, overwriting current and previous week stats and incrementing/keeping the previous scrapped data that cannot be accessed anymore in Strava Club.
+To avoid these limitations, this tool offers an integration to Google Sheets, updating club data for activities/leaderboard/members, overwriting current and previous week stats and incrementing/keeping the previous scraped data that cannot be accessed anymore in Strava Club.
 
 ## Usage
 
