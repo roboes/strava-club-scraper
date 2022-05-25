@@ -30,7 +30,7 @@ To avoid these limitations, this tool offers an integration to Google Sheets, up
 
 ### Python dependencies
 
-<code>python -m pip install python-dateutil google-api-python-client google-auth lxml numpy pandas pyjanitor selenium webdriver-manager</code>
+<code>python -m pip install python-dateutil geopy google-api-python-client google-auth lxml numpy pandas pyjanitor selenium webdriver-manager</code>
 
 ### Strava Settings
 
