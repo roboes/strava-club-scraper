@@ -271,7 +271,11 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
                     pass
 
                 # activity_location
-                d['activity_location'] = driver.find_element(by=By.XPATH, value=".//div[@class='details-container']//span[@class='location']").text
+                try:
+                    d['activity_location'] = driver.find_element(by=By.XPATH, value=".//div[@class='details-container']//span[@class='location']").text
+                    
+                except:
+                    pass
 
                 # Inline stats
                 inline_stats = driver.find_element(by=By.XPATH, value=".//ul[@class='inline-stats section']").text.split('\n')
@@ -333,79 +337,87 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
 
 
                 # More stats
-                more_stats = driver.find_element(by=By.XPATH, value=".//div[@class='section more-stats']").text
-                more_stats = re.sub(r'Show Less\n|Avg Max\n', r'', more_stats)
-                more_stats = re.sub(r'^Speed ', r'Average Speed\n', more_stats)
-                more_stats = re.sub(r'^Speed ', r'Average Speed\n', more_stats)
-                more_stats = re.sub(r'(km/h*?) ', r'\1\nMax Speed\n', more_stats)
-                more_stats = re.sub(r'(Calories|Elapsed Time|Temperature) ', r'\1\n', more_stats)
-                more_stats = more_stats.split('\n')
-                more_stats = convert_list_to_dictionary(more_stats)
+                try:
+                    more_stats = driver.find_element(by=By.XPATH, value=".//div[@class='section more-stats']").text
+                    more_stats = re.sub(r'Show Less\n|Avg Max\n', r'', more_stats)
+                    more_stats = re.sub(r'^Speed ', r'Average Speed\n', more_stats)
+                    more_stats = re.sub(r'^Speed ', r'Average Speed\n', more_stats)
+                    more_stats = re.sub(r'(km/h*?) ', r'\1\nMax Speed\n', more_stats)
+                    more_stats = re.sub(r'(Calories|Elapsed Time|Temperature) ', r'\1\n', more_stats)
+                    more_stats = more_stats.split('\n')
+                    more_stats = convert_list_to_dictionary(more_stats)
 
-                for item, value in more_stats.items():
-                    d[item] = value
+                    for item, value in more_stats.items():
+                        d[item] = value
 
-                    # average_speed
-                    try:
-                        d['Average Speed'] = re.sub(r'km/h$', r'', d['Average Speed'])
-                        d['Average Speed'] = float(d['Average Speed'])
-                        d['Average Speed'] = d['Average Speed']/3.6
+                        # average_speed
+                        try:
+                            d['Average Speed'] = re.sub(r'km/h$', r'', d['Average Speed'])
+                            d['Average Speed'] = float(d['Average Speed'])
+                            d['Average Speed'] = d['Average Speed']/3.6
 
-                    except:
-                        pass
+                        except:
+                            pass
 
-                    # elevation_gain
-                    try:
-                        d['Elevation'] = re.sub(r',', r'', d['Elevation'])
-                        d['Elevation'] = re.sub(r'm$', r'', d['Elevation'])
-                        d['Elevation'] = float(d['Elevation'])
+                        # elevation_gain
+                        try:
+                            d['Elevation'] = re.sub(r',', r'', d['Elevation'])
+                            d['Elevation'] = re.sub(r'm$', r'', d['Elevation'])
+                            d['Elevation'] = float(d['Elevation'])
 
-                    except:
-                        pass
+                        except:
+                            pass
 
-                    # max_speed
-                    try:
-                        d['Max Speed'] = re.sub(r'km/h$', r'', d['Max Speed'])
-                        d['Max Speed'] = float(d['Max Speed'])
-                        d['Max Speed'] = d['Max Speed']/3.6
+                        # max_speed
+                        try:
+                            d['Max Speed'] = re.sub(r'km/h$', r'', d['Max Speed'])
+                            d['Max Speed'] = float(d['Max Speed'])
+                            d['Max Speed'] = d['Max Speed']/3.6
 
-                    except:
-                        pass
-
-
-                    # calories
-                    try:
-                        d['Calories'] = re.sub(r',', r'', d['Calories'])
-                        d['Calories'] = re.sub(u'\u2014', 'NaN', d['Calories'])
-                        d['Calories'] = float(d['Calories'])
-
-                    except:
-                        pass
-
-                    # elapsed_time
-                    try:
-
-                        if len(d['Elapsed Time'].split(':')) == 1:
-                            d['Elapsed Time'] = re.sub(r'^([0-9]+)s$', r'00:00:\1', d['Elapsed Time'])
-
-                        if len(d['Elapsed Time'].split(':')) == 2:
-                            d['Elapsed Time'] = re.sub(r'^(.*)$', r'00:\1', d['Elapsed Time'])
-
-                    except:
-                        pass
-
-                    # temperature
-                    try:
-
-                        d['Temperature'] = re.sub(r'^([0-9]+).*', r'\1', d['Temperature'])
-                        d['Temperature'] = float(d['Temperature'])
+                        except:
+                            pass
 
 
-                    except:
-                        pass
+                        # calories
+                        try:
+                            d['Calories'] = re.sub(r',', r'', d['Calories'])
+                            d['Calories'] = re.sub(u'\u2014', 'NaN', d['Calories'])
+                            d['Calories'] = float(d['Calories'])
+
+                        except:
+                            pass
+
+                        # elapsed_time
+                        try:
+
+                            if len(d['Elapsed Time'].split(':')) == 1:
+                                d['Elapsed Time'] = re.sub(r'^([0-9]+)s$', r'00:00:\1', d['Elapsed Time'])
+
+                            if len(d['Elapsed Time'].split(':')) == 2:
+                                d['Elapsed Time'] = re.sub(r'^(.*)$', r'00:\1', d['Elapsed Time'])
+
+                        except:
+                            pass
+
+                        # temperature
+                        try:
+
+                            d['Temperature'] = re.sub(r'^([0-9]+).*', r'\1', d['Temperature'])
+                            d['Temperature'] = float(d['Temperature'])
+
+
+                        except:
+                            pass
+                            
+                except:
+                    pass
 
                 # activity_device
-                d['activity_device'] = driver.find_element(by=By.XPATH, value=".//div[@class='section device-section']//div[@class='device spans8']").text
+                try:
+                    d['activity_device'] = driver.find_element(by=By.XPATH, value=".//div[@class='section device-section']//div[@class='device spans8']").text
+                    
+                except:
+                    pass
 
                 # activity_kudos
                 d['activity_kudos'] = driver.find_element(by=By.XPATH, value=".//span[@class='count']").get_attribute("data-count")
@@ -843,63 +855,49 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
         ## Change dtypes
         df_import = df_import.replace(r'^\s*$', np.nan, regex=True)
 
-        # club_activities and club_leaderboard
-        try:
-            df_import = df_import.astype(dtype={'moving_time': 'float64', 'distance': 'float64', 'elevation_gain': 'float64'})
-
-        except:
-            pass
-
-
-        # club_activities
-        try:
-            df_import = df_import.astype(dtype={'elapsed_time': 'float64', 'max_speed': 'float64', 'average_speed': 'float64', 'pace': 'float64', 'calories': 'float64', 'activity_kudos': 'int64'})
-            df_import['activity_date'] = df_import['activity_date'].apply(parser.parse)
-
-            try:
-                df_import = df_import.astype(dtype={'distance_longest': 'float64'})
-
-            except:
-                pass
-
-        except:
-            pass
-
-
-        # club_leaderboard
-        try:
-            df_import = df_import.astype(dtype={'rank': 'int64', 'activities': 'int64'})
-            df_import['leaderboard_date_start'] = df_import['leaderboard_date_start'].apply(parser.parse)
-            df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(parser.parse)
-
-        except:
-            pass
-
-
-        # club_members
-        try:
-            df_import['join_date'] = df_import['join_date'].apply(parser.parse)
-
-        except:
-            pass
-
-
-        ## Delete Google Sheets dataframe rows present in club_activities, completely overwriting it
+        ## club_activities
         if 'activity_id' in df.columns:
+        
+            ## Change dtypes
+            df_import = df_import.astype(dtype={'elapsed_time': 'float64', 'moving_time': 'float64', 'distance': 'float64', 'max_speed': 'float64', 'average_speed': 'float64', 'elevation_gain': 'float64', 'pace': 'float64', 'calories': 'float64', 'activity_kudos': 'int64'})
+            df_import['activity_date'] = df_import['activity_date'].apply(parser.parse)
+        
+            ## Delete Google Sheets dataframe rows present in club_activities, completely overwriting it
             df_import = df_import.merge(df.filter(['club_id', 'activity_id']).drop_duplicates(), how='outer', on=['club_id', 'activity_id'], indicator=True)
             df_import = df_import.query('_merge=="left_only"')
             df_import = df_import.drop('_merge', axis=1)
 
 
-        ## Delete Google Sheets dataframe rows present in club_leaderboard, completely overwriting it
+        ## club_leaderboard
         if 'leaderboard_week' in df.columns:
+            
+            ## Change dtypes
+            df_import = df_import.astype(dtype={'rank': 'int64', 'activities': 'int64', 'moving_time': 'float64', 'distance': 'float64', 'elevation_gain': 'float64'})
+            df_import['leaderboard_date_start'] = df_import['leaderboard_date_start'].apply(parser.parse)
+            df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(parser.parse)
+            
+            try:
+                df_import = df_import.astype(dtype={'distance_longest': 'float64'})
+                
+            except:
+                pass
+            
+            ## Drop columns
+            df_import = df_import.drop(['athlete_location_country_code', 'athlete_picture'], axis=1)
+            
+            ## Delete Google Sheets dataframe rows present in club_leaderboard, completely overwriting it
             df_import = df_import.merge(df.filter(['club_id', 'leaderboard_week']).drop_duplicates(), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
             df_import = df_import.query('_merge=="left_only"')
             df_import = df_import.drop('_merge', axis=1)
 
 
-        ## Keep Google Sheets dataframe rows present in club_members, increment with new club members
+        ## club_members
         if 'athlete_location' in df.columns:
+        
+            ## Change dtypes
+            df_import['join_date'] = df_import['join_date'].apply(parser.parse)
+
+            ## Keep Google Sheets dataframe rows present in club_members, increment with new club members
             df = df.merge(df_import.filter(['club_id', 'athlete_id']).drop_duplicates(), how='outer', on=['club_id', 'athlete_id'], indicator=True)
             df = df.query('_merge=="left_only"')
             df = df.drop('_merge', axis=1)
