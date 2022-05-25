@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2022-05-24
+# Last update: 2022-05-25
 
 
 #########################
@@ -19,6 +19,7 @@ import sys
 import time
 
 from dateutil import parser, relativedelta
+from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import janitor
@@ -34,17 +35,21 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 ## Set working directory to user's 'Documents/Strava Club Activities' folder
 if sys.platform == 'win32':
-    os.chdir(os.path.join(os.path.expanduser('~'), 'Documents', 'Strava Club Activities'))
+    os.chdir(os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper'))
 
 
 ## Settings
 
 # Strava login
-strava_email = 'test@email.com'
-strava_password = 'Password12345'
+#strava_email = 'rg.roberto@outlook.com'
+#strava_password = 'Robertogb1'
+
+# Strava login
+strava_email = 'jaydupapsu@vusra.com'
+strava_password = 'Test1234'
 
 # Strava Clubs
-club_ids = ['319098']
+club_ids = ['1046739', '1050351']
 filter_activities_type = ['Ride', 'Run'] # Only for Strava Clubs with multiple sport types
 filter_date_min = '2022-05-09'
 filter_date_max = '2022-05-29'
@@ -53,7 +58,7 @@ filter_date_max = '2022-05-29'
 google_api_key = os.path.join(os.getcwd(), 'files', 'keys.json')
 
 # Google Sheets
-sheet_id = 'GOOGLE_SHEET_ID'
+sheet_id = '1wnNJ_uk65Ek5NWJVIbM4TH7wxgIkwnDBy9pDMi9wc6c'
 
 
 
@@ -756,6 +761,9 @@ def strava_club_members(club_ids):
                     # athlete_location
                     d['athlete_location'] = member.find_element(by=By.XPATH, value=".//div[@class='location']").text
 
+                    # athlete_picture
+                    d['athlete_picture'] = member.find_element(by=By.XPATH, value=".//img[@class='avatar-img']").get_attribute("src")
+
                     data.append(d)
 
 
@@ -780,13 +788,20 @@ def strava_club_members(club_ids):
 
     ## Create new variables
 
+    # athlete_location_country, athlete_location_country_code
+    club_members['athlete_location_country'] = club_members['athlete_location'].apply(lambda row: Nominatim(user_agent='http').geocode(query=row, language='en', exactly_one=True, addressdetails=True) if pd.notna(row) else pd.NA)
+
+    club_members['athlete_location_country_code'] = club_members['athlete_location_country'].apply(lambda row: row.raw.get('address').get('country_code') if pd.notna(row) else pd.NA)
+    club_members['athlete_location_country'] = club_members['athlete_location_country'].apply(lambda row: row.raw.get('address').get('country') if pd.notna(row) else pd.NA)
+
+
     # join_date: this assumes that the web-scraping is run every day
     club_members['join_date'] = datetime.now() - timedelta(1)
     club_members['join_date'] = club_members['join_date'].dt.floor('d')
 
 
     ## Rearrange columns
-    club_members = club_members.filter(['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'join_date'])
+    club_members = club_members.filter(['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country', 'athlete_location_country_code', 'join_date', 'athlete_picture'])
 
     ## Rarrange rows
     club_members = club_members.sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
@@ -812,6 +827,9 @@ def google_api_credentials():
 
 ### strava_club_to_google_sheets
 def strava_club_to_google_sheets(df, sheet_id, sheet_name):
+
+    ## Import or create global variables
+    global club_members
 
     ## Google API Credentials
     service = google_api_credentials()
@@ -913,6 +931,9 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
     ## club_leaderboard data transform
     if 'leaderboard_week' in df.columns:
 
+        ## Add 'athlete_location_country_code' and 'athlete_picture' variables
+        df_updated = df_updated.merge(club_members.filter(['club_id', 'athlete_id', 'athlete_location_country_code', 'athlete_picture']).drop_duplicates(), how='left', on=['club_id', 'athlete_id'], indicator=False)
+
         ## Change dtypes
         df_updated['leaderboard_date_start'] = df_updated['leaderboard_date_start'].dt.strftime('%Y-%m-%d')
         df_updated['leaderboard_date_end'] = df_updated['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
@@ -928,6 +949,9 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
         ## Change dtypes
         df_updated['join_date'] = df_updated['join_date'].dt.strftime('%Y-%m-%d')
         df_updated.fillna('', inplace=True)
+
+        ## Drop columns
+        df_updated = df_updated.drop(['athlete_location_country_code', 'athlete_picture'], axis=1)
 
         ## Rarrange rows
         df_updated = df_updated.sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
@@ -980,16 +1004,6 @@ strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='
 
 
 
-## Club leaderboard
-
-# Get data (via web-scraping)
-strava_club_leaderboard(club_ids=club_ids, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
-
-# Update Google Sheets sheet
-strava_club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name='Leaderboard')
-
-
-
 ## Club members
 
 # Get data (via web-scraping)
@@ -997,6 +1011,16 @@ strava_club_members(club_ids=club_ids)
 
 # Update Google Sheets sheet
 strava_club_to_google_sheets(df=club_members, sheet_id=sheet_id, sheet_name='Members')
+
+
+
+## Club leaderboard
+
+# Get data (via web-scraping)
+strava_club_leaderboard(club_ids=club_ids, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
+
+# Update Google Sheets sheet
+strava_club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name='Leaderboard')
 
 
 
