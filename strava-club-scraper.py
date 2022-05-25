@@ -33,23 +33,19 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-## Set working directory to user's 'Documents/Strava Club Activities' folder
+## Set working directory to user's 'Documents/Strava Club Scraper' folder
 if sys.platform == 'win32':
-    os.chdir(os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper'))
+    os.chdir(os.path.join(os.path.expanduser('~'), 'Documents', 'Strava Club Scraper'))
 
 
 ## Settings
 
 # Strava login
-#strava_email = 'rg.roberto@outlook.com'
-#strava_password = 'Robertogb1'
-
-# Strava login
-strava_email = 'jaydupapsu@vusra.com'
-strava_password = 'Test1234'
+strava_email = 'test@email.com'
+strava_password = 'Password12345'
 
 # Strava Clubs
-club_ids = ['1046739', '1050351']
+club_ids = ['319098']
 filter_activities_type = ['Ride', 'Run'] # Only for Strava Clubs with multiple sport types
 filter_date_min = '2022-05-09'
 filter_date_max = '2022-05-29'
@@ -58,7 +54,7 @@ filter_date_max = '2022-05-29'
 google_api_key = os.path.join(os.getcwd(), 'files', 'keys.json')
 
 # Google Sheets
-sheet_id = '1wnNJ_uk65Ek5NWJVIbM4TH7wxgIkwnDBy9pDMi9wc6c'
+sheet_id = 'GOOGLE_SHEET_ID'
 
 
 
