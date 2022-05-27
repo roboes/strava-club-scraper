@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2022-05-25
+# Last update: 2022-05-26
 
 
 #########################
@@ -273,7 +273,7 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
                 # activity_location
                 try:
                     d['activity_location'] = driver.find_element(by=By.XPATH, value=".//div[@class='details-container']//span[@class='location']").text
-                    
+
                 except:
                     pass
 
@@ -408,14 +408,14 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
 
                         except:
                             pass
-                            
+
                 except:
                     pass
 
                 # activity_device
                 try:
                     d['activity_device'] = driver.find_element(by=By.XPATH, value=".//div[@class='section device-section']//div[@class='device spans8']").text
-                    
+
                 except:
                     pass
 
@@ -602,12 +602,17 @@ def strava_club_leaderboard(club_ids, filter_date_min, filter_date_max):
 
 
         ## Rename columns
+        club_leaderboard_import = club_leaderboard_import.clean_names()
 
         if club_activity_type == 'Cycling':
-            club_leaderboard_import = club_leaderboard_import.rename(columns={'Rides': 'activities', 'Longest': 'distance_longest', 'Avg. Speed': 'average_speed'})
+            club_leaderboard_import = club_leaderboard_import.rename(columns={'rides': 'activities', 'longest': 'distance_longest', 'avg_speed': 'average_speed'})
+
 
         if club_activity_type == 'Running':
-            club_leaderboard_import = club_leaderboard_import.rename(columns={'Runs': 'activities', 'Avg. Pace': 'pace'})
+            club_leaderboard_import = club_leaderboard_import.rename(columns={'runs': 'activities', 'avg_pace': 'pace'})
+
+        if club_activity_type == 'Run/Walk/Hike':
+            pass
 
         ## Concatenate dataframes
         club_leaderboard = pd.concat(objs=[club_leaderboard, club_leaderboard_import], ignore_index=True, sort=False)
@@ -617,13 +622,7 @@ def strava_club_leaderboard(club_ids, filter_date_min, filter_date_max):
     ## Driver quit
     driver.quit()
 
-
-    ## Concatenate dataframes
-    #club_leaderboard = pd.concat(objs=[club_leaderboard, d], ignore_index=True, sort=False)
-
-
     ## Rename columns
-    club_leaderboard = club_leaderboard.clean_names()
     club_leaderboard = club_leaderboard.rename(columns={'athlete': 'athlete_name', 'time': 'moving_time', 'elev_gain': 'elevation_gain'})
 
 
@@ -857,11 +856,11 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
 
         ## club_activities
         if 'activity_id' in df.columns:
-        
+
             ## Change dtypes
             df_import = df_import.astype(dtype={'elapsed_time': 'float64', 'moving_time': 'float64', 'distance': 'float64', 'max_speed': 'float64', 'average_speed': 'float64', 'elevation_gain': 'float64', 'pace': 'float64', 'calories': 'float64', 'activity_kudos': 'int64'})
             df_import['activity_date'] = df_import['activity_date'].apply(parser.parse)
-        
+
             ## Delete Google Sheets dataframe rows present in club_activities, completely overwriting it
             df_import = df_import.merge(df.filter(['club_id', 'activity_id']).drop_duplicates(), how='outer', on=['club_id', 'activity_id'], indicator=True)
             df_import = df_import.query('_merge=="left_only"')
@@ -870,21 +869,21 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
 
         ## club_leaderboard
         if 'leaderboard_week' in df.columns:
-            
+
             ## Change dtypes
             df_import = df_import.astype(dtype={'rank': 'int64', 'activities': 'int64', 'moving_time': 'float64', 'distance': 'float64', 'elevation_gain': 'float64'})
             df_import['leaderboard_date_start'] = df_import['leaderboard_date_start'].apply(parser.parse)
             df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(parser.parse)
-            
+
             try:
                 df_import = df_import.astype(dtype={'distance_longest': 'float64'})
-                
+
             except:
                 pass
-            
+
             ## Drop columns
             df_import = df_import.drop(['athlete_location_country_code', 'athlete_picture'], axis=1)
-            
+
             ## Delete Google Sheets dataframe rows present in club_leaderboard, completely overwriting it
             df_import = df_import.merge(df.filter(['club_id', 'leaderboard_week']).drop_duplicates(), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
             df_import = df_import.query('_merge=="left_only"')
@@ -893,7 +892,7 @@ def strava_club_to_google_sheets(df, sheet_id, sheet_name):
 
         ## club_members
         if 'athlete_location' in df.columns:
-        
+
             ## Change dtypes
             df_import['join_date'] = df_import['join_date'].apply(parser.parse)
 
