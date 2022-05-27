@@ -46,7 +46,7 @@ strava_password = 'Password12345'
 
 # Strava Clubs
 club_ids = ['319098']
-filter_activities_type = ['E-Bike Ride', 'Ride', 'Run'] # Only for Strava Clubs with multiple sport types
+filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only for Strava Clubs with multiple sport types
 filter_date_min = '2022-05-09'
 filter_date_max = '2022-05-29'
 
