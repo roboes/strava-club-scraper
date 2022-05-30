@@ -44,7 +44,7 @@ And that your Strava display language is ```English (US)```. To change the langu
 
 ## Legal
 
-Please note that the use of this code/tool may not comply with [Strava's Terms of Service](https://www.strava.com/legal/terms) (especially the *"Distributing, or disclosing any part of the Services in any medium, including without limitation by any automated or non-automated “scraping”"* conduct term) and [Strava's API Agreement](https://www.strava.com/legal/api) (especially the *"You cannot use web scraping, web harvesting, or web data extraction methods to extract data from the Strava Platform"* term). Use it at your own risk.
+Please note that the use of this code/tool may not comply with [Strava's Terms of Service](https://www.strava.com/legal/terms) (especially the *"Distributing, or disclosing any part of the Services in any medium, including without limitation by any automated or non-automated “scraping”"* term) and [Strava's API Agreement](https://www.strava.com/legal/api) (especially the *"You cannot use web scraping, web harvesting, or web data extraction methods to extract data from the Strava Platform"* term). Use it at your own risk.
 
 ## See also
 
