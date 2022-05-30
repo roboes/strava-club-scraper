@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2022-05-26
+# Last update: 2022-05-30
 
 
 #########################
@@ -47,8 +47,8 @@ strava_password = 'Password12345'
 # Strava Clubs
 club_ids = ['319098']
 filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only for Strava Clubs with multiple sport types
-filter_date_min = '2022-05-09'
-filter_date_max = '2022-05-29'
+filter_date_min = '2022-05-30'
+filter_date_max = '2022-07-31'
 
 # Google API
 google_api_key = os.path.join(os.getcwd(), 'files', 'keys.json')
@@ -89,9 +89,9 @@ def selenium_webdriver():
     })
 
     # Webdriver
-    if sys.platform=='win32':
+    if sys.platform == 'win32':
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-    elif sys.platform=='linux' or sys.platform=='linux2':
+    elif sys.platform == 'linux' or sys.platform == 'linux2':
         chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-dev-shm-usage')
@@ -803,7 +803,7 @@ def strava_club_members(club_ids):
 
 
     # join_date: this assumes that the web-scraping is run every day
-    club_members['join_date'] = datetime.now() - timedelta(1)
+    club_members['join_date'] = datetime.now()
     club_members['join_date'] = club_members['join_date'].dt.floor('d')
 
 
