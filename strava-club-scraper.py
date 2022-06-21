@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2022-05-30
+# Last update: 2022-06-21
 
 
 #########################
@@ -199,7 +199,7 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
                 activities_id.append(activity_id)
 
                 try:
-                    activity_type = activity.find_element(by=By.XPATH, value=".//..//..//div[@class='Activity--entry-icon--RlkFx ']//*[local-name()='svg']").get_attribute("title")
+                    activity_type = activity.find_element(by=By.XPATH, value=".//..//..//div[@class='Activity--entry-icon--RlkFx ']//*[local-name()='title']").text
 
                     if activity_type not in filter_activities_type:
                         activities_id_remove.append(activity_id)
@@ -451,8 +451,11 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
     club_activities['moving_time'] = pd.to_timedelta(club_activities['moving_time'].astype(str)).dt.total_seconds()
 
     # pace
-    club_activities['pace'] = pd.to_datetime(club_activities['pace'], format='%H:%M:%S').dt.time
-    club_activities['pace'] = pd.to_timedelta(club_activities['pace'].astype(str)).dt.total_seconds()
+    try:
+        club_activities['pace'] = pd.to_datetime(club_activities['pace'], format='%H:%M:%S').dt.time
+        club_activities['pace'] = pd.to_timedelta(club_activities['pace'].astype(str)).dt.total_seconds()
+    except:
+        pass
 
 
     ## Rearrange columns
@@ -986,11 +989,11 @@ def execution_time_to_google_sheets(sheet_id, sheet_name):
 # Get data (via web-scraping)
 strava_club_activities(club_ids=club_ids, filter_activities_type=filter_activities_type, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
 
-# Save as .csv
-# club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', index=False, encoding='utf8')
-
 # Update Google Sheets sheet
 strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='Activities')
+
+# Save as .csv
+# club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', index=False, encoding='utf8')
 
 # Export club activities to .gpx files
 # strava_export_gpx(activities=club_activities['activity_id'])
