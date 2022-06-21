@@ -211,10 +211,10 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
         activities_id = list(set(activities_id))
         activities_id = sorted(activities_id)
 
-        activities_id_remove = list(set(activities_id_remove))
-        activities_id_remove = sorted(activities_id_remove)
+        #activities_id_remove = list(set(activities_id_remove))
+        #activities_id_remove = sorted(activities_id_remove)
 
-        activities_id = [x for x in activities_id if x not in activities_id_remove]
+        #activities_id = [x for x in activities_id if x not in activities_id_remove]
 
 
         for activity in activities_id:
