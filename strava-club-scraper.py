@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2022-06-21
+# Last update: 2022-07-10
 
 
 #########################
@@ -45,8 +45,10 @@ strava_email = 'test@email.com'
 strava_password = 'Password12345'
 
 # Strava Clubs
-club_ids = ['319098']
-filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only for Strava Clubs with multiple sport types
+club_id_cycling = '445017' # E-Bike Ride, Ride
+club_id_run_walk_hike = '1045852' # Run, Walk, Hike
+club_ids = [club_id_cycling, club_id_run_walk_hike]
+filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only necessarily for Strava Clubs with multiple sport types
 filter_date_min = '2022-05-30'
 filter_date_max = '2022-07-31'
 
@@ -130,6 +132,7 @@ def strava_login():
 
 
 ### strava_club_activities
+# Scrap individual activities from members of a Strava Club
 def strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter_date_max):
 
     ## Extract stats
@@ -420,7 +423,7 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
                     pass
 
                 # activity_kudos
-                d['activity_kudos'] = driver.find_element(by=By.XPATH, value=".//span[@class='count']").get_attribute("data-count")
+                d['activity_kudos'] = driver.find_element(by=By.XPATH, value=".//span[@data-testid='kudos_count']").text
                 d['activity_kudos'] = int(d['activity_kudos'])
 
                 data.append(d)
@@ -476,6 +479,7 @@ def strava_club_activities(club_ids, filter_activities_type, filter_date_min, fi
 
 
 ### strava_export_gpx
+# For a list of activity_id, export the .gpx file
 def strava_export_gpx(activities):
 
     ## Strava login
@@ -491,6 +495,7 @@ def strava_export_gpx(activities):
 
 
 ### strava_club_leaderboard
+# Scrap current and previous Strava Club activities leaderboard
 def strava_club_leaderboard(club_ids, filter_date_min, filter_date_max):
 
     ## Extract stats
@@ -706,7 +711,65 @@ def strava_club_leaderboard(club_ids, filter_date_min, filter_date_max):
 
 
 
+### strava_club_leaderboard_manual
+# For members that joined the challenge later, manually scrap inividual activities and group them by week
+def strava_club_leaderboard_manual():
+
+    ## Import or create global variables
+    global club_leaderboard
+    global club_leaderboard_manual
+
+    club_leaderboard_manual = club_activities
+
+    ## Create new variables
+
+    # club_id
+    club_leaderboard_manual['club_id'] = np.where(club_leaderboard_manual['activity_type'].isin(['E-Bike Ride', 'Ride']), club_id_cycling,
+                                         np.where(club_leaderboard_manual['activity_type'].isin(['Hike', 'Run', 'Walk']), club_id_run_walk_hike, pd.NA))
+
+    # club_name
+    club_leaderboard_manual['club_name'] = np.where(club_leaderboard_manual['club_id'] == club_id_cycling, 'Strava Club (Cycling)',
+                                           np.where(club_leaderboard_manual['club_id'] == club_id_run_walk_hike, 'Strava Club (Run, Walk and Hike)', pd.NA))
+
+    # club_activity_type
+    club_leaderboard_manual['club_activity_type'] = np.where(club_leaderboard_manual['club_id'] == club_id_cycling, 'Cycling',
+                                                    np.where(club_leaderboard_manual['club_id'] == club_id_run_walk_hike, 'Run/Walk/Hike', pd.NA))
+
+    # club_location
+    club_leaderboard_manual['club_location'] = np.where(club_leaderboard_manual['club_id'] == club_id_cycling, 'Club Location',
+                                               np.where(club_leaderboard_manual['club_id'] == club_id_run_walk_hike, 'Club Location', pd.NA))
+
+    # leaderboard_date_start
+    club_leaderboard_manual['leaderboard_date_start'] = club_leaderboard_manual.apply(lambda x: x['activity_date'] + relativedelta.relativedelta(weekday=relativedelta.MO(-1)), axis=1)
+    club_leaderboard_manual['leaderboard_date_start'] = club_leaderboard_manual['leaderboard_date_start'].dt.floor('d')
+
+    # leaderboard_date_end
+    club_leaderboard_manual['leaderboard_date_end'] = club_leaderboard_manual.apply(lambda x: x['activity_date'] + relativedelta.relativedelta(weekday=relativedelta.MO(-1)) + relativedelta.relativedelta(weekday=relativedelta.SU(+1)), axis=1)
+    club_leaderboard_manual['leaderboard_date_end'] = club_leaderboard_manual['leaderboard_date_end'].dt.floor('d')
+
+    # leaderboard_week
+    club_leaderboard_manual['leaderboard_week'] = club_leaderboard_manual['leaderboard_date_start'].dt.strftime('%Y-%m-%d')+' to '+club_leaderboard_manual['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
+
+    # rank
+    club_leaderboard_manual['rank'] = 999
+
+
+    ## Aggregate variables
+    club_leaderboard_manual = club_leaderboard_manual.groupby(['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name'], as_index=False).agg({'activity_id': 'nunique', 'moving_time': 'sum', 'distance': 'sum', 'elevation_gain': 'sum', 'pace': 'mean'})
+
+    ## Rename columns
+    club_leaderboard_manual = club_leaderboard_manual.rename(columns={'activity_id': 'activities'})
+
+    ## Rearrange columns
+    club_leaderboard_manual = club_leaderboard_manual.filter(['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'pace'])
+
+    ## Return objects
+    return club_leaderboard_manual
+
+
+
 ### strava_club_members
+# Scrap list of members that joined a Strava Club
 def strava_club_members(club_ids):
 
     ## Import or create global variables
