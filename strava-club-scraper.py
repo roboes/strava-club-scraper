@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-05-24
+# Last update: 2023-05-25
 
 
 ###############
@@ -24,6 +24,7 @@ from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from janitor import clean_names
+# import lxml
 import lxml.html as lh
 import numpy as np
 import pandas as pd
@@ -87,7 +88,7 @@ def selenium_webdriver():
 
     # Webdriver download settings
     chrome_options.add_experimental_option('prefs', {
-        'download.default_directory': os.path.join(os.path.join(os.getcwd(), 'activities')),
+        'download.default_directory': os.path.join(os.path.expanduser('~'), 'Downloads'),
         'download.prompt_for_download': False,
         'profile.default_content_setting_values.automatic_downloads': 1,
     })
@@ -571,16 +572,16 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
 
 # Strava export to .gpx - for a list of activity_id, export the .gpx file
-def strava_export_gpx(*, activities):
+def strava_export_gpx(*, activities_id):
 
     # Strava login
     driver = strava_login()
 
 
     # Export .gpx files
-    for index, row in activities.iterrows():
+    for activity_id in activities_id:
 
-        driver.get('https://www.strava.com/activities/' + row['activity_id'] + '/export_gpx')
+        driver.get('https://www.strava.com/activities/' + str(activity_id) + '/export_gpx')
 
         # time.sleep(3)
 
@@ -1239,10 +1240,10 @@ strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='
 # club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf8')
 
 # Export club activities to .gpx files
-# club_activities = pd.read_excel(io='Activities.xlsx', sheet_name='Activities', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='openpyxl')
+# club_activities = pd.read_csv(filepath_or_buffer='activities.csv', sep=',', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='python', encoding='utf8')
 # club_activities = club_activities.astype(dtype={'activity_id': 'str'})
 # club_activities_sample = club_activities.loc[club_activities['activity_type'].isin(['Ride', 'E-Bike Ride', 'Run', 'Walk', 'Hike'])]
-# strava_export_gpx(activities=club_activities_sample)
+# strava_export_gpx(activities_id=club_activities_sample['activity_id'])
 
 
 
