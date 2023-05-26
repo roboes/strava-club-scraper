@@ -30,6 +30,11 @@ To avoid these limitations, this tool offers an integration to Google Sheets, up
 
 # Usage
 
+## Use case
+
+Strava allows users to create a [Group Challenge](https://support.strava.com/hc/en-us/articles/360061360791-Group-Challenges), which is limited to up to 25 participants. To circumvent this limitation, one possible use case is to create one or multiple Strava Clubs (e.g. Cycling, Run/Walk/Hike), adapt this script to update/increment an existing Google Sheets sheet with the club(s) activities, leaderboard and members information data. The script can be set up to run automatically on a daily/weekly basis. The Google Sheets can then be connected to a dashboard tool (e.g. Google Data Studio, Microsoft PowerBI).
+
+
 ## Strava settings
 
 This tool assumes that [Strava's Display Preferences](https://www.strava.com/settings/display) are set to:  
@@ -55,7 +60,7 @@ strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter
 ```
 
 #### Description
-- Scraps and imports activities belonging to a Strava Club (public activities or activities that the account that is scraping the data has acccess to) to a dataset.
+- Scraps and imports activities belonging to a Strava Club (public activities or activities that the account that is scraping the data has access to) to a dataset.
 
 #### Parameters
 - `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids = ['445017', '1045852']`).
@@ -125,7 +130,7 @@ execution_time_to_google_sheets(sheet_id, sheet_name)
 ### strava_export_gpx
 
 ```.py
-strava_export_gpx(activities_id):
+strava_export_gpx(activities_id)
 ```
 
 #### Description
@@ -133,11 +138,6 @@ strava_export_gpx(activities_id):
 
 #### Parameters
 - `activities_id`: *int list* or *str list*. List of activity_id to be exported to .gpx (e.g. `activities_id=[696657036, 696657037]`). 
-
-
-## Use case
-
-Strava allows users to create a [Group Challenge](https://support.strava.com/hc/en-us/articles/360061360791-Group-Challenges), which is limited to up to 25 participants. To circumvent this limitation, one possible use case is to create one or multiple Strava Clubs (e.g. Cycling, Run/Walk/Hike), adapt this script to update/increment an existing Google Sheets sheet with the club(s) activities, leaderboard and members information data. The script can be set up to run automatically on a daily/weekly basis. The Google Sheets can then be connected to a dashboard tool (e.g. Google Data Studio, Microsoft PowerBI).
 
 
 # Legal
