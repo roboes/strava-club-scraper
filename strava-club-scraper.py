@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-05-25
+# Last update: 2023-05-29
 
 
 ###############
@@ -46,9 +46,9 @@ strava_email = 'test@email.com'
 strava_password = 'Password12345'
 
 # Strava Clubs
-club_id_cycling = '445017' # E-Bike Ride, Ride
-club_id_run_walk_hike = '1045852' # Run, Walk, Hike
-club_ids = [club_id_cycling, club_id_run_walk_hike]
+club_ids = ['445017', # E-Bike Ride, Ride
+    '1045852', # Run, Walk, Hike
+    '789955'] # Multisport
 filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only necessarily for Strava Clubs with multiple sport types
 filter_date_min = '2023-06-05'
 filter_date_max = '2023-07-30'
@@ -88,7 +88,6 @@ def selenium_webdriver():
 
     # Webdriver download settings
     chrome_options.add_experimental_option('prefs', {
-        'download.default_directory': os.getcwd(),
         'download.prompt_for_download': False,
         'profile.default_content_setting_values.automatic_downloads': 1,
     })
@@ -105,7 +104,7 @@ def selenium_webdriver():
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('window-size=1400,900')
         chrome_options.add_argument('--start-maximized')
-        driver = webdriver.Chrome(service=Service(os.environ.get('CHROMEDRIVER_PATH')), options=chrome_options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 
     # Return objects
@@ -787,8 +786,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
         club_leaderboard['moving_time'] = club_leaderboard['moving_time'].str.replace(pat=r'^([0-9]+m)$', repl=r'00:\1', regex=True)
         club_leaderboard['moving_time'] = club_leaderboard['moving_time'].str.replace(pat=r'h ', repl=r':', regex=True)
         club_leaderboard['moving_time'] = club_leaderboard['moving_time'].str.replace(pat=r'm$', repl=r'', regex=True)
-        club_leaderboard['moving_time'] = pd.to_datetime(club_leaderboard['moving_time'], format='%H:%M').dt.time
-        club_leaderboard['moving_time'] = pd.to_timedelta(club_leaderboard['moving_time'].astype(dtype='str')).dt.total_seconds()
+        club_leaderboard['moving_time'] = club_leaderboard['moving_time'].apply(lambda row: float(row.split(sep=':')[0])*3600 + float(row.split(sep=':')[1])*60)
 
     # pace
     if 'pace' in club_leaderboard.columns:
@@ -796,7 +794,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
         club_leaderboard['pace'] = club_leaderboard['pace'].astype(dtype='str')
 
         club_leaderboard['pace'] = club_leaderboard['pace'].str.replace(pat=r' /km$', repl=r'', regex=True)
-        club_leaderboard['pace'] = club_leaderboard['pace'].apply(lambda x: re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:\1', string=x) if(len(x.split(sep=':')) == 1) else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=x), axis=1)
+        club_leaderboard['pace'] = club_leaderboard['pace'].apply(lambda row: re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:\1', string=row) if(len(row.split(sep=':')) == 1) else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row), axis=1)
 
         club_leaderboard['pace'] = pd.to_datetime(club_leaderboard['pace'], format='%H:%M:%S').dt.time
         club_leaderboard['pace'] = pd.to_timedelta(club_leaderboard['pace'].astype(dtype='str')).dt.total_seconds()
@@ -1210,7 +1208,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
 
 # Execution time to Google Sheets
-def execution_time_to_google_sheets(*, sheet_id, sheet_name):
+def execution_time_to_google_sheets(*, timezone='CET', sheet_id, sheet_name):
 
     # Google API Credentials
     service = google_api_credentials()
@@ -1219,7 +1217,7 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name):
     service.spreadsheets().values().clear(spreadsheetId=sheet_id, range=sheet_name, body={}).execute()
 
     # Upload/Overwrite DataFrame stored in Google Sheets
-    service.spreadsheets().values().update(spreadsheetId=sheet_id, range=sheet_name, valueInputOption='USER_ENTERED', body={'values': [['last_execution'], [str(datetime.now().replace(microsecond=0))]]}).execute()
+    service.spreadsheets().values().update(spreadsheetId=sheet_id, range=sheet_name, valueInputOption='USER_ENTERED', body={'values': [['last_execution'], [str(pd.Timestamp.now(tz=timezone).replace(microsecond=0, tzinfo=None))]]}).execute()
 
 
 
@@ -1270,4 +1268,4 @@ strava_club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name=
 ## Store execution time in Google Sheets
 
 # Update Google Sheets sheet
-execution_time_to_google_sheets(sheet_id=sheet_id, sheet_name='Execution Time')
+execution_time_to_google_sheets(timezone='CET', sheet_id=sheet_id, sheet_name='Execution Time')

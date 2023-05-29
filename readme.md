@@ -115,13 +115,14 @@ strava_club_to_google_sheets(df, sheet_id, sheet_name)
 
 ### execution_time_to_google_sheets
 ```.py
-execution_time_to_google_sheets(sheet_id, sheet_name)
+execution_time_to_google_sheets(timezone='CET', sheet_id, sheet_name)
 ```
 
 #### Description
 - Update a Google Sheet sheet given the current time that the code was executed.
 
 #### Parameters
+- `timezone`: *str or timezone object*. default: *'CET'*.
 - `sheet_id`: *str*. Google Sheets file id.
 - `sheet_name`: *str*. Google Sheets sheet/tab where the data should be updated/incremented.
 
