@@ -32,7 +32,7 @@ To avoid these limitations, this tool offers an integration to Google Sheets, up
 
 ## Use case
 
-Strava allows users to create a [Group Challenge](https://support.strava.com/hc/en-us/articles/360061360791-Group-Challenges), which is limited to up to 25 participants. To circumvent this limitation, one possible use case is to create one or multiple Strava Clubs (e.g. Cycling, Run/Walk/Hike), adapt this script to update/increment an existing Google Sheets sheet with the club(s) activities, leaderboard and members information data. The script can be set up to run automatically on a daily/weekly basis. The Google Sheets can then be connected to a dashboard tool (e.g. Google Data Studio, Microsoft PowerBI).
+Strava allows users to create a [Group Challenge](https://support.strava.com/hc/en-us/articles/360061360791-Group-Challenges), which is limited to up to 25 participants. To circumvent this limitation, one possible use case is to create one or multiple Strava Clubs (e.g. Cycling, Run/Walk/Hike), adapt this script to update/increment an existing Google Sheets sheet with the club(s) activities, leaderboard and members information data. The script can be set up to run automatically on a daily/weekly basis in cloud platform services like [Railway](https://railway.app) (a Dockerfile template and a crontab scheduler configuration file template can be found in this repository). The Google Sheets can then be connected to a dashboard tool (e.g. Google Data Studio, Microsoft PowerBI).
 
 
 ## Strava settings

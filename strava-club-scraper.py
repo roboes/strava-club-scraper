@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-05-29
+# Last update: 2023-05-30
 
 
 ###############
@@ -36,7 +36,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 # Set working directory
-os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads'))
+if sys.platform == 'win32' or sys.platform == 'darwin':
+    os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads'))
 
 
 # Settings
@@ -49,7 +50,7 @@ strava_password = 'Password12345'
 club_ids = ['445017', # E-Bike Ride, Ride
     '1045852', # Run, Walk, Hike
     '789955'] # Multisport
-filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only necessarily for Strava Clubs with multiple sport types
+filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only necessary for Strava Clubs with multiple sport types
 filter_date_min = '2023-06-05'
 filter_date_max = '2023-07-30'
 
@@ -88,23 +89,21 @@ def selenium_webdriver():
 
     # Webdriver download settings
     chrome_options.add_experimental_option('prefs', {
+        # 'download.default_directory': os.path.join(os.path.expanduser('~'), 'Downloads'),
         'download.prompt_for_download': False,
         'profile.default_content_setting_values.automatic_downloads': 1,
     })
 
 
     # Webdriver
-    if sys.platform == 'win32' or sys.platform == 'darwin':
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-
-    elif sys.platform == 'linux' or sys.platform == 'linux2':
-        chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
+    if sys.platform == 'linux' or sys.platform == 'linux2':
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('window-size=1400,900')
         chrome_options.add_argument('--start-maximized')
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 
     # Return objects
@@ -761,6 +760,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
 
     # distance
     if 'distance' in club_leaderboard.columns:
+        club_leaderboard['distance'] = club_leaderboard['distance'].str.replace(pat=r'^--$', repl=r'0 km', regex=True)
         club_leaderboard['distance'] = club_leaderboard['distance'].str.replace(pat=r',', repl=r'', regex=True)
         club_leaderboard['distance'] = club_leaderboard['distance'].str.replace(pat=r' km$', repl=r'', regex=True)
         club_leaderboard['distance'] = club_leaderboard['distance'].astype(dtype='float')
@@ -775,7 +775,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
 
     # elevation_gain
     if 'elevation_gain' in club_leaderboard.columns:
-        club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].str.replace(pat=r'--', repl=r'0 m', regex=True)
+        club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].str.replace(pat=r'^--$', repl=r'0 m', regex=True)
         club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].str.replace(pat=r',', repl=r'', regex=True)
         club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].str.replace(pat=r' m$', repl=r'', regex=True)
         club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].astype(dtype='float')
@@ -1229,10 +1229,10 @@ def execution_time_to_google_sheets(*, timezone='CET', sheet_id, sheet_name):
 ## Club activities
 
 # Get data (via web-scraping)
-strava_club_activities(club_ids=club_ids, filter_activities_type=filter_activities_type, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
+# strava_club_activities(club_ids=club_ids, filter_activities_type=filter_activities_type, filter_date_min=filter_date_min, filter_date_max=filter_date_max)
 
 # Update Google Sheets sheet
-strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='Activities')
+# strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='Activities')
 
 # Save as .csv
 # club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf8')

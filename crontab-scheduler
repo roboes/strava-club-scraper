@@ -1,0 +1,5 @@
+00 10 * * * cd / && /usr/local/bin/python strava-club-scraper.py 2>&1
+
+00 17 * * * cd / && /usr/local/bin/python strava-club-scraper.py 2>&1
+
+30 21 * * * cd / && /usr/local/bin/python strava-club-scraper.py 2>&1
