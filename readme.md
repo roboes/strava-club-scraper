@@ -32,7 +32,7 @@ To avoid these limitations, this tool offers an integration to Google Sheets, up
 
 ## Use case
 
-Strava allows users to create a [Group Challenge](https://support.strava.com/hc/en-us/articles/360061360791-Group-Challenges), which is limited to up to 25 participants. To circumvent this limitation, one possible use case is to create one or multiple Strava Clubs (e.g. Cycling, Run/Walk/Hike), adapt this script to update/increment an existing Google Sheets sheet with the club(s) activities, leaderboard and members information data. The script can be set up to run automatically on a daily/weekly basis in cloud platform services like [Railway](https://railway.app) (a Dockerfile template and a crontab scheduler configuration file template can be found in this repository). The Google Sheets can then be connected to a dashboard tool (e.g. Google Data Studio, Microsoft PowerBI).
+Strava allows users to create a [Group Challenge](https://support.strava.com/hc/en-us/articles/360061360791-Group-Challenges), which is limited to up to 25 participants. To circumvent this limitation, one possible use case is to create one or multiple Strava Clubs (e.g. Cycling, Multisport, Run/Walk/Hike), adapt this script to update/increment an existing Google Sheets sheet with the club(s) activities, leaderboard and members information data. The script can be set up to run automatically on a daily/weekly basis in cloud platform services like [Railway](https://railway.app) (a Dockerfile template and a crontab scheduler configuration file template can be found in this repository). To connect the script to a Google Sheets file, a [Google Sheets API](https://console.cloud.google.com/apis/library/sheets.googleapis.com) .json key is required and the file needs to be shared with a [Service Account email address](https://cloud.google.com/iam/docs/service-account-overview). The Google Sheets can then be connected to a dashboard tool (e.g. Google Data Studio, Microsoft PowerBI).
 
 
 ## Strava settings
@@ -63,10 +63,10 @@ strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter
 - Scraps and imports activities belonging to a Strava Club (public activities or activities that the account that is scraping the data has access to) to a dataset.
 
 #### Parameters
-- `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids = ['445017', '1045852']`).
-- `filter_activities_type`: *str list*. List of activities type filter (e.g. `filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk']`).
-- `filter_date_min`: *str*. Start date filter (e.g. `filter_date_min = '2023-06-05'`).
-- `filter_date_max`: *str*. End date filter (e.g. `filter_date_max = '2023-07-30'`).
+- `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
+- `filter_activities_type`: *str list*. List of activities type filter (e.g. `filter_activities_type=['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk']`).
+- `filter_date_min`: *str*. Start date filter (e.g. `filter_date_min='2023-06-05'`).
+- `filter_date_max`: *str*. End date filter (e.g. `filter_date_max='2023-07-30'`).
 
 <br>
 
@@ -79,7 +79,7 @@ strava_club_members(club_ids)
 - Scraps and imports members of a Strava Club to a dataset.
 
 #### Parameters
-- `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids = ['445017', '1045852']`).
+- `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
 
 <br>
 
@@ -92,9 +92,9 @@ strava_club_leaderboard(club_ids, filter_date_min, filter_date_max)
 - Scraps and imports leaderboard of a Strava Club to a dataset.
 
 #### Parameters
-- `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids = ['445017', '1045852']`).
-- `filter_date_min`: *str*. Start date filter (e.g. `filter_date_min = '2023-06-05'`).
-- `filter_date_max`: *str*. End date filter (e.g. `filter_date_max = '2023-07-30'`).
+- `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
+- `filter_date_min`: *str*. Start date filter (e.g. `filter_date_min='2023-06-05'`).
+- `filter_date_max`: *str*. End date filter (e.g. `filter_date_max='2023-07-30'`).
 
 <br>
 
@@ -139,6 +139,19 @@ strava_export_gpx(activities_id)
 
 #### Parameters
 - `activities_id`: *int list* or *str list*. List of activity_id to be exported to .gpx (e.g. `activities_id=[696657036, 696657037]`). 
+
+<br>
+
+### selenium_webdriver_quit
+```.py
+selenium_webdriver_quit()
+```
+
+#### Description
+- Terminates the WebDriver session.
+
+#### Parameters
+- None.
 
 
 # Legal

@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-05-30
+# Last update: 2023-05-31
 
 
 ###############
@@ -43,22 +43,22 @@ if sys.platform == 'win32' or sys.platform == 'darwin':
 # Settings
 
 # Strava login
-strava_email = 'test@email.com'
-strava_password = 'Password12345'
+strava_email='test@email.com'
+strava_password='Password12345'
 
 # Strava Clubs
-club_ids = ['445017', # E-Bike Ride, Ride
-    '1045852', # Run, Walk, Hike
-    '789955'] # Multisport
-filter_activities_type = ['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only necessary for Strava Clubs with multiple sport types
-filter_date_min = '2023-06-05'
-filter_date_max = '2023-07-30'
+club_ids=['445017', # E-Bike Ride, Ride
+    '789955', # Multisport
+    '1045852'] # Run, Walk, Hike
+filter_activities_type=['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only necessary for Strava Clubs with multiple sport types
+filter_date_min='2023-06-05'
+filter_date_max='2023-07-30'
 
 # Google API
-google_api_key = os.path.join(os.getcwd(), 'files', 'keys.json')
+google_api_key=os.path.join(os.getcwd(), 'files', 'keys.json')
 
 # Google Sheets
-sheet_id = 'GOOGLE_SHEET_ID'
+sheet_id='GOOGLE_SHEET_ID'
 
 
 
@@ -111,36 +111,61 @@ def selenium_webdriver():
 
 
 
+# Selenium webdriver quit
+def selenium_webdriver_quit():
+
+        # Import or create global variables
+        global driver
+
+
+        # Driver quit
+        driver.quit()
+
+
+        # Delete objects
+        del driver
+
+
+
 # Strava login
 def strava_login():
 
+    # Import or create global variables
+    global driver
+
+
     # Load Selenium webdriver
-    driver = selenium_webdriver()
+    if 'driver' in vars() or 'driver' in globals():
+        if driver.service.is_connectable() == True:
+            pass
+
+    else:
+        driver = selenium_webdriver()
 
 
-    # Open website
-    driver.get('https://www.strava.com/login')
-    time.sleep(2)
+        # Open website
+        driver.get('https://www.strava.com/login')
+        time.sleep(2)
 
 
-    # Reject cookies
-    try:
-        driver.find_element(by=By.XPATH, value='.//button[@class="btn-deny-cookie-banner"]').click()
+        # Reject cookies
+        try:
+            driver.find_element(by=By.XPATH, value='.//button[@class="btn-deny-cookie-banner"]').click()
 
-    except NoSuchElementException:
-        pass
-
-
-    # Login
-    driver.find_element(by=By.ID, value='email').send_keys(strava_email)
-    driver.find_element(by=By.ID, value='password').send_keys(strava_password)
-    time.sleep(2)
-
-    driver.find_element(by=By.XPATH, value='.//*[@type="submit"]').submit()
+        except NoSuchElementException:
+            pass
 
 
-    # Return objects
-    return driver
+        # Login
+        driver.find_element(by=By.ID, value='email').send_keys(strava_email)
+        driver.find_element(by=By.ID, value='password').send_keys(strava_password)
+        time.sleep(2)
+
+        driver.find_element(by=By.XPATH, value='.//*[@type="submit"]').submit()
+
+
+        # Return objects
+        return driver
 
 
 
@@ -159,6 +184,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
     # Import or create global variables
     global club_activities
+    global driver
 
 
     # Settings and variables
@@ -167,7 +193,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
 
     # Strava login
-    driver = strava_login()
+    strava_login()
 
 
     data = []
@@ -515,10 +541,6 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
                 pass
 
 
-    # Driver quit
-    driver.quit()
-
-
     # Create DataFrame
     club_activities = (pd.DataFrame(data=data, index=None, dtype=None)
 
@@ -572,8 +594,12 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 # Strava export to .gpx - for a list of activity_id, export the .gpx file
 def strava_export_gpx(*, activities_id):
 
+    # Import or create global variables
+    global driver
+
+
     # Strava login
-    driver = strava_login()
+    strava_login()
 
 
     # Export .gpx files
@@ -589,10 +615,6 @@ def strava_export_gpx(*, activities_id):
         # os.rename(src=latest_file, dst=latest_file_new_filename)
 
 
-    # Driver quit
-    driver.quit()
-
-
 
 # Strava Club leaderboard - scrap current and previous Strava Club activities leaderboard
 def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
@@ -606,6 +628,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
 
     # Import or create global variables
     global club_leaderboard
+    global driver
 
 
     # Settings and variables
@@ -614,10 +637,10 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
 
 
     # Strava login
-    driver = strava_login()
+    strava_login()
 
 
-    club_leaderboard = pd.DataFrame(data=[], index=None, dtype='object')
+    club_leaderboard = pd.DataFrame(data=None, index=None, dtype='object')
 
     for club_id in club_ids:
 
@@ -643,7 +666,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
         try:
             driver.find_element(by=By.XPATH, value='//div[@class="leaderboard"]//h4[@class="empty-results"]').text
 
-            club_leaderboard_import = pd.DataFrame(data=[], index=None, dtype='object')
+            club_leaderboard_import = pd.DataFrame(data=None, index=None, dtype='object')
 
 
         except NoSuchElementException:
@@ -673,7 +696,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
         try:
             driver.find_element(by=By.XPATH, value='//div[@class="leaderboard"]//h4[@class="empty-results"]').text
 
-            club_leaderboard_import = pd.DataFrame(data=[], index=None, dtype='object')
+            club_leaderboard_import = pd.DataFrame(data=None, index=None, dtype='object')
 
 
         except NoSuchElementException:
@@ -734,10 +757,6 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
 
         # Concatenate DataFrames
         club_leaderboard = pd.concat(objs=[club_leaderboard, club_leaderboard_import], axis=0, ignore_index=True, sort=False)
-
-
-    # Driver quit
-    driver.quit()
 
 
     # Rename columns
@@ -887,6 +906,7 @@ def strava_club_members(*, club_ids):
 
     # Import or create global variables
     global club_members
+    global driver
 
 
     # Settings and variables
@@ -895,7 +915,7 @@ def strava_club_members(*, club_ids):
 
 
     # Strava login
-    driver = strava_login()
+    strava_login()
 
 
     data = []
@@ -964,10 +984,6 @@ def strava_club_members(*, club_ids):
                 break
 
 
-    # Driver quit
-    driver.quit()
-
-
     # Create DataFrame
     club_members = (pd.DataFrame(data=data, index=None, dtype=None)
 
@@ -975,7 +991,7 @@ def strava_club_members(*, club_ids):
         .assign(athlete_location = lambda row: row['athlete_location'].mask(row['athlete_location'] == ''))
 
         # Remove duplicate rows
-        .drop_duplicates(keep='first', ignore_index=True)
+        .drop_duplicates(subset=None, keep='first', ignore_index=True)
 
     )
 
@@ -1069,7 +1085,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             df_import = (df_import
 
                 # Outer join 'df'
-                .merge(df.filter(items=['club_id', 'activity_id']).drop_duplicates(keep='first', ignore_index=True), how='outer', on=['club_id', 'activity_id'], indicator=True)
+                .merge(df.filter(items=['club_id', 'activity_id']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'activity_id'], indicator=True)
 
                 # Filter rows
                 .query('_merge == "left_only"')
@@ -1102,10 +1118,10 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             df_import = (df_import
 
                 # Remove columns
-                .drop(columns=['athlete_location_country_code', 'athlete_picture'], axis=1)
+                .drop(columns=['athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture'], axis=1)
 
                 # Outer join 'df'
-                .merge(df.filter(items=['club_id', 'leaderboard_week']).drop_duplicates(keep='first', ignore_index=True), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
+                .merge(df.filter(items=['club_id', 'leaderboard_week']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
 
                 # Filter rows
                 .query('_merge == "left_only"')
@@ -1127,10 +1143,12 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             df = (df
 
                 # Outer join 'df_import'
-                .merge(df_import.filter(items=['club_id', 'athlete_id']).drop_duplicates(keep='first', ignore_index=True), how='outer', on=['club_id', 'athlete_id'], indicator=True)
+                .merge(df_import.filter(items=['club_id', 'athlete_id']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'athlete_id'], indicator=True)
+
 
                 # Filter rows
                 .query('_merge == "left_only"')
+
 
                 # Remove columns
                 .drop(columns=['_merge'], axis=1)
@@ -1162,12 +1180,17 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
     if 'leaderboard_week' in df.columns:
 
         # Left join 'club_members'
-        df_updated = df_updated.merge(club_members.filter(items=['club_id', 'athlete_id', 'athlete_location_country_code', 'athlete_picture']).drop_duplicates(keep='first', ignore_index=True), how='left', on=['club_id', 'athlete_id'], indicator=False)
+        df_updated = df_updated.merge(club_members.filter(items=['club_id', 'athlete_id', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture']), how='left', on=['club_id', 'athlete_id'], indicator=False)
+
 
         # Change dtypes
         df_updated['leaderboard_date_start'] = df_updated['leaderboard_date_start'].dt.strftime('%Y-%m-%d')
         df_updated['leaderboard_date_end'] = df_updated['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
         df_updated = df_updated.fillna(value='')
+
+
+        # Rearrange columns
+        df_updated = df_updated.filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture'])
 
 
         # Rearrange rows
@@ -1182,10 +1205,22 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         df_updated = df_updated.fillna(value='')
 
 
+        # Left join 'club_members'
+        df_updated = df_updated.merge(club_members.filter(items=['club_id', 'athlete_id', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture']), how='left', on=['club_id', 'athlete_id'], indicator=False)
+
+        # In case club_members scraped 'club_id' and 'athlete_id' information, update 'df_updated'
+        df_updated['athlete_location'] = df_updated['athlete_location_y'].fillna(df_updated['athlete_location_x'])
+        df_updated['athlete_location_country_code'] = df_updated['athlete_location_country_code_y'].fillna(df_updated['athlete_location_country_code_x'])
+        df_updated['athlete_location_country'] = df_updated['athlete_location_country_y'].fillna(df_updated['athlete_location_country_x'])
+        df_updated['athlete_picture'] = df_updated['athlete_picture_y'].fillna(df_updated['athlete_picture_x'])
+        df_updated = df_updated.drop(['athlete_location_x', 'athlete_location_y', 'athlete_location_country_code_x', 'athlete_location_country_code_y', 'athlete_location_country_x', 'athlete_location_country_y', 'athlete_picture_x', 'athlete_picture_y'], axis=1)
+
+
         df_updated = (df_updated
 
-            # Remove columns
-            .drop(columns=['athlete_location_country_code', 'athlete_picture'], axis=1)
+            # Rearrange columns
+            .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'join_date', 'athlete_picture'])
+
 
             # Rearrange rows
             .sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
@@ -1204,6 +1239,10 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
     # Upload/Overwrite DataFrame stored in Google Sheets
     service.spreadsheets().values().update(spreadsheetId=sheet_id, range=sheet_name, valueInputOption='USER_ENTERED', body={'values': data}).execute()
+
+
+    # Return objects
+    return df_updated
 
 
 
@@ -1251,7 +1290,7 @@ def execution_time_to_google_sheets(*, timezone='CET', sheet_id, sheet_name):
 strava_club_members(club_ids=club_ids)
 
 # Update Google Sheets sheet
-strava_club_to_google_sheets(df=club_members, sheet_id=sheet_id, sheet_name='Members')
+club_members = strava_club_to_google_sheets(df=club_members, sheet_id=sheet_id, sheet_name='Members')
 
 
 
@@ -1269,3 +1308,7 @@ strava_club_to_google_sheets(df=club_leaderboard, sheet_id=sheet_id, sheet_name=
 
 # Update Google Sheets sheet
 execution_time_to_google_sheets(timezone='CET', sheet_id=sheet_id, sheet_name='Execution Time')
+
+
+## Quit Selenium webdriver
+selenium_webdriver_quit()
