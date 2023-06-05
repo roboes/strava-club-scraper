@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-05-31
+# Last update: 2023-06-05
 
 
 ###############
@@ -53,6 +53,10 @@ club_ids=['445017', # E-Bike Ride, Ride
 filter_activities_type=['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk'] # Only necessary for Strava Clubs with multiple sport types
 filter_date_min='2023-06-05'
 filter_date_max='2023-07-30'
+club_members_teams={
+    'Team A': ['1234, 5678'],
+    'Team B': ['12345'],
+}
 
 # Google API
 google_api_key=os.path.join(os.getcwd(), 'files', 'keys.json')
@@ -902,7 +906,7 @@ def strava_club_leaderboard_manual():
 
 
 # Strava Club members - scrap list of members that joined a Strava Club
-def strava_club_members(*, club_ids):
+def strava_club_members(*, club_ids, club_members_teams=None):
 
     # Import or create global variables
     global club_members
@@ -1005,6 +1009,52 @@ def strava_club_members(*, club_ids):
     # Create 'athlete_location_country' column
     club_members['athlete_location_country'] = club_members.apply(lambda row: row['athlete_geolocation'].raw.get('address').get('country') if pd.notna(row['athlete_geolocation']) else None, axis=1)
 
+    # Create 'athlete_team' column
+    if club_members_teams is not None:
+
+        club_members_teams = (pd.DataFrame.from_dict(data=club_members_teams, orient='index', dtype='str', columns=['athlete_id'])
+
+
+        # Index to column
+        .reset_index(level=None, drop=False)
+        .rename(columns={'index': 'athlete_team'})
+
+
+        # Replace multiple whitespaces by single whitespace in all columns
+        .replace(to_replace=r'\s+', value=r' ', regex=True)
+
+
+        # Separate collapsed  'athlete_id' column into multiple rows
+        .assign(athlete_id = lambda row: row['athlete_id'].str.split(pat=', ', expand=False))
+        .explode(column=['athlete_id'])
+
+
+        # Rearrange rows
+        .sort_values(by=['athlete_id', 'athlete_team'], ignore_index=True)
+
+
+        # Remove duplicate rows
+        .drop_duplicates(subset=None, keep='first', ignore_index=True)
+
+
+        # Group 'athlete_id' and collapse 'athlete_team' into one row
+        .groupby(by=['athlete_id'], axis=0, level=None, as_index=False, sort=True, dropna=True)
+        .agg({'athlete_team': lambda row: ', '.join(row)})
+
+
+        # Rearrange rows
+        .sort_values(by=['athlete_id'], ignore_index=True)
+
+        )
+
+
+        # Left join 'club_members_teams'
+        club_members = club_members.merge(club_members_teams, how='left', on=['athlete_id'], indicator=False)
+
+
+    else:
+        club_members['athlete_team'] = None
+
 
     club_members = (club_members
 
@@ -1016,7 +1066,7 @@ def strava_club_members(*, club_ids):
         .assign(join_date = lambda row: row['join_date'].dt.floor('d'))
 
         # Select columns
-        .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country', 'athlete_location_country_code', 'join_date', 'athlete_picture'])
+        .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country', 'athlete_location_country_code', 'join_date', 'athlete_team', 'athlete_picture'])
 
         # Rearrange rows
         .sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
@@ -1060,7 +1110,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
     result = service.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name).execute()
     df_import = pd.DataFrame(data=result.get('values', []), index=None, dtype='object')
 
-    if len(df_import) > 0:
+    if not df_import.empty:
 
         # Rename columns
         df_import = df_import.rename(columns=df_import.iloc[0])
@@ -1096,6 +1146,30 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             )
 
 
+        # club_members
+        if 'join_date' in df.columns:
+
+            # Change dtypes
+            df_import['join_date'] = df_import['join_date'].apply(parser.parse)
+
+
+            # Keep Google Sheets DataFrame rows present in club_members, increment with new club members
+            df = (df
+
+                # Outer join 'df_import'
+                .merge(df_import.filter(items=['club_id', 'athlete_id']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'athlete_id'], indicator=True)
+
+
+                # Filter rows
+                .query('_merge == "left_only"')
+
+
+                # Remove columns
+                .drop(columns=['_merge'], axis=1)
+
+            )
+
+
         # club_leaderboard
         if 'leaderboard_week' in df.columns:
 
@@ -1118,37 +1192,13 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             df_import = (df_import
 
                 # Remove columns
-                .drop(columns=['athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture'], axis=1)
+                .drop(columns=['athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'], axis=1)
 
                 # Outer join 'df'
                 .merge(df.filter(items=['club_id', 'leaderboard_week']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
 
                 # Filter rows
                 .query('_merge == "left_only"')
-
-                # Remove columns
-                .drop(columns=['_merge'], axis=1)
-
-            )
-
-
-        # club_members
-        if 'athlete_location' in df.columns:
-
-            # Change dtypes
-            df_import['join_date'] = df_import['join_date'].apply(parser.parse)
-
-
-            # Keep Google Sheets DataFrame rows present in club_members, increment with new club members
-            df = (df
-
-                # Outer join 'df_import'
-                .merge(df_import.filter(items=['club_id', 'athlete_id']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'athlete_id'], indicator=True)
-
-
-                # Filter rows
-                .query('_merge == "left_only"')
-
 
                 # Remove columns
                 .drop(columns=['_merge'], axis=1)
@@ -1176,37 +1226,15 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         df_updated = df_updated.sort_values(by=['club_id', 'activity_date'], ignore_index=True)
 
 
-    # club_leaderboard transform
-    if 'leaderboard_week' in df.columns:
-
-        # Left join 'club_members'
-        df_updated = df_updated.merge(club_members.filter(items=['club_id', 'athlete_id', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture']), how='left', on=['club_id', 'athlete_id'], indicator=False)
-
-
-        # Change dtypes
-        df_updated['leaderboard_date_start'] = df_updated['leaderboard_date_start'].dt.strftime('%Y-%m-%d')
-        df_updated['leaderboard_date_end'] = df_updated['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
-        df_updated = df_updated.fillna(value='')
-
-
-        # Rearrange columns
-        df_updated = df_updated.filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture'])
-
-
-        # Rearrange rows
-        df_updated = df_updated.sort_values(by=['club_id', 'leaderboard_date_start', 'rank'], ignore_index=True)
-
-
     # club_members transform
-    if 'athlete_location' in df.columns:
+    if 'join_date' in df.columns:
 
-        # Change dtypes
-        df_updated['join_date'] = df_updated['join_date'].dt.strftime('%Y-%m-%d')
-        df_updated = df_updated.fillna(value='')
+        # Remove columns
+        df_updated = df_updated.drop(['athlete_team'], axis=1)
 
 
         # Left join 'club_members'
-        df_updated = df_updated.merge(club_members.filter(items=['club_id', 'athlete_id', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_picture']), how='left', on=['club_id', 'athlete_id'], indicator=False)
+        df_updated = df_updated.merge(club_members.filter(items=['club_id', 'athlete_id', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture']), how='left', on=['club_id', 'athlete_id'], indicator=False)
 
         # In case club_members scraped 'club_id' and 'athlete_id' information, update 'df_updated'
         df_updated['athlete_location'] = df_updated['athlete_location_y'].fillna(df_updated['athlete_location_x'])
@@ -1219,13 +1247,39 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         df_updated = (df_updated
 
             # Rearrange columns
-            .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'join_date', 'athlete_picture'])
+            .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'join_date', 'athlete_team', 'athlete_picture'])
 
 
             # Rearrange rows
             .sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
 
         )
+
+
+        # Change dtypes
+        df_updated['join_date'] = df_updated['join_date'].dt.strftime('%Y-%m-%d')
+        df_updated = df_updated.fillna(value='')
+
+
+    # club_leaderboard transform
+    if 'leaderboard_week' in df.columns:
+
+        # Left join 'club_members'
+        df_updated = df_updated.merge(club_members.filter(items=['club_id', 'athlete_id', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture']), how='left', on=['club_id', 'athlete_id'], indicator=False)
+
+
+        # Change dtypes
+        df_updated['leaderboard_date_start'] = df_updated['leaderboard_date_start'].dt.strftime('%Y-%m-%d')
+        df_updated['leaderboard_date_end'] = df_updated['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
+        df_updated = df_updated.fillna(value='')
+
+
+        # Rearrange columns
+        df_updated = df_updated.filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'])
+
+
+        # Rearrange rows
+        df_updated = df_updated.sort_values(by=['club_id', 'leaderboard_date_start', 'rank'], ignore_index=True)
 
 
     # DataFrame to list
@@ -1287,7 +1341,16 @@ def execution_time_to_google_sheets(*, timezone='CET', sheet_id, sheet_name):
 ## Club members
 
 # Get data (via web-scraping)
-strava_club_members(club_ids=club_ids)
+strava_club_members(club_ids=club_ids, club_members_teams=club_members_teams)
+
+# Test
+(club_members
+	.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
+    .drop_duplicates(subset=None, keep='first', ignore_index=True)
+    .assign(athlete_team = lambda row: row['athlete_team'].str.split(pat=', ', expand=False))
+    .explode(column=['athlete_team'])
+	.sort_values(by=['athlete_team', 'athlete_name'], ignore_index=True)
+)
 
 # Update Google Sheets sheet
 club_members = strava_club_to_google_sheets(df=club_members, sheet_id=sheet_id, sheet_name='Members')

@@ -72,7 +72,7 @@ strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter
 
 ### strava_club_members
 ```.py
-strava_club_members(club_ids)
+strava_club_members(club_ids, club_members_teams=None)
 ```
 
 #### Description
@@ -80,6 +80,16 @@ strava_club_members(club_ids)
 
 #### Parameters
 - `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
+- `club_members_teams`: *dict*, default: *None*. Option to add `athlete_id` to one or multiple teams (stored in the `athlete_team` column). `athlete_id` assigned to multiple teams will have its unique teams assignment comma separated.
+
+Example of `club_members_teams`:
+
+```.py
+club_members_teams={
+    'Team A': ['1234, 5678'],
+    'Team B': ['1234, 12345'],
+}
+```
 
 <br>
 
@@ -122,7 +132,7 @@ execution_time_to_google_sheets(timezone='CET', sheet_id, sheet_name)
 - Update a Google Sheet sheet given the current time that the code was executed.
 
 #### Parameters
-- `timezone`: *str or timezone object*. default: *'CET'*.
+- `timezone`: *str or timezone object*, default: *'CET'*.
 - `sheet_id`: *str*. Google Sheets file id.
 - `sheet_name`: *str*. Google Sheets sheet/tab where the data should be updated/incremented.
 
