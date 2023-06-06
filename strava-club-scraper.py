@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-06-05
+# Last update: 2023-06-06
 
 
 ###############
@@ -19,6 +19,7 @@ import sys
 import time
 
 from dateutil import parser, relativedelta
+from geopy.exc import GeocoderTimedOut, GeocoderQuotaExceeded
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
@@ -80,6 +81,22 @@ def convert_list_to_dictionary(*, list):
 
     # Return objects
     return dictionary
+
+
+
+# Geocoder
+def geocoder(row):
+
+    # Settings and variables
+    geolocator = Nominatim(user_agent='strava-club-scraper')
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+
+
+    try:
+        return geocode(row, language='en', exactly_one=True, addressdetails=True, namedetails=True, timeout=None) if pd.notna(row) else None
+
+    except (GeocoderTimedOut, GeocoderQuotaExceeded):
+        return None
 
 
 
@@ -234,240 +251,120 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
         # Get all displayed activities_id, filtering filter_date_min and activity_type (note: activity_type filter does not work for group activities - thus all group activities are kept and verified on a case-by-case base)
         activities_id = []
-        activities_id_remove = []
 
         activities = driver.find_elements(by=By.XPATH, value='//div[@data-testid="web-feed-entry"]')
 
         for activity in activities:
 
-            activity_date = activity.find_element(by=By.XPATH, value='//time[@data-testid="date_at_time"]').text
+            activity_date = activity.find_element(by=By.XPATH, value='.//time[@data-testid="date_at_time"]').text
             activity_date = re.sub(pattern=r'^(Today at )(.*)$', repl=str(datetime.now().date()) + r' \2', string=activity_date)
             activity_date = re.sub(pattern=r'^(Yesterday at )(.*)$', repl=str((datetime.now() - timedelta(1)).date()) + r' \2', string=activity_date)
             activity_date = parser.parse(activity_date)
 
             if filter_date_min <= activity_date < (filter_date_max + timedelta(days=1)):
 
-                activity_id = activity.find_element(by=By.XPATH, value='//div[@data-testid="activity_entry_container"]//h3//a').get_attribute('href')
-                activity_id = re.sub(pattern=r'^.*/activities/(.*)$', repl=r'\1', string=activity_id)
-                activity_id = re.sub(pattern=r'^([0-9]+)(\?|/|#).*$', repl=r'\1', string=activity_id)
-                activities_id.append(activity_id)
 
                 try:
                     activity_type = activity.find_element(by=By.XPATH, value='.//*[local-name()="svg"]//*[local-name()="title"]').get_attribute('innerHTML')
 
                     if activity_type not in filter_activities_type:
-                        activities_id_remove.append(activity_id)
+                        break
 
-                except:
+                except NoSuchElementException:
                     pass
+
+
+                activity_ids = activity.find_elements(by=By.XPATH, value='.//div[@data-testid="activity_entry_container"]//h3//a')
+
+                for activity_id in activity_ids:
+
+                    activity_id = activity_id.get_attribute('href')
+                    activity_id = re.sub(pattern=r'^.*/activities/(.*)$', repl=r'\1', string=activity_id)
+                    activity_id = re.sub(pattern=r'^([0-9]+)(\?|/|#).*$', repl=r'\1', string=activity_id)
+                    activities_id.append(activity_id)
 
 
         activities_id = list(set(activities_id))
         activities_id = sorted(activities_id)
 
-        # activities_id_remove = list(set(activities_id_remove))
-        # activities_id_remove = sorted(activities_id_remove)
-
-        # activities_id = [x for x in activities_id if x not in activities_id_remove]
-
 
         for activity in activities_id:
 
-            d = {}
+            if activity not in [item['activity_id'] for item in data]:
 
-            driver.get('https://www.strava.com/activities/' + activity)
+                d = {}
 
-            d['club_id'] = club_id
+                driver.get('https://www.strava.com/activities/' + activity)
 
-            # activity_id
-            d['activity_id'] = activity
+                # d['club_id'] = club_id
 
-
-            # athlete_name, activity_type
-            d['athlete_name'], d['activity_type'] = driver.find_element(by=By.XPATH, value='.//span[@class="title"]').text.split(sep=' – ')[0:2]
-
-            try:
-                d['commute'] = driver.find_element(by=By.XPATH, value='.//span[@class="title"]').text.split(sep=' – ')[2]
-                d['commute'] = re.sub(pattern=r'^Commute$', repl=r'True', string=d['commute'])
-                d['commute'] = bool(d['commute'])
-
-            except:
-                pass
+                # activity_id
+                d['activity_id'] = activity
 
 
-            # activity_date
-            d['activity_date'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//time').text
-            d['activity_date'] = re.sub(pattern=r'^(.*) on (.*)$', repl=r'\2 \1', string=d['activity_date'])
-            d['activity_date'] = parser.parse(d['activity_date'])
+                # athlete_name, activity_type
+                d['athlete_name'], d['activity_type'] = driver.find_element(by=By.XPATH, value='.//span[@class="title"]').text.split(sep=' – ')[0:2]
 
-            if d['activity_type'] in filter_activities_type:
-
-                # Activity stats
-
-                # Click on "Show More" button (if available)
                 try:
-                    driver.find_element(by=By.XPATH, value='.//button[@class="minimal compact"][text()="Show More"]').click()
+                    d['commute'] = driver.find_element(by=By.XPATH, value='.//span[@class="title"]').text.split(sep=' – ')[2]
+                    d['commute'] = re.sub(pattern=r'^Commute$', repl=r'True', string=d['commute'])
+                    d['commute'] = bool(d['commute'])
 
                 except:
                     pass
 
-                # athlete_id
-                d['athlete_id'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//a').get_attribute('href')
-                d['athlete_id'] = re.sub(pattern=r'^.*/athletes/(.*)$', repl=r'\1', string=d['athlete_id'])
 
-                # activity_name
-                d['activity_name'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//h1').text
+                # activity_date
+                d['activity_date'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//time').text
+                d['activity_date'] = re.sub(pattern=r'^(.*) on (.*)$', repl=r'\2 \1', string=d['activity_date'])
+                d['activity_date'] = parser.parse(d['activity_date'])
 
-                # activity_description
-                try:
-                    d['activity_description'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//div[@class="content"]').text
+                if d['activity_type'] in filter_activities_type:
 
-                except:
-                    pass
+                    # Activity stats
 
-                # activity_location
-                try:
-                    d['activity_location'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//span[@class="location"]').text
-
-                except:
-                    pass
-
-                # Inline stats
-                inline_stats = driver.find_element(by=By.XPATH, value='.//ul[@class="inline-stats section"]').text.split(sep='\n')
-                inline_stats = convert_list_to_dictionary(list=inline_stats)
-                inline_stats = {value: name for name, value in inline_stats.items()}
-
-                for item, value in inline_stats.items():
-                    d[item] = value
-
-                    # distance
+                    # Click on "Show More" button (if available)
                     try:
-                        d['Distance'] = re.sub(pattern=r',', repl=r'', string=d['Distance'])
-                        d['Distance'] = re.sub(pattern=r'km$', repl=r'', string=d['Distance'])
-                        d['Distance'] = float(d['Distance'])
-                        d['Distance'] = d['Distance']*1000
+                        driver.find_element(by=By.XPATH, value='.//button[@class="minimal compact"][text()="Show More"]').click()
 
                     except:
                         pass
 
-                    # elevation_gain
+                    # athlete_id
+                    d['athlete_id'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//a').get_attribute('href')
+                    d['athlete_id'] = re.sub(pattern=r'^.*/athletes/(.*)$', repl=r'\1', string=d['athlete_id'])
+
+                    # activity_name
+                    d['activity_name'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//h1').text
+
+                    # activity_description
                     try:
-                        d['Elevation'] = re.sub(pattern=r',', repl=r'', string=d['Elevation'])
-                        d['Elevation'] = re.sub(pattern=r'm$', repl=r'', string=d['Elevation'])
+                        d['activity_description'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//div[@class="content"]').text
 
                     except:
                         pass
 
-                    # moving_time
+                    # activity_location
                     try:
-                        if len(d['Moving Time'].split(sep=':')) == 1:
-                            d['Moving Time'] = re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=d['Moving Time'])
-
-                        if len(d['Moving Time'].split(sep=':')) == 2:
-                            d['Moving Time'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Moving Time'])
+                        d['activity_location'] = driver.find_element(by=By.XPATH, value='.//div[@class="details-container"]//span[@class="location"]').text
 
                     except:
                         pass
 
-                    # pace
-                    try:
-                        d['Pace'] = re.sub(pattern=r' /km', repl=r'', string=d['Pace'])
+                    # Inline stats
+                    inline_stats = driver.find_element(by=By.XPATH, value='.//ul[@class="inline-stats section"]').text.split(sep='\n')
+                    inline_stats = convert_list_to_dictionary(list=inline_stats)
+                    inline_stats = {value: name for name, value in inline_stats.items()}
 
-                        if len(d['Pace'].split(sep=':')) == 1:
-
-                            if len(d['Pace'].split(sep=':')[0]) == 1:
-                                d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:0\1', string=d['Pace'])
-
-                            elif len(d['Pace'].split(sep=':')[0]) == 2:
-                                d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:\1', string=d['Pace'])
-
-
-                        if len(d['Pace'].split(sep=':')) == 2:
-
-                            if len(d['Pace'].split(sep=':')[0]) == 1:
-                                d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:0\1', string=d['Pace'])
-
-                            elif len(d['Pace'].split(sep=':')[0]) == 2:
-                                d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Pace'])
-
-                    except:
-                        pass
-
-
-                # More stats
-                try:
-                    more_stats = driver.find_element(by=By.XPATH, value='.//div[@class="section more-stats"]').text
-                    more_stats = re.sub(pattern=r'Show Less\n|Avg Max\n', repl=r'', string=more_stats)
-
-                    # Speed
-                    more_stats = re.sub(pattern=r'^Speed ', repl=r'Average Speed\n', string=more_stats)
-                    more_stats = re.sub(pattern=r'(km/h*?) ', repl=r'\1\nMax Speed\n', string=more_stats)
-
-                    # Heart Rate
-                    more_stats = re.sub(pattern=r'Heart Rate ', repl=r'Average Heart Rate\n', string=more_stats)
-                    more_stats = re.sub(pattern=r'(Heart Rate\n[0-9]{2,} bpm) ', repl=r'\1\nMax Heart Rate\n', string=more_stats)
-
-                    # Cadence
-                    more_stats = re.sub(pattern=r'Cadence ', repl=r'Average Cadence\n', string=more_stats)
-                    more_stats = re.sub(pattern=r'(Average Cadence\n[0-9]{1,}) ([0-9]{1,})', repl=r'\1\nMax Cadence\n\2', string=more_stats)
-
-                    # Power
-                    more_stats = re.sub(pattern=r'Power ', repl=r'Average Power\n', string=more_stats)
-                    more_stats = re.sub(pattern=r'(Average Power\n[0-9]{1,} W) ([0-9]{1,} W)', repl=r'\1\nMax Power\n\2', string=more_stats)
-
-                    # Calories/Temperature/Elapsed Time
-                    more_stats = re.sub(pattern=r'(Calories|Temperature|Elapsed Time) ', repl=r'\1\n', string=more_stats)
-                    more_stats = more_stats.split(sep='\n')
-                    more_stats = convert_list_to_dictionary(list=more_stats)
-
-
-                    for item, value in more_stats.items():
+                    for item, value in inline_stats.items():
                         d[item] = value
 
-                        # max_speed
+                        # distance
                         try:
-                            d['Max Speed'] = re.sub(pattern=r'km/h$', repl=r'', string=d['Max Speed'])
-                            d['Max Speed'] = float(d['Max Speed'])/3.6
-
-                        except:
-                            pass
-
-                        # average_speed
-                        try:
-                            d['Average Speed'] = re.sub(pattern=r'km/h$', repl=r'', string=d['Average Speed'])
-                            d['Average Speed'] = float(d['Average Speed'])/3.6
-
-                        except:
-                            pass
-
-                        # max_heart_rate
-                        try:
-                            d['Max Heart Rate'] = re.sub(pattern=r' bpm', repl=r'', string=d['Max Heart Rate'])
-                            d['Max Heart Rate'] = float(d['Max Heart Rate'])
-
-                        except:
-                            pass
-
-                        # average_heart_rate
-                        try:
-                            d['Average Heart Rate'] = re.sub(pattern=r' bpm', repl=r'', string=d['Average Heart Rate'])
-                            d['Average Heart Rate'] = float(d['Average Heart Rate'])
-
-                        except:
-                            pass
-
-                        # max_power
-                        try:
-                            d['Max Power'] = re.sub(pattern=r' W', repl=r'', string=d['Max Power'])
-                            d['Max Power'] = float(d['Max Power'])
-
-                        except:
-                            pass
-
-                        # average_power
-                        try:
-                            d['Average Power'] = re.sub(pattern=r' W', repl=r'', string=d['Average Power'])
-                            d['Average Power'] = float(d['Average Power'])
+                            d['Distance'] = re.sub(pattern=r',', repl=r'', string=d['Distance'])
+                            d['Distance'] = re.sub(pattern=r'km$', repl=r'', string=d['Distance'])
+                            d['Distance'] = float(d['Distance'])
+                            d['Distance'] = d['Distance']*1000
 
                         except:
                             pass
@@ -476,69 +373,211 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
                         try:
                             d['Elevation'] = re.sub(pattern=r',', repl=r'', string=d['Elevation'])
                             d['Elevation'] = re.sub(pattern=r'm$', repl=r'', string=d['Elevation'])
-                            d['Elevation'] = float(d['Elevation'])
 
                         except:
                             pass
 
-                        # calories
+                        # moving_time
                         try:
-                            d['Calories'] = re.sub(pattern=r',', repl=r'', string=d['Calories'])
-                            d['Calories'] = re.sub(pattern=u'\u2014', repl=None, string=d['Calories'])
-                            d['Calories'] = None if d['Calories'] == None else float(d['Calories'])
+                            if len(d['Moving Time'].split(sep=':')) == 1:
+                                d['Moving Time'] = re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=d['Moving Time'])
+
+                            if len(d['Moving Time'].split(sep=':')) == 2:
+                                d['Moving Time'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Moving Time'])
 
                         except:
                             pass
 
-                        # steps
+                        # pace
                         try:
-                            d['Steps'] = re.sub(pattern=r',', repl=r'', string=d['Steps'])
-                            d['Steps'] = float(d['Steps'])
+                            d['Pace'] = re.sub(pattern=r' /km', repl=r'', string=d['Pace'])
+
+                            if len(d['Pace'].split(sep=':')) == 1:
+
+                                if len(d['Pace'].split(sep=':')[0]) == 1:
+                                    d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:0\1', string=d['Pace'])
+
+                                elif len(d['Pace'].split(sep=':')[0]) == 2:
+                                    d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:\1', string=d['Pace'])
+
+
+                            if len(d['Pace'].split(sep=':')) == 2:
+
+                                if len(d['Pace'].split(sep=':')[0]) == 1:
+                                    d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:0\1', string=d['Pace'])
+
+                                elif len(d['Pace'].split(sep=':')[0]) == 2:
+                                    d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Pace'])
 
                         except:
                             pass
 
-                        # temperature
-                        try:
-                            d['Temperature'] = re.sub(pattern=r'^([0-9]+).*', repl=r'\1', string=d['Temperature'])
-                            d['Temperature'] = float(d['Temperature'])
 
-                        except:
-                            pass
+                    # More stats
+                    try:
+                        more_stats = driver.find_element(by=By.XPATH, value='.//div[@class="section more-stats"]').text
+                        more_stats = re.sub(pattern=r'Show Less\n|Avg Max\n', repl=r'', string=more_stats)
 
-                        # elapsed_time
-                        try:
+                        # Speed
+                        more_stats = re.sub(pattern=r'^Speed ', repl=r'Average Speed\n', string=more_stats)
+                        more_stats = re.sub(pattern=r'(km/h*?) ', repl=r'\1\nMax Speed\n', string=more_stats)
 
-                            if len(d['Elapsed Time'].split(sep=':')) == 1:
-                                d['Elapsed Time'] = re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=d['Elapsed Time'])
+                        # Heart Rate
+                        more_stats = re.sub(pattern=r'Heart Rate ', repl=r'Average Heart Rate\n', string=more_stats)
+                        more_stats = re.sub(pattern=r'(Heart Rate\n[0-9]{2,} bpm) ', repl=r'\1\nMax Heart Rate\n', string=more_stats)
 
-                            if len(d['Elapsed Time'].split(sep=':')) == 2:
-                                d['Elapsed Time'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Elapsed Time'])
+                        # Cadence
+                        more_stats = re.sub(pattern=r'Cadence ', repl=r'Average Cadence\n', string=more_stats)
+                        more_stats = re.sub(pattern=r'(Average Cadence\n[0-9]{1,}) ([0-9]{1,})', repl=r'\1\nMax Cadence\n\2', string=more_stats)
 
-                            else:
+                        # Power
+                        more_stats = re.sub(pattern=r'Power ', repl=r'Average Power\n', string=more_stats)
+                        more_stats = re.sub(pattern=r'(Average Power\n[0-9,]{1,} W) ([0-9,]{1,} W)', repl=r'\1\nMax Power\n\2', string=more_stats)
+
+                        # Calories/Temperature/Elapsed Time
+                        more_stats = re.sub(pattern=r'(Calories|Temperature|Elapsed Time) ', repl=r'\1\n', string=more_stats)
+                        more_stats = more_stats.split(sep='\n')
+                        more_stats = convert_list_to_dictionary(list=more_stats)
+
+
+                        for item, value in more_stats.items():
+                            d[item] = value
+
+                            # max_speed
+                            try:
+                                d['Max Speed'] = re.sub(pattern=r'km/h$', repl=r'', string=d['Max Speed'])
+                                d['Max Speed'] = float(d['Max Speed'])/3.6
+
+                            except:
                                 pass
 
+                            # average_speed
+                            try:
+                                d['Average Speed'] = re.sub(pattern=r'km/h$', repl=r'', string=d['Average Speed'])
+                                d['Average Speed'] = float(d['Average Speed'])/3.6
 
-                        except:
-                            pass
+                            except:
+                                pass
 
-                except:
+                            # max_heart_rate
+                            try:
+                                d['Max Heart Rate'] = re.sub(pattern=r' bpm', repl=r'', string=d['Max Heart Rate'])
+                                d['Max Heart Rate'] = float(d['Max Heart Rate'])
+
+                            except:
+                                pass
+
+                            # average_heart_rate
+                            try:
+                                d['Average Heart Rate'] = re.sub(pattern=r' bpm', repl=r'', string=d['Average Heart Rate'])
+                                d['Average Heart Rate'] = float(d['Average Heart Rate'])
+
+                            except:
+                                pass
+
+                            # max_cadence
+                            try:
+                                d['Max Cadence'] = float(d['Max Cadence'])
+
+                            except:
+                                pass
+
+                            # average_cadence
+                            try:
+                                d['Average Cadence'] = float(d['Average Cadence'])
+
+                            except:
+                                pass
+
+                            # max_watts
+                            try:
+                                d['Max Power'] = re.sub(pattern=r',', repl=r'', string=d['Max Power'])
+                                d['Max Power'] = re.sub(pattern=r' W', repl=r'', string=d['Max Power'])
+                                d['Max Power'] = float(d['Max Power'])
+
+                            except:
+                                pass
+
+                            # average_watts
+                            try:
+                                d['Average Power'] = re.sub(pattern=r',', repl=r'', string=d['Average Power'])
+                                d['Average Power'] = re.sub(pattern=r' W', repl=r'', string=d['Average Power'])
+                                d['Average Power'] = float(d['Average Power'])
+
+                            except:
+                                pass
+
+                            # elevation_gain
+                            try:
+                                d['Elevation'] = re.sub(pattern=r',', repl=r'', string=d['Elevation'])
+                                d['Elevation'] = re.sub(pattern=r'm$', repl=r'', string=d['Elevation'])
+                                d['Elevation'] = float(d['Elevation'])
+
+                            except:
+                                pass
+
+                            # calories
+                            try:
+                                d['Calories'] = re.sub(pattern=r',', repl=r'', string=d['Calories'])
+                                d['Calories'] = re.sub(pattern=u'\u2014', repl=r'', string=d['Calories'])
+                                d['Calories'] = None if d['Calories'] == '' else float(d['Calories'])
+
+                            except:
+                                pass
+
+                            # steps
+                            try:
+                                d['Steps'] = re.sub(pattern=r',', repl=r'', string=d['Steps'])
+                                d['Steps'] = float(d['Steps'])
+
+                            except:
+                                pass
+
+                            # average_temperature
+                            try:
+                                d['Temperature'] = re.sub(pattern=r'^([0-9]+).*', repl=r'\1', string=d['Temperature'])
+                                d['Temperature'] = float(d['Temperature'])
+
+                            except:
+                                pass
+
+                            # elapsed_time
+                            try:
+
+                                if len(d['Elapsed Time'].split(sep=':')) == 1:
+                                    d['Elapsed Time'] = re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=d['Elapsed Time'])
+
+                                if len(d['Elapsed Time'].split(sep=':')) == 2:
+                                    d['Elapsed Time'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Elapsed Time'])
+
+                                else:
+                                    pass
+
+
+                            except:
+                                pass
+
+                    except:
+                        pass
+
+
+                    # activity_device
+                    try:
+                        d['activity_device'] = driver.find_element(by=By.XPATH, value='.//div[@class="section device-section"]//div[@class="device spans8"]').text
+
+                    except:
+                        pass
+
+                    # activity_kudos
+                    d['activity_kudos'] = driver.find_element(by=By.XPATH, value='.//span[@data-testid="kudos_count"]').text
+                    d['activity_kudos'] = int(d['activity_kudos'])
+
+
+                    data.append(d)
+
+
+                else:
                     pass
-
-
-                # activity_device
-                try:
-                    d['activity_device'] = driver.find_element(by=By.XPATH, value='.//div[@class="section device-section"]//div[@class="device spans8"]').text
-
-                except:
-                    pass
-
-                # activity_kudos
-                d['activity_kudos'] = driver.find_element(by=By.XPATH, value='.//span[@data-testid="kudos_count"]').text
-                d['activity_kudos'] = int(d['activity_kudos'])
-
-
-                data.append(d)
 
 
             else:
@@ -550,7 +589,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
         # Rename columns
         .clean_names()
-        .rename(columns={'elevation': 'elevation_gain'})
+        .rename(columns={'elevation': 'elevation_gain', 'max_power': 'max_watts', 'average_power': 'average_watts', 'temperature': 'average_temperature'})
 
     )
 
@@ -576,7 +615,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
     club_activities = (club_activities
 
         # Select columns
-        .filter(items=['club_id', 'activity_date', 'athlete_id', 'athlete_name', 'activity_type', 'activity_id', 'activity_name', 'activity_description', 'activity_location', 'elapsed_time', 'moving_time', 'distance', 'max_speed', 'average_speed', 'max_heart_rate', 'average_heart_rate', 'max_power', 'average_power', 'elevation_gain', 'pace', 'steps', 'calories', 'activity_device', 'temperature', 'activity_kudos'])
+        .filter(items=['activity_date', 'athlete_id', 'athlete_name', 'activity_type', 'activity_id', 'activity_name', 'activity_description', 'activity_location', 'commute', 'elapsed_time', 'moving_time', 'distance', 'max_speed', 'average_speed', 'pace', 'steps', 'elevation_gain', 'max_heart_rate', 'average_heart_rate', 'max_cadence', 'average_cadence', 'max_watts', 'average_watts', 'calories', 'activity_device', 'average_temperature', 'activity_kudos'])
 
         # Filter activity types
         .query('activity_type.isin(@filter_activities_type)')
@@ -585,7 +624,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
         .query('activity_date >= @filter_date_min & activity_date <= @filter_date_max')
 
         # Rearrange rows
-        .sort_values(by=['club_id', 'activity_date'], ignore_index=True)
+        .sort_values(by=['activity_date'], ignore_index=True)
 
     )
 
@@ -617,6 +656,190 @@ def strava_export_gpx(*, activities_id):
         # latest_file = max(glob.glob(pathname=os.path.join(os.getcwd(), 'activities', '*.gpx')), key=os.path.getctime)
         # latest_file_new_filename = os.path.join(os.getcwd(), 'activities', '{}_{}.gpx').format(row['activity_type'], row['activity_id'])
         # os.rename(src=latest_file, dst=latest_file_new_filename)
+
+
+
+# Strava Club members - scrap list of members that joined a Strava Club
+def strava_club_members(*, club_ids, club_members_teams=None):
+
+    # Import or create global variables
+    global club_members
+    global driver
+
+
+    # Strava login
+    strava_login()
+
+
+    data = []
+
+    for club_id in club_ids:
+
+        # Open Strava Club members page
+        driver.get('https://www.strava.com/clubs/' + club_id + '/members')
+        time.sleep(3)
+
+
+        # Create variables
+
+        # club_name
+        club_name = driver.find_element(by=By.XPATH, value='//h1[@class="mb-sm"]').text.split(sep='\n')[0]
+
+        # club_activity_type
+        club_activity_type = driver.find_element(by=By.XPATH, value='//div[@class="club-meta"]//div[@class="location"]//span[@class="app-icon-wrapper  "]').text
+
+        # club_location
+        club_location = driver.find_element(by=By.XPATH, value='//div[@class="club-meta"]//div[@class="location"]').text
+        club_location = re.sub(pattern=r'^{}(.*)$'.format(club_activity_type), repl=r'\1', string=club_location).strip()
+
+
+        # Get Strava Club members list
+        while True:
+
+            try:
+                members = driver.find_elements(by=By.XPATH, value='//ul[@class="list-athletes"]//li')
+
+                for member in members:
+
+                    d = {}
+
+                    # club_id
+                    d['club_id'] = club_id
+
+                    # club_name
+                    d['club_name'] = club_name
+
+                    # club_activity_type
+                    d['club_activity_type'] = club_activity_type
+
+                    # club_location
+                    d['club_location'] = club_location
+
+                    # athlete_id
+                    d['athlete_id'] = member.find_element(by=By.XPATH, value='.//div[@class="text-headline"]//a').get_attribute('href')
+                    d['athlete_id'] = re.sub(pattern=r'^.*/athletes/(.*)$', repl=r'\1', string=d['athlete_id'])
+
+                    # athlete_name
+                    d['athlete_name'] = member.find_element(by=By.XPATH, value='.//div[@class="text-headline"]').text
+
+                    # athlete_location
+                    d['athlete_location'] = member.find_element(by=By.XPATH, value='.//div[@class="location"]').text
+                    d['athlete_location'] = d['athlete_location'].strip()
+
+                    # athlete_picture
+                    d['athlete_picture'] = member.find_element(by=By.XPATH, value='.//img[@class="avatar-img"]').get_attribute('src')
+
+                    data.append(d)
+
+
+                driver.find_element(by=By.XPATH, value='.//li[@class="next_page"]').click()
+
+            except NoSuchElementException:
+                break
+
+
+    # Create DataFrame
+    club_members = (pd.DataFrame(data=data, index=None, dtype=None)
+
+        # Replace blank by NA
+        .assign(athlete_location = lambda row: row['athlete_location'].mask(row['athlete_location'] == ''))
+
+        # Remove duplicate rows
+        .drop_duplicates(subset=None, keep='first', ignore_index=True)
+
+    )
+
+
+    # Create DataFrame with distinct 'athlete_location' values
+    club_members_geolocation = (club_members
+        .filter(items=['athlete_location'])
+        .query('athlete_location.notna()')
+        .drop_duplicates(subset=None, keep='first', ignore_index=True)
+        .sort_values(by=['athlete_location'], ignore_index=True)
+    )
+
+
+    # Create 'athlete_geolocation' column
+    club_members_geolocation['athlete_geolocation'] = club_members_geolocation['athlete_location'].apply(lambda row: geocoder(row))
+
+    # Create 'athlete_location_country_code' column
+    club_members_geolocation['athlete_location_country_code'] = club_members_geolocation.apply(lambda row: row['athlete_geolocation'].raw.get('address').get('country_code') if pd.notna(row['athlete_geolocation']) else None, axis=1)
+
+    # Create 'athlete_location_country' column
+    club_members_geolocation['athlete_location_country'] = club_members_geolocation.apply(lambda row: row['athlete_geolocation'].raw.get('address').get('country') if pd.notna(row['athlete_geolocation']) else None, axis=1)
+
+
+    # Left join 'club_members' with 'club_members_geolocation'
+    club_members = club_members.merge(club_members_geolocation, how='left', on=['athlete_location'], indicator=False)
+
+
+    # Create 'athlete_team' column
+    if club_members_teams is not None:
+
+        club_members_teams = (pd.DataFrame.from_dict(data=club_members_teams, orient='index', dtype='str', columns=['athlete_id'])
+
+
+        # Index to column
+        .reset_index(level=None, drop=False)
+        .rename(columns={'index': 'athlete_team'})
+
+
+        # Replace multiple whitespaces by single whitespace in all columns
+        .replace(to_replace=r'\s+', value=r' ', regex=True)
+
+
+        # Separate collapsed  'athlete_id' column into multiple rows
+        .assign(athlete_id = lambda row: row['athlete_id'].str.split(pat=', ', expand=False))
+        .explode(column=['athlete_id'])
+
+
+        # Rearrange rows
+        .sort_values(by=['athlete_id', 'athlete_team'], ignore_index=True)
+
+
+        # Remove duplicate rows
+        .drop_duplicates(subset=None, keep='first', ignore_index=True)
+
+
+        # Group 'athlete_id' and collapse 'athlete_team' into one row
+        .groupby(by=['athlete_id'], axis=0, level=None, as_index=False, sort=True, dropna=True)
+        .agg({'athlete_team': lambda row: ', '.join(row)})
+
+
+        # Rearrange rows
+        .sort_values(by=['athlete_id'], ignore_index=True)
+
+        )
+
+
+        # Left join 'club_members_teams'
+        club_members = club_members.merge(club_members_teams, how='left', on=['athlete_id'], indicator=False)
+
+
+    else:
+        club_members['athlete_team'] = None
+
+
+    club_members = (club_members
+
+        # Remove columns
+        .drop(columns=['athlete_geolocation'], axis=1)
+
+        # Create 'join_date' column
+        .assign(join_date = datetime.now())
+        .assign(join_date = lambda row: row['join_date'].dt.floor('d'))
+
+        # Select columns
+        .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'join_date', 'athlete_team', 'athlete_picture'])
+
+        # Rearrange rows
+        .sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
+
+    )
+
+
+    # Return objects
+    return club_members
 
 
 
@@ -826,7 +1049,7 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max):
     club_leaderboard = (club_leaderboard
 
         # Select columns
-        .filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'pace'])
+        .filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'pace', 'elevation_gain'])
 
         # Filter date interval
         .query('leaderboard_date_start >= @filter_date_min & leaderboard_date_end <= @filter_date_max')
@@ -889,193 +1112,19 @@ def strava_club_leaderboard_manual():
 
         # Aggregate rows
         .groupby(by=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name'], axis=0, level=None, as_index=False, sort=True, dropna=True)
-        .agg({'activity_id': 'nunique', 'moving_time': 'sum', 'distance': 'sum', 'elevation_gain': 'sum', 'pace': 'mean'})
+        .agg({'activity_id': 'nunique', 'moving_time': 'sum', 'distance': 'sum', 'pace': 'mean', 'elevation_gain': 'sum'})
 
         # Rename columns
         .rename(columns={'activity_id': 'activities'})
 
         # Select columns
-        .filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'pace'])
+        .filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'pace', 'elevation_gain'])
 
     )
 
 
     # Return objects
     return club_leaderboard_manual
-
-
-
-# Strava Club members - scrap list of members that joined a Strava Club
-def strava_club_members(*, club_ids, club_members_teams=None):
-
-    # Import or create global variables
-    global club_members
-    global driver
-
-
-    # Settings and variables
-    geolocator = Nominatim(user_agent='strava-club-scraper')
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
-
-
-    # Strava login
-    strava_login()
-
-
-    data = []
-
-    for club_id in club_ids:
-
-        # Open Strava Club members page
-        driver.get('https://www.strava.com/clubs/' + club_id + '/members')
-        time.sleep(3)
-
-
-        # Create variables
-
-        # club_name
-        club_name = driver.find_element(by=By.XPATH, value='//h1[@class="mb-sm"]').text.split(sep='\n')[0]
-
-        # club_activity_type
-        club_activity_type = driver.find_element(by=By.XPATH, value='//div[@class="club-meta"]//div[@class="location"]//span[@class="app-icon-wrapper  "]').text
-
-        # club_location
-        club_location = driver.find_element(by=By.XPATH, value='//div[@class="club-meta"]//div[@class="location"]').text
-        club_location = re.sub(pattern=r'^{}(.*)$'.format(club_activity_type), repl=r'\1', string=club_location).strip()
-
-
-        # Get Strava Club members list
-        while True:
-
-            try:
-                members = driver.find_elements(by=By.XPATH, value='//ul[@class="list-athletes"]//li')
-
-                for member in members:
-
-                    d = {}
-
-                    # club_id
-                    d['club_id'] = club_id
-
-                    # club_name
-                    d['club_name'] = club_name
-
-                    # club_activity_type
-                    d['club_activity_type'] = club_activity_type
-
-                    # club_location
-                    d['club_location'] = club_location
-
-                    # athlete_id
-                    d['athlete_id'] = member.find_element(by=By.XPATH, value='.//div[@class="text-headline"]//a').get_attribute('href')
-                    d['athlete_id'] = re.sub(pattern=r'^.*/athletes/(.*)$', repl=r'\1', string=d['athlete_id'])
-
-                    # athlete_name
-                    d['athlete_name'] = member.find_element(by=By.XPATH, value='.//div[@class="text-headline"]').text
-
-                    # athlete_location
-                    d['athlete_location'] = member.find_element(by=By.XPATH, value='.//div[@class="location"]').text
-
-                    # athlete_picture
-                    d['athlete_picture'] = member.find_element(by=By.XPATH, value='.//img[@class="avatar-img"]').get_attribute('src')
-
-                    data.append(d)
-
-
-                driver.find_element(by=By.XPATH, value='.//li[@class="next_page"]').click()
-
-            except NoSuchElementException:
-                break
-
-
-    # Create DataFrame
-    club_members = (pd.DataFrame(data=data, index=None, dtype=None)
-
-        # Replace blank by NA
-        .assign(athlete_location = lambda row: row['athlete_location'].mask(row['athlete_location'] == ''))
-
-        # Remove duplicate rows
-        .drop_duplicates(subset=None, keep='first', ignore_index=True)
-
-    )
-
-
-    # Create 'athlete_geolocation' column
-    club_members['athlete_geolocation'] = club_members.apply(lambda row: geocode(row['athlete_location'], language='en', exactly_one=True, addressdetails=True, namedetails=True, timeout=None) if pd.notna(row['athlete_location']) else None, axis=1)
-
-    # Create 'athlete_location_country_code' column
-    club_members['athlete_location_country_code'] = club_members.apply(lambda row: row['athlete_geolocation'].raw.get('address').get('country_code') if pd.notna(row['athlete_geolocation']) else None, axis=1)
-
-    # Create 'athlete_location_country' column
-    club_members['athlete_location_country'] = club_members.apply(lambda row: row['athlete_geolocation'].raw.get('address').get('country') if pd.notna(row['athlete_geolocation']) else None, axis=1)
-
-    # Create 'athlete_team' column
-    if club_members_teams is not None:
-
-        club_members_teams = (pd.DataFrame.from_dict(data=club_members_teams, orient='index', dtype='str', columns=['athlete_id'])
-
-
-        # Index to column
-        .reset_index(level=None, drop=False)
-        .rename(columns={'index': 'athlete_team'})
-
-
-        # Replace multiple whitespaces by single whitespace in all columns
-        .replace(to_replace=r'\s+', value=r' ', regex=True)
-
-
-        # Separate collapsed  'athlete_id' column into multiple rows
-        .assign(athlete_id = lambda row: row['athlete_id'].str.split(pat=', ', expand=False))
-        .explode(column=['athlete_id'])
-
-
-        # Rearrange rows
-        .sort_values(by=['athlete_id', 'athlete_team'], ignore_index=True)
-
-
-        # Remove duplicate rows
-        .drop_duplicates(subset=None, keep='first', ignore_index=True)
-
-
-        # Group 'athlete_id' and collapse 'athlete_team' into one row
-        .groupby(by=['athlete_id'], axis=0, level=None, as_index=False, sort=True, dropna=True)
-        .agg({'athlete_team': lambda row: ', '.join(row)})
-
-
-        # Rearrange rows
-        .sort_values(by=['athlete_id'], ignore_index=True)
-
-        )
-
-
-        # Left join 'club_members_teams'
-        club_members = club_members.merge(club_members_teams, how='left', on=['athlete_id'], indicator=False)
-
-
-    else:
-        club_members['athlete_team'] = None
-
-
-    club_members = (club_members
-
-        # Remove columns
-        .drop(columns=['athlete_geolocation'], axis=1)
-
-        # Create 'join_date' column
-        .assign(join_date = datetime.now())
-        .assign(join_date = lambda row: row['join_date'].dt.floor('d'))
-
-        # Select columns
-        .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country', 'athlete_location_country_code', 'join_date', 'athlete_team', 'athlete_picture'])
-
-        # Rearrange rows
-        .sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
-
-    )
-
-
-    # Return objects
-    return club_members
 
 
 
@@ -1126,8 +1175,9 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
             # Change dtypes
             df_import = (df_import
-                .astype(dtype={'elapsed_time': 'float', 'moving_time': 'float', 'distance': 'float', 'max_speed': 'float', 'average_speed': 'float', 'elevation_gain': 'float', 'pace': 'float', 'calories': 'float', 'activity_kudos': 'int'})
+                .astype(dtype={'elapsed_time': 'float', 'moving_time': 'float', 'distance': 'float', 'max_speed': 'float', 'average_speed': 'float', 'pace': 'float', 'steps': 'float', 'elevation_gain': 'float', 'max_heart_rate': 'float', 'average_heart_rate': 'float', 'max_cadence': 'float', 'average_cadence': 'float', 'max_watts': 'float', 'average_watts': 'float', 'calories': 'float', 'average_temperature': 'float', 'activity_kudos': 'int'})
                 .assign(activity_date = lambda row: row['activity_date'].apply(parser.parse))
+
             )
 
 
@@ -1135,7 +1185,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             df_import = (df_import
 
                 # Outer join 'df'
-                .merge(df.filter(items=['club_id', 'activity_id']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'activity_id'], indicator=True)
+                .merge(df.filter(items=['activity_id']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['activity_id'], indicator=True)
 
                 # Filter rows
                 .query('_merge == "left_only"')
@@ -1175,7 +1225,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
             # Change dtypes
             df_import = (df_import
-                .astype(dtype={'rank': 'int', 'activities': 'int', 'moving_time': 'float', 'distance': 'float', 'elevation_gain': 'float'})
+                .astype(dtype={'rank': 'int', 'activities': 'int', 'moving_time': 'float', 'distance': 'float', 'distance_longest': 'float', 'average_speed': 'float', 'elevation_gain': 'float'})
                 .assign(leaderboard_date_start = lambda row: row['leaderboard_date_start'].apply(parser.parse))
                 .assign(leaderboard_date_end = lambda row: row['leaderboard_date_end'].apply(parser.parse))
             )
@@ -1219,15 +1269,22 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
         # Change dtypes
         df_updated['activity_date'] = df_updated['activity_date'].dt.strftime('%Y-%m-%d')
-        df_updated = df_updated.fillna(value='')
+
+
+        # Select columns
+        df_updated = df_updated.filter(items=['activity_date', 'athlete_id', 'athlete_name', 'activity_type', 'activity_id', 'activity_name', 'activity_description', 'activity_location', 'commute', 'elapsed_time', 'moving_time', 'distance', 'max_speed', 'average_speed', 'pace', 'steps', 'elevation_gain', 'max_heart_rate', 'average_heart_rate', 'max_cadence', 'average_cadence', 'max_watts', 'average_watts', 'calories', 'activity_device', 'average_temperature', 'activity_kudos'])
 
 
         # Rearrange rows
-        df_updated = df_updated.sort_values(by=['club_id', 'activity_date'], ignore_index=True)
+        df_updated = df_updated.sort_values(by=['activity_date'], ignore_index=True)
 
 
     # club_members transform
     if 'join_date' in df.columns:
+
+        # Change dtypes
+        df_updated['join_date'] = df_updated['join_date'].dt.strftime('%Y-%m-%d')
+
 
         # Remove columns
         df_updated = df_updated.drop(['athlete_team'], axis=1)
@@ -1246,7 +1303,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
         df_updated = (df_updated
 
-            # Rearrange columns
+            # Select columns
             .filter(items=['club_id', 'club_name', 'club_location', 'club_activity_type', 'athlete_id', 'athlete_name', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'join_date', 'athlete_team', 'athlete_picture'])
 
 
@@ -1254,11 +1311,6 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             .sort_values(by=['club_id', 'athlete_id'], ignore_index=True)
 
         )
-
-
-        # Change dtypes
-        df_updated['join_date'] = df_updated['join_date'].dt.strftime('%Y-%m-%d')
-        df_updated = df_updated.fillna(value='')
 
 
     # club_leaderboard transform
@@ -1271,15 +1323,18 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         # Change dtypes
         df_updated['leaderboard_date_start'] = df_updated['leaderboard_date_start'].dt.strftime('%Y-%m-%d')
         df_updated['leaderboard_date_end'] = df_updated['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
-        df_updated = df_updated.fillna(value='')
 
 
-        # Rearrange columns
-        df_updated = df_updated.filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'elevation_gain', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'])
+        # Select columns
+        df_updated = df_updated.filter(items=['club_id', 'club_name', 'club_activity_type', 'club_location', 'leaderboard_week', 'leaderboard_date_start', 'leaderboard_date_end', 'rank', 'athlete_id', 'athlete_name', 'activities', 'moving_time', 'distance', 'distance_longest', 'average_speed', 'pace', 'elevation_gain', 'athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'])
 
 
         # Rearrange rows
         df_updated = df_updated.sort_values(by=['club_id', 'leaderboard_date_start', 'rank'], ignore_index=True)
+
+
+    # Change dtypes
+    df_updated = df_updated.fillna(value='')
 
 
     # DataFrame to list
@@ -1346,6 +1401,7 @@ strava_club_members(club_ids=club_ids, club_members_teams=club_members_teams)
 # Test
 (club_members
 	.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
+    .query('athlete_team.notna()')
     .drop_duplicates(subset=None, keep='first', ignore_index=True)
     .assign(athlete_team = lambda row: row['athlete_team'].str.split(pat=', ', expand=False))
     .explode(column=['athlete_team'])
