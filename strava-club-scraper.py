@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-06-06
+# Last update: 2023-06-07
 
 
 ###############
@@ -19,7 +19,6 @@ import sys
 import time
 
 from dateutil import parser, relativedelta
-from geopy.exc import GeocoderTimedOut, GeocoderQuotaExceeded
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
@@ -81,22 +80,6 @@ def convert_list_to_dictionary(*, list):
 
     # Return objects
     return dictionary
-
-
-
-# Geocoder
-def geocoder(row):
-
-    # Settings and variables
-    geolocator = Nominatim(user_agent='strava-club-scraper')
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
-
-
-    try:
-        return geocode(row, language='en', exactly_one=True, addressdetails=True, namedetails=True, timeout=None) if pd.notna(row) else None
-
-    except (GeocoderTimedOut, GeocoderQuotaExceeded):
-        return None
 
 
 
@@ -667,6 +650,11 @@ def strava_club_members(*, club_ids, club_members_teams=None):
     global driver
 
 
+    # Settings and variables
+    geolocator = Nominatim(user_agent='strava-club-scraper')
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+
+
     # Strava login
     strava_login()
 
@@ -760,7 +748,7 @@ def strava_club_members(*, club_ids, club_members_teams=None):
 
 
     # Create 'athlete_geolocation' column
-    club_members_geolocation['athlete_geolocation'] = club_members_geolocation['athlete_location'].apply(lambda row: geocoder(row))
+    club_members_geolocation['athlete_geolocation'] = club_members_geolocation.apply(lambda row: geocode(row['athlete_location'], language='en', exactly_one=True, addressdetails=True, namedetails=True, timeout=None) if pd.notna(row['athlete_location']) else None, axis=1)
 
     # Create 'athlete_location_country_code' column
     club_members_geolocation['athlete_location_country_code'] = club_members_geolocation.apply(lambda row: row['athlete_geolocation'].raw.get('address').get('country_code') if pd.notna(row['athlete_geolocation']) else None, axis=1)
