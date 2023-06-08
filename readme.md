@@ -56,7 +56,7 @@ python -m pip install python-dateutil geopy google-api-python-client google-auth
 
 ### strava_club_activities
 ```.py
-strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter_date_max)
+strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter_date_max, timezone='UTC')
 ```
 
 #### Description
@@ -67,12 +67,13 @@ strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter
 - `filter_activities_type`: *str list*. List of activities type filter (e.g. `filter_activities_type=['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk']`).
 - `filter_date_min`: *str*. Start date filter (e.g. `filter_date_min='2023-06-05'`).
 - `filter_date_max`: *str*. End date filter (e.g. `filter_date_max='2023-07-30'`).
+- `timezone`: *str or timezone object*, default: *'UTC'*.
 
 <br>
 
 ### strava_club_members
 ```.py
-strava_club_members(club_ids, club_members_teams=None)
+strava_club_members(club_ids, club_members_teams=None, timezone='UTC')
 ```
 
 #### Description
@@ -81,6 +82,7 @@ strava_club_members(club_ids, club_members_teams=None)
 #### Parameters
 - `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
 - `club_members_teams`: *dict*, default: *None*. Option to add `athlete_id` to one or multiple teams (stored in the `athlete_team` column). `athlete_id` assigned to multiple teams will have its unique teams assignment comma separated.
+- `timezone`: *str or timezone object*, default: *'UTC'*.
 
 Example of `club_members_teams`:
 
@@ -95,7 +97,7 @@ club_members_teams={
 
 ### strava_club_leaderboard
 ```.py
-strava_club_leaderboard(club_ids, filter_date_min, filter_date_max)
+strava_club_leaderboard(club_ids, filter_date_min, filter_date_max, timezone='UTC')
 ```
 
 #### Description
@@ -105,6 +107,7 @@ strava_club_leaderboard(club_ids, filter_date_min, filter_date_max)
 - `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
 - `filter_date_min`: *str*. Start date filter (e.g. `filter_date_min='2023-06-05'`).
 - `filter_date_max`: *str*. End date filter (e.g. `filter_date_max='2023-07-30'`).
+- `timezone`: *str or timezone object*, default: *'UTC'*.
 
 <br>
 
@@ -125,16 +128,16 @@ strava_club_to_google_sheets(df, sheet_id, sheet_name)
 
 ### execution_time_to_google_sheets
 ```.py
-execution_time_to_google_sheets(timezone='CET', sheet_id, sheet_name)
+execution_time_to_google_sheets(sheet_id, sheet_name, timezone='UTC')
 ```
 
 #### Description
 - Update a Google Sheet sheet given the current time that the code was executed.
 
 #### Parameters
-- `timezone`: *str or timezone object*, default: *'CET'*.
 - `sheet_id`: *str*. Google Sheets file id.
 - `sheet_name`: *str*. Google Sheets sheet/tab where the data should be updated/incremented.
+- `timezone`: *str or timezone object*, default: *'UTC'*.
 
 <br>
 
