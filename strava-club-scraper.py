@@ -228,7 +228,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
                 activity_date = parser.parse(activity_date)
 
                 if activity_date >= filter_date_min:
-                    driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+                    driver.execute_script(script='window.scrollTo(0, document.body.scrollHeight);')
                     time.sleep(6)
 
                 else:
@@ -639,7 +639,7 @@ def strava_export_gpx(*, activities_id):
         # time.sleep(3)
 
         # Rename downloaded .gpx file
-        # latest_file = max(glob.glob(pathname=os.path.join(os.getcwd(), 'activities', '*.gpx')), key=os.path.getctime)
+        # latest_file = max(glob.glob(pathname=os.path.join(os.getcwd(), 'activities', '*.gpx'), recursive=False), key=os.path.getctime)
         # latest_file_new_filename = os.path.join(os.getcwd(), 'activities', '{}_{}.gpx').format(row['activity_type'], row['activity_id'])
         # os.rename(src=latest_file, dst=latest_file_new_filename)
 
