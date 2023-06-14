@@ -64,7 +64,7 @@ strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter
 
 #### Parameters
 - `club_ids`: *str list*. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
-- `filter_activities_type`: *str list*. List of activities type filter (e.g. `filter_activities_type=['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk']`).
+- `filter_activities_type`: *str list*, default: *None*. List of activities type filter (e.g. `filter_activities_type=['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk']`).
 - `filter_date_min`: *str*. Start date filter (e.g. `filter_date_min='2023-06-05'`).
 - `filter_date_max`: *str*. End date filter (e.g. `filter_date_max='2023-07-30'`).
 - `timezone`: *str or timezone object*, default: *'UTC'*.
