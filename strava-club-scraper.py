@@ -811,7 +811,7 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
     club_members = (club_members
 
         # Remove columns
-        .drop(columns=['athlete_geolocation'], axis=1)
+        .drop(columns=['athlete_geolocation'], axis=1, errors='ignore')
 
         # Create 'join_date' column
         .assign(join_date = pd.Timestamp.now(tz=timezone).replace(tzinfo=None).floor(freq='d').to_pydatetime())
@@ -1175,7 +1175,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
                 .query('_merge == "left_only"')
 
                 # Remove columns
-                .drop(columns=['_merge'], axis=1)
+                .drop(columns=['_merge'], axis=1, errors='ignore')
 
             )
 
@@ -1199,7 +1199,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
 
                 # Remove columns
-                .drop(columns=['_merge'], axis=1)
+                .drop(columns=['_merge'], axis=1, errors='ignore')
 
             )
 
@@ -1226,7 +1226,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
             df_import = (df_import
 
                 # Remove columns
-                .drop(columns=['athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'], axis=1)
+                .drop(columns=['athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'], axis=1, errors='ignore')
 
                 # Outer join 'df'
                 .merge(df.filter(items=['club_id', 'leaderboard_week']).drop_duplicates(subset=None, keep='first', ignore_index=True), how='outer', on=['club_id', 'leaderboard_week'], indicator=True)
@@ -1235,7 +1235,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
                 .query('_merge == "left_only"')
 
                 # Remove columns
-                .drop(columns=['_merge'], axis=1)
+                .drop(columns=['_merge'], axis=1, errors='ignore')
 
             )
 
@@ -1271,7 +1271,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
 
         # Remove columns
-        df_updated = df_updated.drop(['athlete_team'], axis=1)
+        df_updated = df_updated.drop(columns=['athlete_team'], axis=1, errors='ignore')
 
 
         # Left join 'club_members'
@@ -1282,7 +1282,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         df_updated['athlete_location_country_code'] = df_updated['athlete_location_country_code_y'].fillna(df_updated['athlete_location_country_code_x'])
         df_updated['athlete_location_country'] = df_updated['athlete_location_country_y'].fillna(df_updated['athlete_location_country_x'])
         df_updated['athlete_picture'] = df_updated['athlete_picture_y'].fillna(df_updated['athlete_picture_x'])
-        df_updated = df_updated.drop(['athlete_location_x', 'athlete_location_y', 'athlete_location_country_code_x', 'athlete_location_country_code_y', 'athlete_location_country_x', 'athlete_location_country_y', 'athlete_picture_x', 'athlete_picture_y'], axis=1)
+        df_updated = df_updated.drop(columns=['athlete_location_x', 'athlete_location_y', 'athlete_location_country_code_x', 'athlete_location_country_code_y', 'athlete_location_country_x', 'athlete_location_country_y', 'athlete_picture_x', 'athlete_picture_y'], axis=1, errors='ignore')
 
 
         df_updated = (df_updated
