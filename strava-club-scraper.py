@@ -1376,7 +1376,7 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 # strava_export_gpx(activities_id=club_activities_sample['activity_id'])
 
 # Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
-# strava_club_leaderboard_manual(club_activities_df=club_activities, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=['Ride', 'E-Bike Ride'])
+# strava_club_leaderboard_manual(club_activities_df=club_activities, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike'])
 
 
 
