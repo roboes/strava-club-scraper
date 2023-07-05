@@ -1,5 +1,5 @@
 ## Dockerfile Strava Club Scraper
-# Last update: 2023-05-31
+# Last update: 2023-07-05
 
 
 # Base image
@@ -23,11 +23,8 @@ RUN apt-get -y update && apt-get install -y \
 	google-chrome-stable
 
 
-# Python - Update pip
+# Python - Install dependencies
 RUN python -m pip install --upgrade pip
-
-
-# Python - Install packages
 RUN python -m pip install python-dateutil geopy google-api-python-client google-auth lxml numpy pandas pyjanitor selenium webdriver-manager
 
 
@@ -39,6 +36,17 @@ RUN which python
 COPY . .
 
 
+# Create 'crontab-scheduler' configuration file
+RUN echo "00 10 * * * cd / && /usr/local/bin/python strava-club-scraper.py 2>&1" >> crontab-scheduler
+RUN echo "00 17 * * * cd / && /usr/local/bin/python strava-club-scraper.py 2>&1" >> crontab-scheduler
+RUN echo "30 21 * * * cd / && /usr/local/bin/python strava-club-scraper.py 2>&1" >> crontab-scheduler
+# RUN echo "30 20 * * 1,4 cd / && /usr/local/bin/python strava-club-scraper-activities.py 2>&1" >> crontab-scheduler
+
+
+# Copy 'crontab-scheduler' configuration file to '/etc/cron.d/'
+COPY crontab-scheduler /etc/cron.d/crontab-scheduler
+
+
 # List all directories and files (in a Linux container)
 RUN dir -s
 
@@ -47,7 +55,7 @@ RUN dir -s
 RUN /usr/local/bin/python strava-club-scraper.py
 
 
-# Apply cron job given crontab scheduler configuration file
+# Apply cron job given crontab-scheduler configuration file
 RUN crontab crontab-scheduler
 
 

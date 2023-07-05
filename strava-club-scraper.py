@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-07-04
+# Last update: 2023-07-05
 
 
 ###############
@@ -222,7 +222,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
                 activities = driver.find_elements(by=By.XPATH, value='//div[@data-testid="activity_entry_container"]')
                 activity_date = activities[-1].find_element(by=By.XPATH, value='.//..//..//..//..//..//time').text
-                activity_date = re.sub(pattern=r'^(Today at )(.*)$', repl=str(pd.Timestamp.now(tz=timezone).date()) + r' \2', string=activity_date)
+                activity_date = re.sub(pattern=r'^(Today at |Today)(.*)$', repl=str(pd.Timestamp.now(tz=timezone).date()) + r' \2', string=activity_date)
                 activity_date = re.sub(pattern=r'^(Yesterday at |Yesterday)(.*)$', repl=str((pd.Timestamp.now(tz=timezone).date() - timedelta(days=1))) + r' \2', string=activity_date)
                 activity_date = parser.parse(activity_date)
 
@@ -242,7 +242,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
         for activity in activities:
 
             activity_date = activity.find_element(by=By.XPATH, value='.//time[@data-testid="date_at_time"]').text
-            activity_date = re.sub(pattern=r'^(Today at )(.*)$', repl=str(pd.Timestamp.now(tz=timezone).date()) + r' \2', string=activity_date)
+            activity_date = re.sub(pattern=r'^(Today at |Today)(.*)$', repl=str(pd.Timestamp.now(tz=timezone).date()) + r' \2', string=activity_date)
             activity_date = re.sub(pattern=r'^(Yesterday at |Yesterday)(.*)$', repl=str((pd.Timestamp.now(tz=timezone).date() - timedelta(days=1))) + r' \2', string=activity_date)
             activity_date = parser.parse(activity_date)
 
