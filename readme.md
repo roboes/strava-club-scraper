@@ -48,7 +48,7 @@ And that your Strava display language is `English (US)`. To change the language,
 ## Python dependencies
 
 ```.ps1
-python -m pip install python-dateutil geopy google-api-python-client google-auth lxml numpy pandas pyjanitor selenium webdriver-manager
+python -m pip install python-dateutil geopy google-api-python-client google-auth lxml numpy pandas selenium webdriver-manager
 ```
 
 

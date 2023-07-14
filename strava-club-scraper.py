@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-07-05
+# Last update: 2023-07-14
 
 
 ###############
@@ -23,7 +23,6 @@ from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from janitor import clean_names
 # import lxml
 import lxml.html as lh
 import numpy as np
@@ -266,7 +265,7 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
             d = {}
 
-            driver.get('https://www.strava.com/activities/' + activity)
+            driver.get('https://www.strava.com/activities/' + activity + '/overview')
 
             try:
                 driver.find_element(by=By.XPATH, value='//pre[text()="Too Many Requests"]')
@@ -352,17 +351,6 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
                     try:
                         d['Elevation'] = re.sub(pattern=r',', repl=r'', string=d['Elevation'])
                         d['Elevation'] = re.sub(pattern=r'm$', repl=r'', string=d['Elevation'])
-
-                    except:
-                        pass
-
-                    # moving_time
-                    try:
-                        if len(d['Moving Time'].split(sep=':')) == 1:
-                            d['Moving Time'] = re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=d['Moving Time'])
-
-                        if len(d['Moving Time'].split(sep=':')) == 2:
-                            d['Moving Time'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Moving Time'])
 
                     except:
                         pass
@@ -522,21 +510,6 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
                         except:
                             pass
 
-                        # elapsed_time
-                        try:
-
-                            if len(d['Elapsed Time'].split(sep=':')) == 1:
-                                d['Elapsed Time'] = re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=d['Elapsed Time'])
-
-                            if len(d['Elapsed Time'].split(sep=':')) == 2:
-                                d['Elapsed Time'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Elapsed Time'])
-
-                            else:
-                                pass
-
-
-                        except:
-                            pass
 
                 except:
                     pass
@@ -558,26 +531,44 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
 
 
     # Create DataFrame
-    club_activities = (pd.DataFrame(data=data, index=None, dtype=None)
+    club_activities = pd.DataFrame(data=data, index=None, dtype=None)
 
-        # Rename columns
-        .clean_names()
-        .rename(columns={'elevation': 'elevation_gain', 'max_power': 'max_watts', 'average_power': 'average_watts', 'temperature': 'average_temperature'})
-
+    # Rename columns
+    club_activities.columns = (club_activities.columns
+        .str.strip()
+        .str.lower()
+        .str.replace(' ', '_')
     )
+
+    club_activities = club_activities.rename(columns={'elevation': 'elevation_gain', 'max_power': 'max_watts', 'average_power': 'average_watts', 'temperature': 'average_temperature'})
 
 
     ## Change dtypes
 
+    # duration
+    if 'duration' in club_activities.columns:
+        club_activities['elapsed_time'] = club_activities['elapsed_time'].fillna(club_activities['duration'])
+
+        club_activities['moving_time'] = club_activities['moving_time'].fillna(club_activities['duration'])
+
+        club_activities = club_activities.drop(columns=['duration'], axis=1, errors='ignore')
+
+
     # elapsed_time
     if 'elapsed_time' in club_activities.columns:
+        club_activities['elapsed_time'] = club_activities['elapsed_time'].apply(lambda row: re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row) if len(row.split(sep=':')) == 1 else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row) if len(row.split(sep=':')) == 2 else row)
+
         club_activities['elapsed_time'] = pd.to_datetime(club_activities['elapsed_time'], format='%H:%M:%S').dt.time
         club_activities['elapsed_time'] = pd.to_timedelta(club_activities['elapsed_time'].astype(dtype='str')).dt.total_seconds()
 
+
     # moving_time
     if 'moving_time' in club_activities.columns:
+        club_activities['moving_time'] = club_activities['moving_time'].apply(lambda row: re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row) if len(row.split(sep=':')) == 1 else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row) if len(row.split(sep=':')) == 2 else row)
+
         club_activities['moving_time'] = pd.to_datetime(club_activities['moving_time'], format='%H:%M:%S').dt.time
         club_activities['moving_time'] = pd.to_timedelta(club_activities['moving_time'].astype(dtype='str')).dt.total_seconds()
+
 
     # pace
     """
@@ -943,13 +934,17 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max, timez
             # Create 'club_location' column
             .assign(club_location = lambda row: club_location)
 
-            # Rename columns
-            .clean_names()
-
         )
 
 
         # Rename columns
+        club_leaderboard_import.columns = (club_leaderboard_import.columns
+            .str.strip()
+            .str.lower()
+            .str.replace(' ', '_')
+        )
+
+
         if club_activity_type == 'Cycling':
             club_leaderboard_import = (club_leaderboard_import
                 .rename(columns={'rides': 'activities', 'longest': 'distance_longest', 'avg_speed': 'average_speed'})

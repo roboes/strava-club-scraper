@@ -25,7 +25,7 @@ RUN apt-get -y update && apt-get install -y \
 
 # Python - Install dependencies
 RUN python -m pip install --upgrade pip
-RUN python -m pip install python-dateutil geopy google-api-python-client google-auth lxml numpy pandas pyjanitor selenium webdriver-manager
+RUN python -m pip install python-dateutil geopy google-api-python-client google-auth lxml numpy pandas selenium webdriver-manager
 
 
 # Python - Get Python pathway
