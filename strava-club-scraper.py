@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-07-14
+# Last update: 2023-07-17
 
 
 ###############
@@ -537,7 +537,8 @@ def strava_club_activities(*, club_ids, filter_activities_type, filter_date_min,
     club_activities.columns = (club_activities.columns
         .str.strip()
         .str.lower()
-        .str.replace(' ', '_')
+        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
+        .str.replace(pat=r':', repl=r'', regex=True)
     )
 
     club_activities = club_activities.rename(columns={'elevation': 'elevation_gain', 'max_power': 'max_watts', 'average_power': 'average_watts', 'temperature': 'average_temperature'})
@@ -941,7 +942,8 @@ def strava_club_leaderboard(*, club_ids, filter_date_min, filter_date_max, timez
         club_leaderboard_import.columns = (club_leaderboard_import.columns
             .str.strip()
             .str.lower()
-            .str.replace(' ', '_')
+            .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
+            .str.replace(pat=r':', repl=r'', regex=True)
         )
 
 

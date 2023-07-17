@@ -1,5 +1,5 @@
 ## GitHub Actions Workflow
-# Last update: 2023-07-05
+# Last update: 2023-07-17
 
 
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
@@ -12,6 +12,8 @@ name: GitHub Actions Workflow to run Python script on schedule
 # Controls on when the workflow will run
 on:
 
+  workflow_dispatch:
+   
   schedule:
     - cron: '00 10 * * *'
     - cron: '00 17 * * *'
@@ -35,14 +37,14 @@ jobs:
         uses: actions/checkout@v3
 
 
+      - name: Install Google Chrome - https://github.com/browser-actions/setup-chrome
+        uses: browser-actions/setup-chrome@v1
+
+
       - name: Setup Python - https://github.com/actions/checkout
         uses: actions/setup-python@v4
         with:
           python-version: '3.x' #  Latest stable major version of Python
-
-
-      - name: Install Google Chrome - https://github.com/browser-actions/setup-chrome
-        uses: browser-actions/setup-chrome@v1
 
 
       - name: Install Python dependencies
