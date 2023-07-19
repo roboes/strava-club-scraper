@@ -13,7 +13,7 @@ name: GitHub Actions Workflow to run Python script on schedule
 on:
 
   workflow_dispatch:
-   
+
   schedule:
     - cron: '00 10 * * *'
     - cron: '00 17 * * *'

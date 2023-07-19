@@ -1,8 +1,8 @@
-## pre-commit
-# Last update: 2023-07-17
+## Pre-commit Workflow
+# Last update: 2023-07-19
 
 
-# Save this file to '.github/workflows/pre-commit.yml'
+# Save this file to '/.github/workflows/pre-commit-workflow.yaml'
 
 
 # Name of the workflow
@@ -27,17 +27,23 @@ jobs:
     # Type of machine to run the job on
     runs-on: ubuntu-latest
 
-
     # Sequence of tasks that will be executed as part of the job
     steps:
 
       - name: Checkout repository content - https://github.com/actions/checkout
         uses: actions/checkout@v3
 
+
       - name: Setup Python - https://github.com/actions/checkout
         uses: actions/setup-python@v4
         with:
           python-version: '3.x' #  Latest stable major version of Python
 
-      - name: pre-commit action - https://github.com/pre-commit/action
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+
+      - name: Pre-commit action - https://github.com/pre-commit/action
         uses: pre-commit/action@v3.0.0
