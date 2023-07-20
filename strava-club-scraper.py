@@ -744,11 +744,11 @@ def strava_club_activities(
     # duration
     if 'duration' in club_activities.columns:
         club_activities['elapsed_time'] = club_activities['elapsed_time'].fillna(
-            club_activities['duration'],
+            value=club_activities['duration'], method=None, axis=0
         )
 
         club_activities['moving_time'] = club_activities['moving_time'].fillna(
-            club_activities['duration'],
+            value=club_activities['duration'], method=None, axis=0
         )
 
         club_activities = club_activities.drop(
@@ -1430,7 +1430,7 @@ def strava_club_leaderboard(
     # moving_time: '%H:%M' to seconds
     if 'moving_time' in club_leaderboard.columns:
         club_leaderboard['moving_time'] = club_leaderboard['moving_time'].fillna(
-            value='0m',
+            value='0m', method=None, axis=0
         )
         club_leaderboard['moving_time'] = club_leaderboard['moving_time'].replace(
             to_replace=r'^([0-9]+m)$',
@@ -1875,16 +1875,16 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
         # In case club_members scraped 'club_id' and 'athlete_id' information, update 'df_updated'
         df_updated['athlete_location'] = df_updated['athlete_location_y'].fillna(
-            df_updated['athlete_location_x'],
+            value=df_updated['athlete_location_x'], method=None, axis=0
         )
         df_updated['athlete_location_country_code'] = df_updated[
             'athlete_location_country_code_y'
-        ].fillna(df_updated['athlete_location_country_code_x'])
+        ].fillna(value=df_updated['athlete_location_country_code_x'], method=None, axis=0)
         df_updated['athlete_location_country'] = df_updated[
             'athlete_location_country_y'
-        ].fillna(df_updated['athlete_location_country_x'])
+        ].fillna(value=df_updated['athlete_location_country_x'], method=None, axis=0)
         df_updated['athlete_picture'] = df_updated['athlete_picture_y'].fillna(
-            df_updated['athlete_picture_x'],
+            value=df_updated['athlete_picture_x'], method=None, axis=0,
         )
         df_updated = df_updated.drop(
             columns=[
@@ -1987,7 +1987,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         )
 
     # Change dtypes
-    df_updated = df_updated.fillna(value='')
+    df_updated = df_updated.fillna(value='', method=None, axis=0)
 
     # DataFrame to list
     data = [df_updated.columns.values.tolist()]
