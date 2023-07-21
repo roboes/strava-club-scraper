@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-07-19
+# Last update: 2023-07-20
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -54,8 +54,8 @@ strava_password = 'Password12345'
 club_ids = [
     '445017',  # E-Bike Ride, Ride
     '789955',  # Multisport
-    '1045852',
-]  # Run, Walk, Hike
+    '1045852',  # Run, Walk, Hike
+]
 # filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike']
 filter_date_min = '2023-06-05'
 filter_date_max = '2023-07-30'
@@ -82,6 +82,14 @@ def convert_list_to_dictionary(*, to_convert):
 
     # Return objects
     return dictionary
+
+
+def get_seconds(*, time_str):
+    """Get seconds from time."""
+    h, m, s = time_str.split(sep=':')
+
+    # Return objects
+    return int(h) * 3600 + int(m) * 60 + int(s)
 
 
 def selenium_webdriver():
@@ -531,7 +539,7 @@ def strava_club_activities(
 
                     # Calories/Temperature/Elapsed Time
                     more_stats = re.sub(
-                        pattern=r'(Calories|Temperature|Elapsed Time) ',
+                        pattern=r'(Calories|Temperature|Carbon Saved|Elapsed Time) ',
                         repl=r'\1\n',
                         string=more_stats,
                     )
@@ -700,6 +708,34 @@ def strava_club_activities(
                 except Exception:
                     pass
 
+                # relative_effort
+                try:
+                    d['Relative Effort'] = float(d['Relative Effort'])
+
+                except Exception:
+                    pass
+
+                # tough_relative_effort
+                try:
+                    d['Tough Relative Effort'] = float(d['Tough Relative Effort'])
+
+                except Exception:
+                    pass
+
+                # historic_relative_effort
+                try:
+                    d['Historic Relative Effort'] = float(d['Historic Relative Effort'])
+
+                except Exception:
+                    pass
+
+                # massive_relative_effort
+                try:
+                    d['Massive Relative Effort'] = float(d['Massive Relative Effort'])
+
+                except Exception:
+                    pass
+
                 # activity_device
                 try:
                     d['activity_device'] = driver.find_element(
@@ -771,13 +807,9 @@ def strava_club_activities(
             else row,
         )
 
-        club_activities['elapsed_time'] = pd.to_datetime(
-            club_activities['elapsed_time'],
-            format='%H:%M:%S',
-        ).dt.time
-        club_activities['elapsed_time'] = pd.to_timedelta(
-            club_activities['elapsed_time'].astype(dtype='str'),
-        ).dt.total_seconds()
+        club_activities['elapsed_time'] = club_activities['elapsed_time'].apply(
+            lambda row: get_seconds(time_str=str(row)),
+        )
 
     # moving_time
     if 'moving_time' in club_activities.columns:
@@ -789,13 +821,9 @@ def strava_club_activities(
             else row,
         )
 
-        club_activities['moving_time'] = pd.to_datetime(
-            club_activities['moving_time'],
-            format='%H:%M:%S',
-        ).dt.time
-        club_activities['moving_time'] = pd.to_timedelta(
-            club_activities['moving_time'].astype(dtype='str'),
-        ).dt.total_seconds()
+        club_activities['moving_time'] = club_activities['moving_time'].apply(
+            lambda row: get_seconds(time_str=str(row)),
+        )
 
     # pace
     # if 'pace' in club_activities.columns:
@@ -820,6 +848,10 @@ def strava_club_activities(
             'max_speed',
             'average_speed',
             'pace',
+            'relative_effort',
+            'tough_relative_effort',
+            'historic_relative_effort',
+            'massive_relative_effort',
             'steps',
             'elevation_gain',
             'max_heart_rate',
@@ -831,6 +863,7 @@ def strava_club_activities(
             'calories',
             'activity_device',
             'average_temperature',
+            'carbon_saved',
             'activity_kudos',
         ],
     )
@@ -1676,6 +1709,10 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
                     'distance': 'float',
                     'max_speed': 'float',
                     'average_speed': 'float',
+                    'relative_effort': 'float',
+                    'tough_relative_effort': 'float',
+                    'historic_relative_effort': 'float',
+                    'massive_relative_effort': 'float',
                     'steps': 'float',
                     'elevation_gain': 'float',
                     'max_heart_rate': 'float',
@@ -1832,6 +1869,10 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
                 'max_speed',
                 'average_speed',
                 'pace',
+                'relative_effort',
+                'tough_relative_effort',
+                'historic_relative_effort',
+                'massive_relative_effort',
                 'steps',
                 'elevation_gain',
                 'max_heart_rate',
@@ -1843,6 +1884,7 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
                 'calories',
                 'activity_device',
                 'average_temperature',
+                'carbon_saved',
                 'activity_kudos',
             ],
         )
@@ -2065,10 +2107,20 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 ## Club activities
 
 # Get data (via web-scraping)
-# strava_club_activities(club_ids=club_ids, filter_activities_type=None, filter_date_min=filter_date_min, filter_date_max=filter_date_max, timezone=timezone)
+# strava_club_activities(
+#     club_ids=club_ids,
+#     filter_activities_type=None,
+#     filter_date_min=filter_date_min,
+#     filter_date_max=filter_date_max,
+#     timezone=timezone,
+# )
 
 # Update Google Sheets sheet
-# strava_club_to_google_sheets(df=club_activities, sheet_id=sheet_id, sheet_name='Activities')
+# strava_club_to_google_sheets(
+#     df=club_activities,
+#     sheet_id=sheet_id,
+#     sheet_name='Activities',
+# )
 
 # Save as .csv
 # club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf8')

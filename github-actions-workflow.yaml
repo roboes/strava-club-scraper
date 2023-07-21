@@ -1,12 +1,12 @@
 ## GitHub Actions Workflow
-# Last update: 2023-07-17
+# Last update: 2023-07-20
 
 
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 
 # Name of the workflow
-name: GitHub Actions Workflow to run Python script on schedule
+name: Run Python script on schedule
 
 
 # Controls on when the workflow will run
@@ -59,9 +59,10 @@ jobs:
 
       - name: Run Python script
         if: |
-          github.event.schedule == '00 10 * * *'
-          || github.event.schedule == '00 17 * * *'
-          || github.event.schedule == '30 21 * * *'
+          github.event.schedule != '30 20 * * MON,THU'
+        # github.event.schedule == '00 10 * * *'
+        # || github.event.schedule == '00 17 * * *'
+        # || github.event.schedule == '30 21 * * *'
         run: python strava-club-scraper.py
 
 
