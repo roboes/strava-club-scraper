@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-07-20
+# Last update: 2023-07-25
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -37,7 +37,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 # Set working directory
-# if sys.platform == 'win32' or sys.platform == 'darwin':
+# if sys.platform in {'win32', 'darwin'}:
 #     os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads'))
 
 
@@ -94,30 +94,28 @@ def get_seconds(*, time_str):
 
 def selenium_webdriver():
     # WebDriver options
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.page_load_strategy = 'normal'
-
-    # WebDriver download settings
-    chrome_options.add_experimental_option(
+    webdriver_options = webdriver.ChromeOptions()
+    webdriver_options.page_load_strategy = 'normal'
+    webdriver_options.add_experimental_option(
         'prefs',
         {
+            'enable_do_not_track': True,
             # 'download.default_directory': os.path.join(os.path.expanduser('~'), 'Downloads'),
             'download.prompt_for_download': False,
-            'profile.default_content_setting_values.automatic_downloads': 1,
+            'profile.default_content_setting_values.automatic_downloads': True,
         },
     )
 
-    # WebDriver
-    if sys.platform == 'linux' or sys.platform == 'linux2':
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('window-size=1400,900')
-        chrome_options.add_argument('--start-maximized')
+    if sys.platform in {'linux', 'linux2'}:
+        webdriver_options.add_argument('--headless=new')
+        webdriver_options.add_argument('--disable-dev-shm-usage')
+        webdriver_options.add_argument('--no-sandbox')
+        webdriver_options.add_argument('window-size=1400,900')
+        webdriver_options.add_argument('--start-maximized')
 
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
-        options=chrome_options,
+        options=webdriver_options,
     )
 
     # Return objects
