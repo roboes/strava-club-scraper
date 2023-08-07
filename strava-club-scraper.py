@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-07-25
+# Last update: 2023-08-07
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -28,6 +28,8 @@ from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import lxml.html as lh
+
+# import numpy as np
 import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -56,7 +58,7 @@ club_ids = [
     '789955',  # Multisport
     '1045852',  # Run, Walk, Hike
 ]
-# filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike']
+# filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Race', 'Run', 'Trail Run', 'Treadmill workout', 'Walk', 'Hike']
 filter_date_min = '2023-06-05'
 filter_date_max = '2023-07-30'
 club_members_teams = {
@@ -2124,10 +2126,18 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 # club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf8')
 
 # Export club activities to .gpx files
-# club_activities = pd.read_csv(filepath_or_buffer='activities.csv', sep=',', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='python', encoding='utf8')
-# club_activities = club_activities.astype(dtype={'activity_id': 'str'})
-# club_activities_sample = club_activities.loc[club_activities['activity_type'].isin(['Ride', 'E-Bike Ride', 'Run', 'Walk', 'Hike'])]
-# strava_export_gpx(activities_id=club_activities_sample['activity_id'])
+# club_activities_sample = (pd.read_csv(filepath_or_buffer='activities.csv', sep=',', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='python', encoding='utf8')
+#     .astype(dtype={'activity_id': 'str'})
+#     .drop(columns=['club_id'], axis=1, errors='ignore')
+#     .drop_duplicates(subset=None, keep='first', ignore_index=True)
+#     .query('activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
+#     .assign(activity_type=lambda row: np.where((row['activity_type'] == 'Race') & (row['pace'].notna()), 'Run', (np.where((row['activity_type'] == 'Race') & (row['pace'].isna()), 'Ride', row['activity_type']))))
+#     .assign(activity_type=lambda row: np.where(row['activity_type'].isin(['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride']), 'Cycling', (np.where(row['activity_type'].isin(['Run', 'Trail Run', 'Walk', 'Hike']), 'Run/Walk/Hike', row['activity_type']))))
+#     .sort_values(by=['activity_type', 'activity_date', 'activity_id'], ignore_index=True)
+# )
+# strava_export_gpx(activities_id=club_activities_sample.query('activity_type=="Cycling"')['activity_id'])
+# strava_export_gpx(activities_id=club_activities_sample.query('activity_type=="Run/Walk/Hike"')['activity_id'])
+# club_activities_sample.to_csv(path_or_buf='club_activities_sample.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
 
 # Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
 # strava_club_leaderboard_manual(club_activities_df=club_activities, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike'])
