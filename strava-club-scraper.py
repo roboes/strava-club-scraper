@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-07-25
+# Last update: 2023-08-10
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -28,6 +28,7 @@ from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import lxml.html as lh
+# import numpy as np
 import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -56,7 +57,7 @@ club_ids = [
     '789955',  # Multisport
     '1045852',  # Run, Walk, Hike
 ]
-# filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike']
+# filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Race', 'Run', 'Trail Run', 'Treadmill workout', 'Walk', 'Hike']
 filter_date_min = '2023-06-05'
 filter_date_max = '2023-07-30'
 club_members_teams = {
@@ -888,7 +889,7 @@ def strava_club_activities(
     return club_activities
 
 
-def strava_export_gpx(*, activities_id):
+def strava_export_activities(*, activities_id, file_type='.gpx'):
     """Given a list of activity_id, export it to .gpx."""
     # Import or create global variables
     global driver
@@ -896,18 +897,33 @@ def strava_export_gpx(*, activities_id):
     # Strava login
     strava_login()
 
-    # Export .gpx files
-    for activity_id in activities_id:
-        driver.get(
-            'https://www.strava.com/activities/' + str(activity_id) + '/export_gpx',
-        )
+    # Export activity as .gpx
+    if file_type == '.gpx':
 
-        # time.sleep(3)
+        for activity_id in activities_id:
+            driver.get(
+                'https://www.strava.com/activities/' + str(activity_id) + '/export_gpx',
+            )
 
-        # Rename downloaded .gpx file
-        # latest_file = max(glob.glob(pathname=os.path.join(os.getcwd(), 'activities', '*.gpx'), recursive=False), key=os.path.getctime)
-        # latest_file_new_filename = os.path.join(os.getcwd(), 'activities', '{}_{}.gpx').format(row['activity_type'], row['activity_id'])
-        # os.rename(src=latest_file, dst=latest_file_new_filename)
+            # time.sleep(3)
+
+            # Rename downloaded .gpx file
+            # latest_file = max(glob.glob(pathname=os.path.join(os.getcwd(), 'activities', '*.gpx'), recursive=False), key=os.path.getctime)
+            # latest_file_new_filename = os.path.join(os.getcwd(), 'activities', '{}_{}.gpx').format(row['activity_type'], row['activity_id'])
+            # os.rename(src=latest_file, dst=latest_file_new_filename)
+
+    # Export activity as .tcx (requires Sauce for Strava extension for Google Chrome, which can be manually downloaded after invoking strava_login() function - https://chrome.google.com/webstore/detail/sauce-for-strava/eigiefcapdcdmncdghkeahgfmnobigha)
+    if file_type == '.tcx':
+
+        for activity_id in activities_id:
+            driver.get('https://www.strava.com/activities/' + str(activity_id))
+
+            try:
+                driver.find_element(by=By.XPATH, value='//div[@class="app-icon icon-nav-more"]').click()
+                driver.find_element(by=By.XPATH, value='//a[@class="tcx"]').click()
+                
+            except NoSuchElementException:
+                pass
 
 
 def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
@@ -1673,9 +1689,8 @@ def google_api_credentials():
     return service
 
 
-def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
-    # Import or create global variables
-    global club_members
+
+def read_google_sheets(*, sheet_id, sheet_name):
 
     # Google API Credentials
     service = google_api_credentials()
@@ -1697,33 +1712,115 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         # Change dtypes
         df_import = df_import.replace(to_replace=r'^\s*$', value=None, regex=True)
 
+        # Change dtypes
+        if 'activity_date' in df_import.columns:
+            df_import['activity_date'] = df_import['activity_date'].apply(parser.parse)
+
+        if 'elapsed_time' in df_import.columns:
+            df_import = df_import.astype(dtype={'elapsed_time': 'float'})
+
+        if 'moving_time' in df_import.columns:
+            df_import = df_import.astype(dtype={'moving_time': 'float'})
+
+        if 'distance' in df_import.columns:
+            df_import = df_import.astype(dtype={'distance': 'float'})
+
+        if 'max_speed' in df_import.columns:
+            df_import = df_import.astype(dtype={'max_speed': 'float'})
+
+        if 'average_speed' in df_import.columns:
+            df_import = df_import.astype(dtype={'average_speed': 'float'})
+
+        if 'relative_effort' in df_import.columns:
+            df_import = df_import.astype(dtype={'relative_effort': 'float'})
+
+        if 'tough_relative_effort' in df_import.columns:
+            df_import = df_import.astype(dtype={'tough_relative_effort': 'float'})
+
+        if 'historic_relative_effort' in df_import.columns:
+            df_import = df_import.astype(dtype={'historic_relative_effort': 'float'})
+
+        if 'massive_relative_effort' in df_import.columns:
+            df_import = df_import.astype(dtype={'massive_relative_effort': 'float'})
+
+        if 'steps' in df_import.columns:
+            df_import = df_import.astype(dtype={'steps': 'float'})
+
+        if 'elevation_gain' in df_import.columns:
+            df_import = df_import.astype(dtype={'elevation_gain': 'float'})
+
+        if 'max_heart_rate' in df_import.columns:
+            df_import = df_import.astype(dtype={'max_heart_rate': 'float'})
+
+        if 'average_heart_rate' in df_import.columns:
+            df_import = df_import.astype(dtype={'average_heart_rate': 'float'})
+
+        if 'max_cadence' in df_import.columns:
+            df_import = df_import.astype(dtype={'max_cadence': 'float'})
+
+        if 'average_cadence' in df_import.columns:
+            df_import = df_import.astype(dtype={'average_cadence': 'float'})
+
+        if 'max_watts' in df_import.columns:
+            df_import = df_import.astype(dtype={'max_watts': 'float'})
+
+        if 'average_watts' in df_import.columns:
+            df_import = df_import.astype(dtype={'average_watts': 'float'})
+
+        if 'calories' in df_import.columns:
+            df_import = df_import.astype(dtype={'calories': 'float'})
+
+        if 'average_temperature' in df_import.columns:
+            df_import = df_import.astype(dtype={'average_temperature': 'float'})
+
+        if 'activity_kudos' in df_import.columns:
+            df_import = df_import.astype(dtype={'activity_kudos': 'int'})
+
+        if 'join_date' in df_import.columns:
+            df_import['join_date'] = df_import['join_date'].apply(parser.parse)
+
+        if 'leaderboard_date_start' in df_import.columns:
+            df_import['leaderboard_date_start'] = df_import['leaderboard_date_start'].apply(parser.parse)
+
+        if 'leaderboard_date_end' in df_import.columns:
+            df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(parser.parse)
+
+        if 'rank' in df_import.columns:
+            df_import = df_import.astype(dtype={'rank': 'int'})
+
+        if 'activities' in df_import.columns:
+            df_import = df_import.astype(dtype={'activities': 'int'})
+
+        if 'distance_longest' in df_import.columns:
+            df_import = df_import.astype(dtype={'distance_longest': 'float'})
+
+
+    else:
+
+        # Create empty DataFrame
+        df_import = pd.DataFrame(data=None, index=None, columns=None, dtype=None)
+
+    # Return objects
+    return df_import
+
+
+
+
+
+
+
+
+
+def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
+    # Import or create global variables
+    global club_members
+
+    df_import = read_google_sheets(sheet_id=sheet_id, sheet_name=sheet_name)
+
+    if not df_import.empty:
+
         # club_activities
         if 'activity_id' in df.columns:
-            # Change dtypes
-            df_import = df_import.astype(
-                dtype={
-                    'elapsed_time': 'float',
-                    'moving_time': 'float',
-                    'distance': 'float',
-                    'max_speed': 'float',
-                    'average_speed': 'float',
-                    'relative_effort': 'float',
-                    'tough_relative_effort': 'float',
-                    'historic_relative_effort': 'float',
-                    'massive_relative_effort': 'float',
-                    'steps': 'float',
-                    'elevation_gain': 'float',
-                    'max_heart_rate': 'float',
-                    'average_heart_rate': 'float',
-                    'max_cadence': 'float',
-                    'average_cadence': 'float',
-                    'max_watts': 'float',
-                    'average_watts': 'float',
-                    'calories': 'float',
-                    'average_temperature': 'float',
-                    'activity_kudos': 'int',
-                },
-            ).assign(activity_date=lambda row: row['activity_date'].apply(parser.parse))
 
             # Delete Google Sheets DataFrame rows present in club_activities, completely overwriting it
             df_import = (
@@ -1747,8 +1844,6 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
         # club_members
         if 'join_date' in df.columns:
-            # Change dtypes
-            df_import['join_date'] = df_import['join_date'].apply(parser.parse)
 
             # Keep Google Sheets DataFrame rows present in club_members, increment with new club members
             df = (
@@ -1772,36 +1867,6 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
         # club_leaderboard
         if 'leaderboard_week' in df.columns:
-            # Change dtypes
-            df_import = (
-                df_import.astype(
-                    dtype={
-                        'rank': 'int',
-                        'activities': 'int',
-                        'moving_time': 'float',
-                        'distance': 'float',
-                        'distance_longest': 'float',
-                        'average_speed': 'float',
-                        'elevation_gain': 'float',
-                    },
-                )
-                .assign(
-                    leaderboard_date_start=lambda row: row[
-                        'leaderboard_date_start'
-                    ].apply(parser.parse),
-                )
-                .assign(
-                    leaderboard_date_end=lambda row: row['leaderboard_date_end'].apply(
-                        parser.parse,
-                    ),
-                )
-            )
-
-            try:
-                df_import = df_import.astype(dtype={'distance_longest': 'float'})
-
-            except Exception:
-                pass
 
             # Delete Google Sheets DataFrame rows present in club_leaderboard, completely overwriting it
             df_import = (
@@ -2121,13 +2186,19 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 # )
 
 # Save as .csv
-# club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf8')
+# club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
 
 # Export club activities to .gpx files
-# club_activities = pd.read_csv(filepath_or_buffer='activities.csv', sep=',', header=0, index_col=None, skiprows=0, skipfooter=0, dtype=None, engine='python', encoding='utf8')
-# club_activities = club_activities.astype(dtype={'activity_id': 'str'})
-# club_activities_sample = club_activities.loc[club_activities['activity_type'].isin(['Ride', 'E-Bike Ride', 'Run', 'Walk', 'Hike'])]
-# strava_export_gpx(activities_id=club_activities_sample['activity_id'])
+# club_activities_sample = (read_google_sheets(sheet_id=sheet_id, sheet_name='Activities')
+#     .drop(columns=['club_id'], axis=1, errors='ignore')
+#     .drop_duplicates(subset=None, keep='first', ignore_index=True)
+#     .query('activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
+#     # .assign(activity_type=lambda row: np.where((row['activity_type'] == 'Race') & (row['pace'].notna()), 'Run', (np.where((row['activity_type'] == 'Race') & (row['pace'].isna()), 'Ride', row['activity_type']))))
+#     # .assign(activity_type=lambda row: np.where(row['activity_type'].isin(['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride']), 'Cycling', (np.where(row['activity_type'].isin(['Run', 'Trail Run', 'Walk', 'Hike']), 'Run/Walk/Hike', row['activity_type']))))
+#     .sort_values(by=['activity_type', 'activity_date', 'activity_id'], ignore_index=True)
+# )
+# strava_export_activities(activities_id=club_activities_sample['activity_id'], file_type='.gpx')
+# # strava_export_activities(activities_id=club_activities_sample.query('activity_type.isin(["Cycling"])')['activity_id'], file_type='.gpx')
 
 # Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
 # strava_club_leaderboard_manual(club_activities_df=club_activities, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike'])
