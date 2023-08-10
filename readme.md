@@ -144,14 +144,15 @@ execution_time_to_google_sheets(sheet_id, sheet_name, timezone='UTC')
 ### strava_export_gpx
 
 ```.py
-strava_export_gpx(activities_id)
+strava_export_activities(activities_id, file_type)
 ```
 
 #### Description
-- Given a list of *activity_id*, export it to .gpx.
+- Export a list of *activity_id* to a GPS file.
 
 #### Parameters
-- `activities_id`: *int list* or *str list*. List of activity_id to be exported to .gpx (e.g. `activities_id=[696657036, 696657037]`).
+- `activities_id`: *int list* or *str list*. List of activity_id to be exported (e.g. `activities_id=[696657036, 696657037]`).
+- `file_type`: *str*, default: *'.gpx'*. Activity export format. Note that the *'.gpx'* format uses Strava's built-in feature to export the activities, and *'.tcx'* uses [Sauce for Strava Chrome Extension](https://chrome.google.com/webstore/detail/sauce-for-strava/eigiefcapdcdmncdghkeahgfmnobigha) (which needs to be installed on Selenium's WebDriver to work). Strava's built-in export .gpx feature includes only trackpoints (with latitude and longitude); it is possible to manipulate those .gpx exports by converting them to other GPS file types (e.g. .tcx) and add faketimes using [GPSBabel](https://www.gpsbabel.org) (see [gps_tools.sh](https://github.com/roboes/tools/blob/main/sports/gps_tools.sh)).
 
 <br>
 
