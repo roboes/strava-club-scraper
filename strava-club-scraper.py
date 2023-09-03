@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-08-10
+# Last update: 2023-09-03
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -17,6 +17,7 @@ globals().clear()
 from datetime import timedelta
 
 # import glob
+from io import StringIO
 import os
 import re
 import sys
@@ -28,6 +29,7 @@ from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import lxml.html as lh
+
 # import numpy as np
 import pandas as pd
 from selenium import webdriver
@@ -123,23 +125,9 @@ def selenium_webdriver():
     return driver
 
 
-def selenium_webdriver_quit():
-    # Import or create global variables
-    global driver
-
-    # Driver quit
-    driver.quit()
-
-    # Delete objects
-    del driver
-
-
 def strava_login():
-    # Import or create global variables
-    global driver
-
     # Load Selenium WebDriver
-    if 'driver' in vars() or 'driver' in globals():
+    if 'driver' in vars():
         if driver.service.is_connectable() is True:
             pass
 
@@ -147,7 +135,7 @@ def strava_login():
         driver = selenium_webdriver()
 
         # Open website
-        driver.get('https://www.strava.com/login')
+        driver.get(url='https://www.strava.com/login')
         time.sleep(2)
 
         # Reject cookies
@@ -189,25 +177,23 @@ def strava_club_activities(
     power: W
     temperature: degree Celsius
     """
-    # Import or create global variables
-    global club_activities
-    global driver
-
     # Settings and variables
     filter_date_min = parser.parse(filter_date_min)
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    strava_login()
+    driver = strava_login()
 
     data = []
 
     for club_id in club_ids:
         # Open Strava Club activities feed page
         driver.get(
-            'https://www.strava.com/dashboard?club_id='
-            + club_id
-            + '&feed_type=club&num_entries=100',
+            url=(
+                'https://www.strava.com/dashboard?club_id='
+                + club_id
+                + '&feed_type=club&num_entries=100'
+            ),
         )
         time.sleep(3)
 
@@ -304,7 +290,9 @@ def strava_club_activities(
         for activity in activities_id:
             d = {}
 
-            driver.get('https://www.strava.com/activities/' + activity + '/overview')
+            driver.get(
+                url=('https://www.strava.com/activities/' + activity + '/overview'),
+            )
 
             try:
                 driver.find_element(
@@ -755,17 +743,18 @@ def strava_club_activities(
                 data.append(d)
 
     # Create DataFrame
-    club_activities = pd.DataFrame(data=data, index=None, dtype=None)
+    club_activities_df = pd.DataFrame(data=data, index=None, dtype=None)
 
     # Rename columns
-    club_activities.columns = (
-        club_activities.columns.str.strip()
+    club_activities_df.columns = (
+        club_activities_df.columns.astype(str)
+        .str.strip()
         .str.lower()
         .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
         .str.replace(pat=r':', repl=r'', regex=True)
     )
 
-    club_activities = club_activities.rename(
+    club_activities_df = club_activities_df.rename(
         columns={
             'elevation': 'elevation_gain',
             'max_power': 'max_watts',
@@ -777,28 +766,28 @@ def strava_club_activities(
     ## Change dtypes
 
     # duration
-    if 'duration' in club_activities.columns:
-        club_activities['elapsed_time'] = club_activities['elapsed_time'].fillna(
-            value=club_activities['duration'],
+    if 'duration' in club_activities_df.columns:
+        club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].fillna(
+            value=club_activities_df['duration'],
             method=None,
             axis=0,
         )
 
-        club_activities['moving_time'] = club_activities['moving_time'].fillna(
-            value=club_activities['duration'],
+        club_activities_df['moving_time'] = club_activities_df['moving_time'].fillna(
+            value=club_activities_df['duration'],
             method=None,
             axis=0,
         )
 
-        club_activities = club_activities.drop(
+        club_activities_df = club_activities_df.drop(
             columns=['duration'],
             axis=1,
             errors='ignore',
         )
 
     # elapsed_time
-    if 'elapsed_time' in club_activities.columns:
-        club_activities['elapsed_time'] = club_activities['elapsed_time'].apply(
+    if 'elapsed_time' in club_activities_df.columns:
+        club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].apply(
             lambda row: re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row)
             if len(row.split(sep=':')) == 1
             else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row)
@@ -806,13 +795,13 @@ def strava_club_activities(
             else row,
         )
 
-        club_activities['elapsed_time'] = club_activities['elapsed_time'].apply(
+        club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].apply(
             lambda row: get_seconds(time_str=str(row)),
         )
 
     # moving_time
-    if 'moving_time' in club_activities.columns:
-        club_activities['moving_time'] = club_activities['moving_time'].apply(
+    if 'moving_time' in club_activities_df.columns:
+        club_activities_df['moving_time'] = club_activities_df['moving_time'].apply(
             lambda row: re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row)
             if len(row.split(sep=':')) == 1
             else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row)
@@ -820,16 +809,16 @@ def strava_club_activities(
             else row,
         )
 
-        club_activities['moving_time'] = club_activities['moving_time'].apply(
+        club_activities_df['moving_time'] = club_activities_df['moving_time'].apply(
             lambda row: get_seconds(time_str=str(row)),
         )
 
     # pace
-    # if 'pace' in club_activities.columns:
-    #     club_activities['pace'] = pd.to_datetime(club_activities['pace'], format='%H:%M:%S').dt.time
-    #     club_activities['pace'] = pd.to_timedelta(club_activities['pace'].astype(dtype='str')).dt.total_seconds()
+    # if 'pace' in club_activities_df.columns:
+    #     club_activities_df['pace'] = pd.to_datetime(arg=club_activities_df['pace'], utc=False, format='%H:%M:%S').dt.time
+    #     club_activities_df['pace'] = pd.to_timedelta(arg=club_activities_df['pace'].astype(dtype='str'), unit='ns').dt.total_seconds()
 
-    club_activities = club_activities.filter(
+    club_activities_df = club_activities_df.filter(
         items=[
             'club_id',
             'activity_date',
@@ -869,40 +858,40 @@ def strava_club_activities(
 
     # Filter activity types
     if filter_activities_type is not None:
-        club_activities = club_activities.query(
+        club_activities_df = club_activities_df.query(
             'activity_type.isin(@filter_activities_type)',
         )
 
     # Filter date interval
     if filter_date_min is not None and filter_date_max is not None:
-        club_activities = club_activities.query(
+        club_activities_df = club_activities_df.query(
             'activity_date >= @filter_date_min & activity_date <= @filter_date_max',
         )
 
     # Rearrange rows
-    club_activities = club_activities.sort_values(
+    club_activities_df = club_activities_df.sort_values(
         by=['club_id', 'activity_date'],
         ignore_index=True,
     )
 
     # Return objects
-    return club_activities
+    return club_activities_df
 
 
 def strava_export_activities(*, activities_id, file_type='.gpx'):
     """Given a list of activity_id, export it to .gpx."""
-    # Import or create global variables
-    global driver
-
     # Strava login
-    strava_login()
+    driver = strava_login()
 
     # Export activity as .gpx
     if file_type == '.gpx':
-
         for activity_id in activities_id:
             driver.get(
-                'https://www.strava.com/activities/' + str(activity_id) + '/export_gpx',
+                url=(
+                    'https://www.strava.com/activities/'
+                    + str(activity_id)
+                    + '/export_gpx'
+                ),
             )
 
             # time.sleep(3)
@@ -914,36 +903,34 @@ def strava_export_activities(*, activities_id, file_type='.gpx'):
 
     # Export activity as .tcx (requires Sauce for Strava extension for Google Chrome, which can be manually downloaded after invoking strava_login() function - https://chrome.google.com/webstore/detail/sauce-for-strava/eigiefcapdcdmncdghkeahgfmnobigha)
     if file_type == '.tcx':
-
         for activity_id in activities_id:
-            driver.get('https://www.strava.com/activities/' + str(activity_id))
+            driver.get(url=('https://www.strava.com/activities/' + str(activity_id)))
 
             try:
-                driver.find_element(by=By.XPATH, value='//div[@class="app-icon icon-nav-more"]').click()
+                driver.find_element(
+                    by=By.XPATH,
+                    value='//div[@class="app-icon icon-nav-more"]',
+                ).click()
                 driver.find_element(by=By.XPATH, value='//a[@class="tcx"]').click()
-                
+
             except NoSuchElementException:
                 pass
 
 
 def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
     """Scraps and imports members of one or multiple Strava Club(s) to a dataset."""
-    # Import or create global variables
-    global club_members
-    global driver
-
     # Settings and variables
     geolocator = Nominatim(user_agent='strava-club-scraper')
     geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
     # Strava login
-    strava_login()
+    driver = strava_login()
 
     data = []
 
     for club_id in club_ids:
         # Open Strava Club members page
-        driver.get('https://www.strava.com/clubs/' + club_id + '/members')
+        driver.get(url=('https://www.strava.com/clubs/' + club_id + '/members'))
         time.sleep(3)
 
         # Create variables
@@ -1035,7 +1022,7 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
                 break
 
     # Create DataFrame
-    club_members = (
+    club_members_df = (
         pd.DataFrame(data=data, index=None, dtype=None)
         # Replace blank by NA
         .assign(
@@ -1049,7 +1036,7 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
 
     # Create DataFrame with distinct 'athlete_location' values
     club_members_geolocation = (
-        club_members.filter(items=['athlete_location'])
+        club_members_df.filter(items=['athlete_location'])
         .query('athlete_location.notna()')
         .drop_duplicates(subset=None, keep='first', ignore_index=True)
         .sort_values(by=['athlete_location'], ignore_index=True)
@@ -1090,9 +1077,9 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
         axis=1,
     )
 
-    # Left join 'club_members' with 'club_members_geolocation'
-    club_members = club_members.merge(
-        club_members_geolocation,
+    # Left join 'club_members_df' with 'club_members_geolocation'
+    club_members_df = club_members_df.merge(
+        right=club_members_geolocation,
         how='left',
         on=['athlete_location'],
         indicator=False,
@@ -1127,7 +1114,6 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
             # Group 'athlete_id' and collapse 'athlete_team' into one row
             .groupby(
                 by=['athlete_id'],
-                axis=0,
                 level=None,
                 as_index=False,
                 sort=True,
@@ -1139,18 +1125,18 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
         )
 
         # Left join 'club_members_teams'
-        club_members = club_members.merge(
-            club_members_teams,
+        club_members_df = club_members_df.merge(
+            right=club_members_teams,
             how='left',
             on=['athlete_id'],
             indicator=False,
         )
 
     else:
-        club_members['athlete_team'] = None
+        club_members_df['athlete_team'] = None
 
-    club_members = (
-        club_members
+    club_members_df = (
+        club_members_df
         # Remove columns
         .drop(columns=['athlete_geolocation'], axis=1, errors='ignore')
         # Create 'join_date' column
@@ -1182,7 +1168,7 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
     )
 
     # Return objects
-    return club_members
+    return club_members_df
 
 
 def strava_club_leaderboard(
@@ -1199,22 +1185,18 @@ def strava_club_leaderboard(
     distance, distance_longest, elevation_gain: meters
     average_speed: meters/second
     """
-    # Import or create global variables
-    global club_leaderboard
-    global driver
-
     # Settings and variables
     filter_date_min = parser.parse(filter_date_min)
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    strava_login()
+    driver = strava_login()
 
-    club_leaderboard = pd.DataFrame(data=None, index=None, dtype='object')
+    club_leaderboard_df = pd.DataFrame(data=None, index=None, dtype='str')
 
     for club_id in club_ids:
         # Open Strava Club leaderboard page
-        driver.get('https://www.strava.com/clubs/' + club_id + '/leaderboard')
+        driver.get(url=('https://www.strava.com/clubs/' + club_id + '/leaderboard'))
         time.sleep(3)
 
         # Create variables
@@ -1249,10 +1231,10 @@ def strava_club_leaderboard(
                 value='//div[@class="leaderboard"]//h4[@class="empty-results"]',
             ).text
 
-            club_leaderboard_import = pd.DataFrame(
+            club_leaderboard_import_df = pd.DataFrame(
                 data=None,
                 index=None,
-                dtype='object',
+                dtype='str',
             )
 
         except NoSuchElementException:
@@ -1261,7 +1243,11 @@ def strava_club_leaderboard(
                 value='//table[@class="dense striped sortable"]',
             ).get_attribute('outerHTML')
 
-            for d in pd.read_html(io=leaderboard_html, flavor='lxml'):
+            for d in pd.read_html(
+                io=StringIO(leaderboard_html),
+                flavor='lxml',
+                encoding='utf-8',
+            ):
                 # leaderboard_date_start
                 d['leaderboard_date_start'] = pd.Timestamp.now(tz=timezone).replace(
                     tzinfo=None,
@@ -1285,7 +1271,7 @@ def strava_club_leaderboard(
                 )
                 d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
 
-            club_leaderboard_import = d
+            club_leaderboard_import_df = d
 
         # Get last week Strava Club Leaderboard
         driver.find_element(
@@ -1299,10 +1285,10 @@ def strava_club_leaderboard(
                 value='//div[@class="leaderboard"]//h4[@class="empty-results"]',
             ).text
 
-            club_leaderboard_import = pd.DataFrame(
+            club_leaderboard_import_df = pd.DataFrame(
                 data=None,
                 index=None,
-                dtype='object',
+                dtype='str',
             )
 
         except NoSuchElementException:
@@ -1311,7 +1297,11 @@ def strava_club_leaderboard(
                 value='//table[@class="dense striped sortable"]',
             ).get_attribute('outerHTML')
 
-            for d in pd.read_html(io=leaderboard_html, flavor='lxml'):
+            for d in pd.read_html(
+                io=StringIO(leaderboard_html),
+                flavor='lxml',
+                encoding='utf-8',
+            ):
                 # leaderboard_date_start
                 d['leaderboard_date_start'] = pd.Timestamp.now(tz=timezone).replace(
                     tzinfo=None,
@@ -1336,15 +1326,15 @@ def strava_club_leaderboard(
                 d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
 
         # Concatenate DataFrames
-        club_leaderboard_import = pd.concat(
-            objs=[club_leaderboard_import, d],
+        club_leaderboard_import_df = pd.concat(
+            objs=[club_leaderboard_import_df, d],
             axis=0,
             ignore_index=True,
             sort=False,
         )
 
-        club_leaderboard_import = (
-            club_leaderboard_import
+        club_leaderboard_import_df = (
+            club_leaderboard_import_df
             # Create 'club_id' column
             .assign(club_id=lambda row: club_id)
             # Create 'club_name' column
@@ -1356,15 +1346,16 @@ def strava_club_leaderboard(
         )
 
         # Rename columns
-        club_leaderboard_import.columns = (
-            club_leaderboard_import.columns.str.strip()
+        club_leaderboard_import_df.columns = (
+            club_leaderboard_import_df.columns.astype(str)
+            .str.strip()
             .str.lower()
             .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
             .str.replace(pat=r':', repl=r'', regex=True)
         )
 
         if club_activity_type == 'Cycling':
-            club_leaderboard_import = club_leaderboard_import.rename(
+            club_leaderboard_import_df = club_leaderboard_import_df.rename(
                 columns={
                     'rides': 'activities',
                     'longest': 'distance_longest',
@@ -1373,7 +1364,7 @@ def strava_club_leaderboard(
             )
 
         if club_activity_type == 'Running':
-            club_leaderboard_import = club_leaderboard_import.rename(
+            club_leaderboard_import_df = club_leaderboard_import_df.rename(
                 columns={'runs': 'activities', 'avg_pace': 'pace'},
             )
 
@@ -1381,15 +1372,15 @@ def strava_club_leaderboard(
             pass
 
         # Concatenate DataFrames
-        club_leaderboard = pd.concat(
-            objs=[club_leaderboard, club_leaderboard_import],
+        club_leaderboard_df = pd.concat(
+            objs=[club_leaderboard_df, club_leaderboard_import_df],
             axis=0,
             ignore_index=True,
             sort=False,
         )
 
     # Rename columns
-    club_leaderboard = club_leaderboard.rename(
+    club_leaderboard_df = club_leaderboard_df.rename(
         columns={
             'athlete': 'athlete_name',
             'time': 'moving_time',
@@ -1400,126 +1391,140 @@ def strava_club_leaderboard(
     # Create columns
 
     # leaderboard_week
-    club_leaderboard['leaderboard_week'] = (
-        club_leaderboard['leaderboard_date_start'].dt.strftime('%Y-%m-%d')
+    club_leaderboard_df['leaderboard_week'] = (
+        club_leaderboard_df['leaderboard_date_start'].dt.strftime('%Y-%m-%d')
         + ' to '
-        + club_leaderboard['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
+        + club_leaderboard_df['leaderboard_date_end'].dt.strftime('%Y-%m-%d')
     )
 
     # Change dtypes
 
     # average_speed
-    if 'average_speed' in club_leaderboard.columns:
-        club_leaderboard['average_speed'] = club_leaderboard['average_speed'].replace(
+    if 'average_speed' in club_leaderboard_df.columns:
+        club_leaderboard_df['average_speed'] = club_leaderboard_df[
+            'average_speed'
+        ].replace(
             to_replace=r'km/h$',
             value=r'',
             regex=True,
         )
-        club_leaderboard['average_speed'] = club_leaderboard['average_speed'].astype(
+        club_leaderboard_df['average_speed'] = club_leaderboard_df[
+            'average_speed'
+        ].astype(
             dtype='float',
         )
-        club_leaderboard['average_speed'] = club_leaderboard['average_speed'] / 3.6
+        club_leaderboard_df['average_speed'] = (
+            club_leaderboard_df['average_speed'] / 3.6
+        )
 
     # distance
-    if 'distance' in club_leaderboard.columns:
-        club_leaderboard['distance'] = club_leaderboard['distance'].replace(
+    if 'distance' in club_leaderboard_df.columns:
+        club_leaderboard_df['distance'] = club_leaderboard_df['distance'].replace(
             to_replace=r'^--$',
             value=r'0 km',
             regex=True,
         )
-        club_leaderboard['distance'] = club_leaderboard['distance'].replace(
+        club_leaderboard_df['distance'] = club_leaderboard_df['distance'].replace(
             to_replace=r',',
             value=r'',
             regex=True,
         )
-        club_leaderboard['distance'] = club_leaderboard['distance'].replace(
+        club_leaderboard_df['distance'] = club_leaderboard_df['distance'].replace(
             to_replace=r' km$',
             value=r'',
             regex=True,
         )
-        club_leaderboard['distance'] = club_leaderboard['distance'].astype(
+        club_leaderboard_df['distance'] = club_leaderboard_df['distance'].astype(
             dtype='float',
         )
-        club_leaderboard['distance'] = club_leaderboard['distance'] * 1000
+        club_leaderboard_df['distance'] = club_leaderboard_df['distance'] * 1000
 
     # distance_longest
-    if 'distance_longest' in club_leaderboard.columns:
-        club_leaderboard['distance_longest'] = club_leaderboard[
+    if 'distance_longest' in club_leaderboard_df.columns:
+        club_leaderboard_df['distance_longest'] = club_leaderboard_df[
             'distance_longest'
         ].replace(to_replace=r',', value=r'', regex=True)
-        club_leaderboard['distance_longest'] = club_leaderboard[
+        club_leaderboard_df['distance_longest'] = club_leaderboard_df[
             'distance_longest'
         ].replace(to_replace=r' km$', value=r'', regex=True)
-        club_leaderboard['distance_longest'] = club_leaderboard[
+        club_leaderboard_df['distance_longest'] = club_leaderboard_df[
             'distance_longest'
         ].astype(dtype='float')
-        club_leaderboard['distance_longest'] = (
-            club_leaderboard['distance_longest'] * 1000
+        club_leaderboard_df['distance_longest'] = (
+            club_leaderboard_df['distance_longest'] * 1000
         )
 
     # elevation_gain
-    if 'elevation_gain' in club_leaderboard.columns:
-        club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].replace(
+    if 'elevation_gain' in club_leaderboard_df.columns:
+        club_leaderboard_df['elevation_gain'] = club_leaderboard_df[
+            'elevation_gain'
+        ].replace(
             to_replace=r'^--$',
             value=r'0 m',
             regex=True,
         )
-        club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].replace(
+        club_leaderboard_df['elevation_gain'] = club_leaderboard_df[
+            'elevation_gain'
+        ].replace(
             to_replace=r',',
             value=r'',
             regex=True,
         )
-        club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].replace(
+        club_leaderboard_df['elevation_gain'] = club_leaderboard_df[
+            'elevation_gain'
+        ].replace(
             to_replace=r' m$',
             value=r'',
             regex=True,
         )
-        club_leaderboard['elevation_gain'] = club_leaderboard['elevation_gain'].astype(
+        club_leaderboard_df['elevation_gain'] = club_leaderboard_df[
+            'elevation_gain'
+        ].astype(
             dtype='float',
         )
 
     # moving_time: '%H:%M' to seconds
-    if 'moving_time' in club_leaderboard.columns:
-        club_leaderboard['moving_time'] = club_leaderboard['moving_time'].fillna(
+    if 'moving_time' in club_leaderboard_df.columns:
+        club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].fillna(
             value='0m',
             method=None,
             axis=0,
         )
-        club_leaderboard['moving_time'] = club_leaderboard['moving_time'].replace(
+        club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].replace(
             to_replace=r'^([0-9]+m)$',
             value=r'00:\1',
             regex=True,
         )
-        club_leaderboard['moving_time'] = club_leaderboard['moving_time'].replace(
+        club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].replace(
             to_replace=r'h ',
             value=r':',
             regex=True,
         )
-        club_leaderboard['moving_time'] = club_leaderboard['moving_time'].replace(
+        club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].replace(
             to_replace=r'm$',
             value=r'',
             regex=True,
         )
-        club_leaderboard['moving_time'] = club_leaderboard['moving_time'].apply(
+        club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].apply(
             lambda row: float(row.split(sep=':')[0]) * 3600
             + float(row.split(sep=':')[1]) * 60,
         )
 
     # pace
     """
-    if 'pace' in club_leaderboard.columns:
+    if 'pace' in club_leaderboard_df.columns:
 
-        club_leaderboard['pace'] = club_leaderboard['pace'].astype(dtype='str')
+        club_leaderboard_df['pace'] = club_leaderboard_df['pace'].astype(dtype='str')
 
-        club_leaderboard['pace'] = club_leaderboard['pace'].replace(to_replace=r' /km$', value=r'', regex=True)
-        club_leaderboard['pace'] = club_leaderboard['pace'].apply(lambda row: re.sub(pattern=r'^([0-9]+)$', value=r'00:00:\1', string=row) if(len(row.split(sep=':')) == 1) else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row), axis=1)
+        club_leaderboard_df['pace'] = club_leaderboard_df['pace'].replace(to_replace=r' /km$', value=r'', regex=True)
+        club_leaderboard_df['pace'] = club_leaderboard_df['pace'].apply(lambda row: re.sub(pattern=r'^([0-9]+)$', value=r'00:00:\1', string=row) if(len(row.split(sep=':')) == 1) else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row), axis=1)
 
-        club_leaderboard['pace'] = pd.to_datetime(club_leaderboard['pace'], format='%H:%M:%S').dt.time
-        club_leaderboard['pace'] = pd.to_timedelta(club_leaderboard['pace'].astype(dtype='str')).dt.total_seconds()
+        club_leaderboard_df['pace'] = pd.to_datetime(arg=club_leaderboard_df['pace'], utc=False, format='%H:%M:%S').dt.time
+        club_leaderboard_df['pace'] = pd.to_timedelta(arg=club_leaderboard_df['pace'].astype(dtype='str'), unit='ns').dt.total_seconds()
     """
 
-    club_leaderboard = (
-        club_leaderboard
+    club_leaderboard_df = (
+        club_leaderboard_df
         # Select columns
         .filter(
             items=[
@@ -1554,7 +1559,7 @@ def strava_club_leaderboard(
     )
 
     # Return objects
-    return club_leaderboard
+    return club_leaderboard_df
 
 
 def strava_club_leaderboard_manual(
@@ -1567,10 +1572,7 @@ def strava_club_leaderboard_manual(
     filter_activities_type=None,
 ):
     """For members that joined the challenge later, manually scrap inividual activities and group them by week."""
-    # Import or create global variables
-    global club_leaderboard_manual
-
-    club_leaderboard_manual = (
+    club_leaderboard_manual_df = (
         club_activities_df
         # Filter activity types
         .query('activity_type.isin(@filter_activities_type)').assign(
@@ -1586,7 +1588,9 @@ def strava_club_leaderboard_manual(
     )
 
     # leaderboard_date_start
-    club_leaderboard_manual['leaderboard_date_start'] = club_leaderboard_manual.apply(
+    club_leaderboard_manual_df[
+        'leaderboard_date_start'
+    ] = club_leaderboard_manual_df.apply(
         lambda row: (
             row['activity_date'].floor(freq='d')
             + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
@@ -1595,7 +1599,9 @@ def strava_club_leaderboard_manual(
     )
 
     # leaderboard_date_end
-    club_leaderboard_manual['leaderboard_date_end'] = club_leaderboard_manual.apply(
+    club_leaderboard_manual_df[
+        'leaderboard_date_end'
+    ] = club_leaderboard_manual_df.apply(
         lambda row: (
             row['activity_date'].floor(freq='d')
             + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
@@ -1604,8 +1610,8 @@ def strava_club_leaderboard_manual(
         axis=1,
     )
 
-    club_leaderboard_manual = (
-        club_leaderboard_manual
+    club_leaderboard_manual_df = (
+        club_leaderboard_manual_df
         # Create 'leaderboard_week' column
         .assign(
             leaderboard_week=lambda row: (
@@ -1630,7 +1636,6 @@ def strava_club_leaderboard_manual(
                 'athlete_id',
                 'athlete_name',
             ],
-            axis=0,
             level=None,
             as_index=False,
             sort=True,
@@ -1672,7 +1677,7 @@ def strava_club_leaderboard_manual(
     )
 
     # Return objects
-    return club_leaderboard_manual
+    return club_leaderboard_manual_df
 
 
 def google_api_credentials():
@@ -1689,9 +1694,7 @@ def google_api_credentials():
     return service
 
 
-
 def read_google_sheets(*, sheet_id, sheet_name):
-
     # Google API Credentials
     service = google_api_credentials()
 
@@ -1702,7 +1705,7 @@ def read_google_sheets(*, sheet_id, sheet_name):
         .get(spreadsheetId=sheet_id, range=sheet_name)
         .execute()
     )
-    df_import = pd.DataFrame(data=result.get('values', []), index=None, dtype='object')
+    df_import = pd.DataFrame(data=result.get('values', []), index=None, dtype='str')
 
     if not df_import.empty:
         # Rename columns
@@ -1780,10 +1783,14 @@ def read_google_sheets(*, sheet_id, sheet_name):
             df_import['join_date'] = df_import['join_date'].apply(parser.parse)
 
         if 'leaderboard_date_start' in df_import.columns:
-            df_import['leaderboard_date_start'] = df_import['leaderboard_date_start'].apply(parser.parse)
+            df_import['leaderboard_date_start'] = df_import[
+                'leaderboard_date_start'
+            ].apply(parser.parse)
 
         if 'leaderboard_date_end' in df_import.columns:
-            df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(parser.parse)
+            df_import['leaderboard_date_end'] = df_import['leaderboard_date_end'].apply(
+                parser.parse,
+            )
 
         if 'rank' in df_import.columns:
             df_import = df_import.astype(dtype={'rank': 'int'})
@@ -1794,9 +1801,7 @@ def read_google_sheets(*, sheet_id, sheet_name):
         if 'distance_longest' in df_import.columns:
             df_import = df_import.astype(dtype={'distance_longest': 'float'})
 
-
     else:
-
         # Create empty DataFrame
         df_import = pd.DataFrame(data=None, index=None, columns=None, dtype=None)
 
@@ -1804,30 +1809,18 @@ def read_google_sheets(*, sheet_id, sheet_name):
     return df_import
 
 
-
-
-
-
-
-
-
-def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
-    # Import or create global variables
-    global club_members
-
+def strava_club_to_google_sheets(*, df, club_members_df, sheet_id, sheet_name):
     df_import = read_google_sheets(sheet_id=sheet_id, sheet_name=sheet_name)
 
     if not df_import.empty:
-
         # club_activities
         if 'activity_id' in df.columns:
-
             # Delete Google Sheets DataFrame rows present in club_activities, completely overwriting it
             df_import = (
                 df_import
                 # Outer join 'df'
                 .merge(
-                    df.filter(items=['club_id', 'activity_id']).drop_duplicates(
+                    right=df.filter(items=['club_id', 'activity_id']).drop_duplicates(
                         subset=None,
                         keep='first',
                         ignore_index=True,
@@ -1844,13 +1837,14 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
         # club_members
         if 'join_date' in df.columns:
-
             # Keep Google Sheets DataFrame rows present in club_members, increment with new club members
             df = (
                 df
                 # Outer join 'df_import'
                 .merge(
-                    df_import.filter(items=['club_id', 'athlete_id']).drop_duplicates(
+                    right=df_import.filter(
+                        items=['club_id', 'athlete_id'],
+                    ).drop_duplicates(
                         subset=None,
                         keep='first',
                         ignore_index=True,
@@ -1867,7 +1861,6 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
         # club_leaderboard
         if 'leaderboard_week' in df.columns:
-
             # Delete Google Sheets DataFrame rows present in club_leaderboard, completely overwriting it
             df_import = (
                 df_import
@@ -1885,7 +1878,9 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
                 )
                 # Outer join 'df'
                 .merge(
-                    df.filter(items=['club_id', 'leaderboard_week']).drop_duplicates(
+                    right=df.filter(
+                        items=['club_id', 'leaderboard_week'],
+                    ).drop_duplicates(
                         subset=None,
                         keep='first',
                         ignore_index=True,
@@ -1966,9 +1961,9 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
         # Remove columns
         df_updated = df_updated.drop(columns=['athlete_team'], axis=1, errors='ignore')
 
-        # Left join 'club_members'
+        # Left join 'club_members_df'
         df_updated = df_updated.merge(
-            club_members.filter(
+            right=club_members_df.filter(
                 items=[
                     'club_id',
                     'athlete_id',
@@ -2045,9 +2040,9 @@ def strava_club_to_google_sheets(*, df, sheet_id, sheet_name):
 
     # club_leaderboard transform
     if 'leaderboard_week' in df.columns:
-        # Left join 'club_members'
+        # Left join 'club_members_df'
         df_updated = df_updated.merge(
-            club_members.filter(
+            right=club_members_df.filter(
                 items=[
                     'club_id',
                     'athlete_id',
@@ -2170,7 +2165,7 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 ## Club activities
 
 # Get data (via web-scraping)
-# strava_club_activities(
+# club_activities_df = strava_club_activities(
 #     club_ids=club_ids,
 #     filter_activities_type=None,
 #     filter_date_min=filter_date_min,
@@ -2180,13 +2175,14 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 
 # Update Google Sheets sheet
 # strava_club_to_google_sheets(
-#     df=club_activities,
+#     df=club_activities_df,
+#     club_members_df=club_members_df,
 #     sheet_id=sheet_id,
 #     sheet_name='Activities',
 # )
 
 # Save as .csv
-# club_activities.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
+# club_activities_df.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
 
 # Export club activities to .gpx files
 # club_activities_sample = (read_google_sheets(sheet_id=sheet_id, sheet_name='Activities')
@@ -2201,13 +2197,13 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 # # strava_export_activities(activities_id=club_activities_sample.query('activity_type.isin(["Cycling"])')['activity_id'], file_type='.gpx')
 
 # Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
-# strava_club_leaderboard_manual(club_activities_df=club_activities, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike'])
+# club_leaderboard_manual_df = strava_club_leaderboard_manual(club_activities_df=club_activities_df, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike'])
 
 
 ## Club members
 
 # Get data (via web-scraping)
-strava_club_members(
+club_members_df = strava_club_members(
     club_ids=club_ids,
     club_members_teams=club_members_teams,
     timezone=timezone,
@@ -2215,7 +2211,7 @@ strava_club_members(
 
 # Test
 (
-    club_members.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
+    club_members_df.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
     .query('athlete_team.notna()')
     .drop_duplicates(subset=None, keep='first', ignore_index=True)
     .assign(
@@ -2226,8 +2222,9 @@ strava_club_members(
 )
 
 # Update Google Sheets sheet
-club_members = strava_club_to_google_sheets(
-    df=club_members,
+club_members_df = strava_club_to_google_sheets(
+    df=club_members_df,
+    club_members_df=club_members_df,
     sheet_id=sheet_id,
     sheet_name='Members',
 )
@@ -2236,7 +2233,7 @@ club_members = strava_club_to_google_sheets(
 ## Club leaderboard
 
 # Get data (via web-scraping)
-strava_club_leaderboard(
+club_leaderboard_df = strava_club_leaderboard(
     club_ids=club_ids,
     filter_date_min=filter_date_min,
     filter_date_max=filter_date_max,
@@ -2245,7 +2242,8 @@ strava_club_leaderboard(
 
 # Update Google Sheets sheet
 strava_club_to_google_sheets(
-    df=club_leaderboard,
+    df=club_leaderboard_df,
+    club_members_df=club_members_df,
     sheet_id=sheet_id,
     sheet_name='Leaderboard',
 )
@@ -2261,5 +2259,6 @@ execution_time_to_google_sheets(
 )
 
 
-## Quit Selenium WebDriver
-selenium_webdriver_quit()
+# Quit WebDriver
+if 'driver' in vars():
+    driver.quit()
