@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-09-03
+# Last update: 2023-09-04
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -95,6 +95,20 @@ def get_seconds(*, time_str):
     return int(h) * 3600 + int(m) * 60 + int(s)
 
 
+def rename_columns(*, df):
+    df.columns = (
+        df.columns.astype(str)
+        .str.strip()
+        .str.lower()
+        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
+        .str.replace(pat=r':', repl=r'', regex=True)
+        .str.replace(pat=r'__', repl=r'_', regex=True)
+    )
+
+    # Return objects
+    return df
+
+
 def selenium_webdriver():
     # WebDriver options
     webdriver_options = webdriver.ChromeOptions()
@@ -117,7 +131,7 @@ def selenium_webdriver():
         webdriver_options.add_argument('--start-maximized')
 
     driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
+        service=Service(executable_path=ChromeDriverManager().install()),
         options=webdriver_options,
     )
 
@@ -746,13 +760,7 @@ def strava_club_activities(
     club_activities_df = pd.DataFrame(data=data, index=None, dtype=None)
 
     # Rename columns
-    club_activities_df.columns = (
-        club_activities_df.columns.astype(str)
-        .str.strip()
-        .str.lower()
-        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
-        .str.replace(pat=r':', repl=r'', regex=True)
-    )
+    club_activities_df = rename_columns(df=club_activities_df)
 
     club_activities_df = club_activities_df.rename(
         columns={
@@ -1243,35 +1251,48 @@ def strava_club_leaderboard(
                 value='//table[@class="dense striped sortable"]',
             ).get_attribute('outerHTML')
 
-            for d in pd.read_html(
+            leaderboard_df = pd.read_html(
                 io=StringIO(leaderboard_html),
                 flavor='lxml',
                 encoding='utf-8',
-            ):
-                # leaderboard_date_start
-                d['leaderboard_date_start'] = pd.Timestamp.now(tz=timezone).replace(
-                    tzinfo=None,
-                ).floor(freq='d').to_pydatetime() + relativedelta.relativedelta(
-                    weekday=relativedelta.MO(-1),
-                )
+            )
 
-                # leaderboard_date_end
-                d['leaderboard_date_end'] = (
-                    pd.Timestamp.now(tz=timezone)
-                    .replace(tzinfo=None)
-                    .floor(freq='d')
-                    .to_pydatetime()
-                    + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
-                    + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
-                )
+            if not leaderboard_df[0].empty:
+                for d in leaderboard_df:
+                    # leaderboard_date_start
+                    d['leaderboard_date_start'] = pd.Timestamp.now(tz=timezone).replace(
+                        tzinfo=None,
+                    ).floor(freq='d').to_pydatetime() + relativedelta.relativedelta(
+                        weekday=relativedelta.MO(-1),
+                    )
 
-                # athlete_id
-                d['athlete_id'] = lh.fromstring(leaderboard_html).xpath(
-                    './/tr//td//div//a//@href',
-                )
-                d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+                    # leaderboard_date_end
+                    d['leaderboard_date_end'] = (
+                        pd.Timestamp.now(tz=timezone)
+                        .replace(tzinfo=None)
+                        .floor(freq='d')
+                        .to_pydatetime()
+                        + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
+                        + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
+                    )
 
-            club_leaderboard_import_df = d
+                    # athlete_id
+                    d['athlete_id'] = lh.fromstring(html=leaderboard_html).xpath(
+                        './/tr//td//div//a//@href',
+                    )
+                    d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+
+                club_leaderboard_import_df = d
+
+                # Remove objects
+                del leaderboard_df
+
+            else:
+                club_leaderboard_import_df = pd.DataFrame(
+                    data=None,
+                    index=None,
+                    dtype='str',
+                )
 
         # Get last week Strava Club Leaderboard
         driver.find_element(
@@ -1297,87 +1318,94 @@ def strava_club_leaderboard(
                 value='//table[@class="dense striped sortable"]',
             ).get_attribute('outerHTML')
 
-            for d in pd.read_html(
+            leaderboard_df = pd.read_html(
                 io=StringIO(leaderboard_html),
                 flavor='lxml',
                 encoding='utf-8',
-            ):
-                # leaderboard_date_start
-                d['leaderboard_date_start'] = pd.Timestamp.now(tz=timezone).replace(
-                    tzinfo=None,
-                ).floor(freq='d').to_pydatetime() + relativedelta.relativedelta(
-                    weekday=relativedelta.MO(-2),
-                )
-
-                # leaderboard_date_end
-                d['leaderboard_date_end'] = (
-                    pd.Timestamp.now(tz=timezone)
-                    .replace(tzinfo=None)
-                    .floor(freq='d')
-                    .to_pydatetime()
-                    + relativedelta.relativedelta(weekday=relativedelta.MO(-2))
-                    + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
-                )
-
-                # athlete_id
-                d['athlete_id'] = lh.fromstring(leaderboard_html).xpath(
-                    './/tr//td//div//a//@href',
-                )
-                d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
-
-        # Concatenate DataFrames
-        club_leaderboard_import_df = pd.concat(
-            objs=[club_leaderboard_import_df, d],
-            axis=0,
-            ignore_index=True,
-            sort=False,
-        )
-
-        club_leaderboard_import_df = (
-            club_leaderboard_import_df
-            # Create 'club_id' column
-            .assign(club_id=lambda row: club_id)
-            # Create 'club_name' column
-            .assign(club_name=lambda row: club_name)
-            # Create 'club_activity_type' column
-            .assign(club_activity_type=lambda row: club_activity_type)
-            # Create 'club_location' column
-            .assign(club_location=lambda row: club_location)
-        )
-
-        # Rename columns
-        club_leaderboard_import_df.columns = (
-            club_leaderboard_import_df.columns.astype(str)
-            .str.strip()
-            .str.lower()
-            .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
-            .str.replace(pat=r':', repl=r'', regex=True)
-        )
-
-        if club_activity_type == 'Cycling':
-            club_leaderboard_import_df = club_leaderboard_import_df.rename(
-                columns={
-                    'rides': 'activities',
-                    'longest': 'distance_longest',
-                    'avg_speed': 'average_speed',
-                },
             )
 
-        if club_activity_type == 'Running':
-            club_leaderboard_import_df = club_leaderboard_import_df.rename(
-                columns={'runs': 'activities', 'avg_pace': 'pace'},
+            if not leaderboard_df[0].empty:
+                for d in leaderboard_df:
+                    # leaderboard_date_start
+                    d['leaderboard_date_start'] = pd.Timestamp.now(tz=timezone).replace(
+                        tzinfo=None,
+                    ).floor(freq='d').to_pydatetime() + relativedelta.relativedelta(
+                        weekday=relativedelta.MO(-2),
+                    )
+
+                    # leaderboard_date_end
+                    d['leaderboard_date_end'] = (
+                        pd.Timestamp.now(tz=timezone)
+                        .replace(tzinfo=None)
+                        .floor(freq='d')
+                        .to_pydatetime()
+                        + relativedelta.relativedelta(weekday=relativedelta.MO(-2))
+                        + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
+                    )
+
+                    # athlete_id
+                    d['athlete_id'] = lh.fromstring(html=leaderboard_html).xpath(
+                        './/tr//td//div//a//@href',
+                    )
+                    d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+
+                    # Remove objects
+                    del leaderboard_df
+
+            else:
+                club_leaderboard_import_df = pd.DataFrame(
+                    data=None,
+                    index=None,
+                    dtype='str',
+                )
+
+            # Concatenate DataFrames
+            club_leaderboard_import_df = pd.concat(
+                objs=[club_leaderboard_import_df, d],
+                axis=0,
+                ignore_index=True,
+                sort=False,
             )
 
-        if club_activity_type == 'Run/Walk/Hike':
-            pass
+            club_leaderboard_import_df = (
+                club_leaderboard_import_df
+                # Create 'club_id' column
+                .assign(club_id=lambda row: club_id)
+                # Create 'club_name' column
+                .assign(club_name=lambda row: club_name)
+                # Create 'club_activity_type' column
+                .assign(club_activity_type=lambda row: club_activity_type)
+                # Create 'club_location' column
+                .assign(club_location=lambda row: club_location)
+            )
 
-        # Concatenate DataFrames
-        club_leaderboard_df = pd.concat(
-            objs=[club_leaderboard_df, club_leaderboard_import_df],
-            axis=0,
-            ignore_index=True,
-            sort=False,
-        )
+            # Rename columns
+            club_leaderboard_import_df = rename_columns(df=club_leaderboard_import_df)
+
+            if club_activity_type == 'Cycling':
+                club_leaderboard_import_df = club_leaderboard_import_df.rename(
+                    columns={
+                        'rides': 'activities',
+                        'longest': 'distance_longest',
+                        'avg_speed': 'average_speed',
+                    },
+                )
+
+            if club_activity_type == 'Running':
+                club_leaderboard_import_df = club_leaderboard_import_df.rename(
+                    columns={'runs': 'activities', 'avg_pace': 'pace'},
+                )
+
+            if club_activity_type == 'Run/Walk/Hike':
+                pass
+
+            # Concatenate DataFrames
+            club_leaderboard_df = pd.concat(
+                objs=[club_leaderboard_df, club_leaderboard_import_df],
+                axis=0,
+                ignore_index=True,
+                sort=False,
+            )
 
     # Rename columns
     club_leaderboard_df = club_leaderboard_df.rename(
