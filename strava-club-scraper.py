@@ -1032,7 +1032,7 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
     # Create DataFrame
     club_members_df = (
         pd.DataFrame(data=data, index=None, dtype=None)
-        # Replace blank by NA
+        # Replace blank by None
         .assign(
             athlete_location=lambda row: row['athlete_location'].mask(
                 row['athlete_location'] == '',
