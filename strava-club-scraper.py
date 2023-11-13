@@ -868,13 +868,13 @@ def strava_club_activities(
     if filter_activities_type is not None:
         club_activities_df = club_activities_df.query(
             'activity_type.isin(@filter_activities_type)',
-        )
+        ).reset_index(level=None, drop=True)
 
     # Filter date interval
     if filter_date_min is not None and filter_date_max is not None:
         club_activities_df = club_activities_df.query(
             'activity_date >= @filter_date_min & activity_date <= @filter_date_max',
-        )
+        ).reset_index(level=None, drop=True)
 
     # Rearrange rows
     club_activities_df = club_activities_df.sort_values(
