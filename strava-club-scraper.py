@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-09-04
+# Last update: 2023-11-25
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -234,12 +234,14 @@ def strava_club_activities(
                     pattern=r'^(Today at |Today)(.*)$',
                     repl=str(pd.Timestamp.now(tz=timezone).date()) + r' \2',
                     string=activity_date,
+                    flags=0,
                 )
                 activity_date = re.sub(
                     pattern=r'^(Yesterday at |Yesterday)(.*)$',
                     repl=str(pd.Timestamp.now(tz=timezone).date() - timedelta(days=1))
                     + r' \2',
                     string=activity_date,
+                    flags=0,
                 )
                 activity_date = parser.parse(activity_date)
 
@@ -269,12 +271,14 @@ def strava_club_activities(
                 pattern=r'^(Today at |Today)(.*)$',
                 repl=str(pd.Timestamp.now(tz=timezone).date()) + r' \2',
                 string=activity_date,
+                flags=0,
             )
             activity_date = re.sub(
                 pattern=r'^(Yesterday at |Yesterday)(.*)$',
                 repl=str(pd.Timestamp.now(tz=timezone).date() - timedelta(days=1))
                 + r' \2',
                 string=activity_date,
+                flags=0,
             )
             activity_date = parser.parse(activity_date)
 
@@ -290,16 +294,17 @@ def strava_club_activities(
                         pattern=r'^.*/activities/(.*)$',
                         repl=r'\1',
                         string=activity_id,
+                        flags=0,
                     )
                     activity_id = re.sub(
                         pattern=r'^([0-9]+)(\?|/|#).*$',
                         repl=r'\1',
                         string=activity_id,
+                        flags=0,
                     )
                     activities_id.append(activity_id)
 
-        activities_id = list(set(activities_id))
-        activities_id = sorted(activities_id)
+        activities_id = sorted(set(activities_id))
 
         for activity in activities_id:
             d = {}
@@ -337,6 +342,7 @@ def strava_club_activities(
                         pattern=r'^Commute$',
                         repl=r'True',
                         string=d['commute'],
+                        flags=0,
                     )
                     d['commute'] = bool(d['commute'])
 
@@ -352,6 +358,7 @@ def strava_club_activities(
                     pattern=r'^(.*) on (.*)$',
                     repl=r'\2 \1',
                     string=d['activity_date'],
+                    flags=0,
                 )
                 d['activity_date'] = parser.parse(d['activity_date'])
 
@@ -376,6 +383,7 @@ def strava_club_activities(
                     pattern=r'^.*/athletes/(.*)$',
                     repl=r'\1',
                     string=d['athlete_id'],
+                    flags=0,
                 )
 
                 # activity_name
@@ -421,16 +429,19 @@ def strava_club_activities(
                             pattern=r',',
                             repl=r'',
                             string=d['Distance'],
+                            flags=0,
                         )
                         d['Distance'] = re.sub(
                             pattern=r'km$',
                             repl=r'',
                             string=d['Distance'],
+                            flags=0,
                         )
                         d['Distance'] = re.sub(
                             pattern=r'm$',
                             repl=r'',
                             string=d['Distance'],
+                            flags=0,
                         )  # For activity_type = 'Swim'
                         d['Distance'] = float(d['Distance'])
                         d['Distance'] = d['Distance'] * 1000
@@ -444,11 +455,13 @@ def strava_club_activities(
                             pattern=r',',
                             repl=r'',
                             string=d['Elevation'],
+                            flags=0,
                         )
                         d['Elevation'] = re.sub(
                             pattern=r'm$',
                             repl=r'',
                             string=d['Elevation'],
+                            flags=0,
                         )
 
                     except Exception:
@@ -456,24 +469,24 @@ def strava_club_activities(
 
                     # pace
                     # try:
-                    #     d['Pace'] = re.sub(pattern=r' /km', repl=r'', string=d['Pace'])
+                    #     d['Pace'] = re.sub(pattern=r' /km', repl=r'', string=d['Pace'], flags=0)
                     #
                     #     if len(d['Pace'].split(sep=':')) == 1:
                     #
                     #         if len(d['Pace'].split(sep=':')[0]) == 1:
-                    #             d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:0\1', string=d['Pace'])
+                    #             d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:0\1', string=d['Pace'], flags=0)
                     #
                     #         elif len(d['Pace'].split(sep=':')[0]) == 2:
-                    #             d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:\1', string=d['Pace'])
+                    #             d['Pace'] = re.sub(pattern=r'^([0-9]+)$', repl=r'00:00:\1', string=d['Pace'], flags=0)
                     #
                     #
                     #     if len(d['Pace'].split(sep=':')) == 2:
                     #
                     #         if len(d['Pace'].split(sep=':')[0]) == 1:
-                    #             d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:0\1', string=d['Pace'])
+                    #             d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:0\1', string=d['Pace'], flags=0)
                     #
                     #         elif len(d['Pace'].split(sep=':')[0]) == 2:
-                    #             d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Pace'])
+                    #             d['Pace'] = re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=d['Pace'], flags=0)
                     #
                     # except Exception:
                     #     pass
@@ -488,6 +501,7 @@ def strava_club_activities(
                         pattern=r'Show Less\n|Avg Max\n',
                         repl=r'',
                         string=more_stats,
+                        flags=0,
                     )
 
                     # Speed
@@ -495,11 +509,13 @@ def strava_club_activities(
                         pattern=r'^Speed ',
                         repl=r'Average Speed\n',
                         string=more_stats,
+                        flags=0,
                     )
                     more_stats = re.sub(
                         pattern=r'(km/h*?) ',
                         repl=r'\1\nMax Speed\n',
                         string=more_stats,
+                        flags=0,
                     )
 
                     # Heart Rate
@@ -507,11 +523,13 @@ def strava_club_activities(
                         pattern=r'Heart Rate ',
                         repl=r'Average Heart Rate\n',
                         string=more_stats,
+                        flags=0,
                     )
                     more_stats = re.sub(
                         pattern=r'(Heart Rate\n[0-9]{2,} bpm) ',
                         repl=r'\1\nMax Heart Rate\n',
                         string=more_stats,
+                        flags=0,
                     )
 
                     # Cadence
@@ -519,11 +537,13 @@ def strava_club_activities(
                         pattern=r'Cadence ',
                         repl=r'Average Cadence\n',
                         string=more_stats,
+                        flags=0,
                     )
                     more_stats = re.sub(
                         pattern=r'(Average Cadence\n[0-9]{1,}) ([0-9]{1,})',
                         repl=r'\1\nMax Cadence\n\2',
                         string=more_stats,
+                        flags=0,
                     )
 
                     # Power
@@ -531,11 +551,13 @@ def strava_club_activities(
                         pattern=r'Power ',
                         repl=r'Average Power\n',
                         string=more_stats,
+                        flags=0,
                     )
                     more_stats = re.sub(
                         pattern=r'(Average Power\n[0-9,]{1,} W) ([0-9,]{1,} W)',
                         repl=r'\1\nMax Power\n\2',
                         string=more_stats,
+                        flags=0,
                     )
 
                     # Calories/Temperature/Elapsed Time
@@ -543,6 +565,7 @@ def strava_club_activities(
                         pattern=r'(Calories|Temperature|Carbon Saved|Elapsed Time) ',
                         repl=r'\1\n',
                         string=more_stats,
+                        flags=0,
                     )
                     more_stats = more_stats.split(sep='\n')
                     more_stats = convert_list_to_dictionary(to_convert=more_stats)
@@ -556,6 +579,7 @@ def strava_club_activities(
                                 pattern=r'km/h$',
                                 repl=r'',
                                 string=d['Max Speed'],
+                                flags=0,
                             )
                             d['Max Speed'] = float(d['Max Speed']) / 3.6
 
@@ -568,6 +592,7 @@ def strava_club_activities(
                                 pattern=r'km/h$',
                                 repl=r'',
                                 string=d['Average Speed'],
+                                flags=0,
                             )
                             d['Average Speed'] = float(d['Average Speed']) / 3.6
 
@@ -580,6 +605,7 @@ def strava_club_activities(
                                 pattern=r' bpm',
                                 repl=r'',
                                 string=d['Max Heart Rate'],
+                                flags=0,
                             )
                             d['Max Heart Rate'] = float(d['Max Heart Rate'])
 
@@ -592,6 +618,7 @@ def strava_club_activities(
                                 pattern=r' bpm',
                                 repl=r'',
                                 string=d['Average Heart Rate'],
+                                flags=0,
                             )
                             d['Average Heart Rate'] = float(d['Average Heart Rate'])
 
@@ -618,11 +645,13 @@ def strava_club_activities(
                                 pattern=r',',
                                 repl=r'',
                                 string=d['Max Power'],
+                                flags=0,
                             )
                             d['Max Power'] = re.sub(
                                 pattern=r' W',
                                 repl=r'',
                                 string=d['Max Power'],
+                                flags=0,
                             )
                             d['Max Power'] = float(d['Max Power'])
 
@@ -635,11 +664,13 @@ def strava_club_activities(
                                 pattern=r',',
                                 repl=r'',
                                 string=d['Average Power'],
+                                flags=0,
                             )
                             d['Average Power'] = re.sub(
                                 pattern=r' W',
                                 repl=r'',
                                 string=d['Average Power'],
+                                flags=0,
                             )
                             d['Average Power'] = float(d['Average Power'])
 
@@ -652,11 +683,13 @@ def strava_club_activities(
                                 pattern=r',',
                                 repl=r'',
                                 string=d['Elevation'],
+                                flags=0,
                             )
                             d['Elevation'] = re.sub(
                                 pattern=r'm$',
                                 repl=r'',
                                 string=d['Elevation'],
+                                flags=0,
                             )
                             d['Elevation'] = float(d['Elevation'])
 
@@ -669,11 +702,13 @@ def strava_club_activities(
                                 pattern=r',',
                                 repl=r'',
                                 string=d['Calories'],
+                                flags=0,
                             )
                             d['Calories'] = re.sub(
                                 pattern='\u2014',
                                 repl=r'',
                                 string=d['Calories'],
+                                flags=0,
                             )
                             d['Calories'] = (
                                 None if d['Calories'] == '' else float(d['Calories'])
@@ -688,6 +723,7 @@ def strava_club_activities(
                                 pattern=r',',
                                 repl=r'',
                                 string=d['Steps'],
+                                flags=0,
                             )
                             d['Steps'] = float(d['Steps'])
 
@@ -700,6 +736,7 @@ def strava_club_activities(
                                 pattern=r'^([0-9]+).*',
                                 repl=r'\1',
                                 string=d['Temperature'],
+                                flags=0,
                             )
                             d['Temperature'] = float(d['Temperature'])
 
@@ -796,9 +833,14 @@ def strava_club_activities(
     # elapsed_time
     if 'elapsed_time' in club_activities_df.columns:
         club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].apply(
-            lambda row: re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row)
+            lambda row: re.sub(
+                pattern=r'^([0-9]+)s$',
+                repl=r'00:00:\1',
+                string=row,
+                flags=0,
+            )
             if len(row.split(sep=':')) == 1
-            else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row)
+            else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0)
             if len(row.split(sep=':')) == 2
             else row,
         )
@@ -810,9 +852,14 @@ def strava_club_activities(
     # moving_time
     if 'moving_time' in club_activities_df.columns:
         club_activities_df['moving_time'] = club_activities_df['moving_time'].apply(
-            lambda row: re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row)
+            lambda row: re.sub(
+                pattern=r'^([0-9]+)s$',
+                repl=r'00:00:\1',
+                string=row,
+                flags=0,
+            )
             if len(row.split(sep=':')) == 1
-            else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row)
+            else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0)
             if len(row.split(sep=':')) == 2
             else row,
         )
@@ -964,6 +1011,7 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
             pattern=fr'^{club_activity_type}(.*)$',
             repl=r'\1',
             string=club_location,
+            flags=0,
         ).strip()
 
         # Get Strava Club members list
@@ -998,6 +1046,7 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
                         pattern=r'^.*/athletes/(.*)$',
                         repl=r'\1',
                         string=d['athlete_id'],
+                        flags=0,
                     )
 
                     # athlete_name
@@ -1230,6 +1279,7 @@ def strava_club_leaderboard(
             pattern=fr'^{club_activity_type}(.*)$',
             repl=r'\1',
             string=club_location,
+            flags=0,
         ).strip()
 
         # Get current week Strava Club Leaderboard
@@ -1545,7 +1595,7 @@ def strava_club_leaderboard(
         club_leaderboard_df['pace'] = club_leaderboard_df['pace'].astype(dtype='str')
 
         club_leaderboard_df['pace'] = club_leaderboard_df['pace'].replace(to_replace=r' /km$', value=r'', regex=True)
-        club_leaderboard_df['pace'] = club_leaderboard_df['pace'].apply(lambda row: re.sub(pattern=r'^([0-9]+)$', value=r'00:00:\1', string=row) if(len(row.split(sep=':')) == 1) else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row), axis=1)
+        club_leaderboard_df['pace'] = club_leaderboard_df['pace'].apply(lambda row: re.sub(pattern=r'^([0-9]+)$', value=r'00:00:\1', string=row, flags=0) if(len(row.split(sep=':')) == 1) else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0), axis=1)
 
         club_leaderboard_df['pace'] = pd.to_datetime(arg=club_leaderboard_df['pace'], utc=False, format='%H:%M:%S').dt.time
         club_leaderboard_df['pace'] = pd.to_timedelta(arg=club_leaderboard_df['pace'].astype(dtype='str'), unit='ns').dt.total_seconds()
