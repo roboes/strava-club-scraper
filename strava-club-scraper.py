@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-11-25
+# Last update: 2023-12-12
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -29,6 +29,7 @@ from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import lxml.html as lh
+from natsort import natsorted, ns
 
 # import numpy as np
 import pandas as pd
@@ -304,7 +305,7 @@ def strava_club_activities(
                     )
                     activities_id.append(activity_id)
 
-        activities_id = sorted(set(activities_id))
+        activities_id = natsorted(seq=set(activities_id), alg=ns.IGNORECASE)
 
         for activity in activities_id:
             d = {}
