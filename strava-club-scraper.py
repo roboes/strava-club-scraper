@@ -1331,7 +1331,11 @@ def strava_club_leaderboard(
                     d['athlete_id'] = lh.fromstring(html=leaderboard_html).xpath(
                         './/tr//td//div//a//@href',
                     )
-                    d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+                    d['athlete_id'] = d['athlete_id'].str.extract(
+                        pat=r'/athletes/([0-9]+)',
+                        flags=0,
+                        expand=True,
+                    )
 
                 club_leaderboard_import_df = d
 
@@ -1398,7 +1402,11 @@ def strava_club_leaderboard(
                     d['athlete_id'] = lh.fromstring(html=leaderboard_html).xpath(
                         './/tr//td//div//a//@href',
                     )
-                    d['athlete_id'] = d['athlete_id'].str.extract(r'/athletes/([0-9]+)')
+                    d['athlete_id'] = d['athlete_id'].str.extract(
+                        pat=r'/athletes/([0-9]+)',
+                        flags=0,
+                        expand=True,
+                    )
 
                     # Remove objects
                     del leaderboard_df

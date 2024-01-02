@@ -1,5 +1,5 @@
 ## Pre-commit configuration
-# Last update: 2023-12-11
+# Last update: 2024-01-01
 
 
 # Save this file to '/.pre-commit-config.yaml'
@@ -45,7 +45,7 @@ repos:
       # - id: pretty-format-json # Not, since it decodes utf-8
       #   args: ['--autofix']
       - id: requirements-txt-fixer
-      # - id: sort-simple-yaml
+      - id: sort-simple-yaml
       - id: trailing-whitespace
 
 
@@ -71,7 +71,7 @@ repos:
 
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.7
+    rev: v0.1.9
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, '--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105'] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504
@@ -84,7 +84,7 @@ repos:
 
 
   - repo: https://github.com/psf/black
-    rev: 23.11.0 # Without leading 'v'
+    rev: 23.12.1 # Without leading 'v'
     hooks:
       - id: black
         args: [--skip-string-normalization]
@@ -160,7 +160,7 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        exclude: 'at-post-letter-template.py|tcx-tools.py|terminvereinbarung-munich.py'
+        exclude: 'at-post-letter-template.py|dkb_bank_transactions.py|tcx-tools.py'
 
 default_language_version:
   python: python3
