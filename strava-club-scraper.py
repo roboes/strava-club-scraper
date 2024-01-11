@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2023-12-12
+# Last update: 2024-01-11
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -14,6 +14,7 @@ globals().clear()
 
 
 # Import packages
+import configparser
 from datetime import timedelta
 
 # import glob
@@ -46,33 +47,30 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 # Settings
+# Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
+# Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
+config = configparser.ConfigParser()
+config.read(
+    filenames=os.path.join(os.getcwd(), 'settings', 'config.ini'),
+    encoding='utf-8',
+)
+google_api_key = os.path.join(os.getcwd(), 'settings', 'keys.json')  # Google API
 
-# Timezone
-timezone = 'CET'
 
-# Strava login
-strava_email = 'test@email.com'
-strava_password = 'Password12345'
+# club_members_teams
+if 'CLUB_MEMBERS_TEAMS' in config['STRAVA']:
+    club_members_teams = pd.DataFrame.from_dict(
+        data=dict(
+            item.split(sep=': ')
+            for item in config['STRAVA']['CLUB_MEMBERS_TEAMS'].split(sep='; ')
+        ),
+        orient='index',
+        dtype='str',
+        columns=['athlete_id'],
+    )
 
-# Strava Clubs
-club_ids = [
-    '445017',  # E-Bike Ride, Ride
-    '789955',  # Multisport
-    '1045852',  # Run, Walk, Hike
-]
-# filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Race', 'Run', 'Trail Run', 'Treadmill workout', 'Walk', 'Hike']
-filter_date_min = '2023-06-05'
-filter_date_max = '2023-07-30'
-club_members_teams = {
-    'Team A': ['1234, 5678'],
-    'Team B': ['12345'],
-}
-
-# Google API
-google_api_key = os.path.join(os.getcwd(), 'files', 'keys.json')
-
-# Google Sheets
-sheet_id = 'GOOGLE_SHEET_ID'
+else:
+    club_members_teams = None
 
 
 ###########
@@ -140,7 +138,7 @@ def selenium_webdriver():
     return driver
 
 
-def strava_login():
+def strava_login(*, strava_login, strava_password):
     # Load Selenium WebDriver
     if 'driver' in vars():
         if driver.service.is_connectable() is True:
@@ -164,7 +162,7 @@ def strava_login():
             pass
 
         # Login
-        driver.find_element(by=By.ID, value='email').send_keys(strava_email)
+        driver.find_element(by=By.ID, value='email').send_keys(strava_login)
         driver.find_element(by=By.ID, value='password').send_keys(strava_password)
         time.sleep(2)
 
@@ -176,6 +174,8 @@ def strava_login():
 
 def strava_club_activities(
     *,
+    strava_login,
+    strava_password,
     club_ids,
     filter_activities_type,
     filter_date_min,
@@ -197,7 +197,7 @@ def strava_club_activities(
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    driver = strava_login()
+    driver = strava_login(strava_login, strava_password)
 
     data = []
 
@@ -934,10 +934,16 @@ def strava_club_activities(
     return club_activities_df
 
 
-def strava_export_activities(*, activities_id, file_type='.gpx'):
+def strava_export_activities(
+    *,
+    strava_login,
+    strava_password,
+    activities_id,
+    file_type='.gpx',
+):
     """Given a list of activity_id, export it to .gpx."""
     # Strava login
-    driver = strava_login()
+    driver = strava_login(strava_login, strava_password)
 
     # Export activity as .gpx
     if file_type == '.gpx':
@@ -973,14 +979,21 @@ def strava_export_activities(*, activities_id, file_type='.gpx'):
                 pass
 
 
-def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
+def strava_club_members(
+    *,
+    strava_login,
+    strava_password,
+    club_ids,
+    club_members_teams=None,
+    timezone='UTC',
+):
     """Scraps and imports members of one or multiple Strava Club(s) to a dataset."""
     # Settings and variables
     geolocator = Nominatim(user_agent='strava-club-scraper')
     geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
     # Strava login
-    driver = strava_login()
+    driver = strava_login(strava_login, strava_password)
 
     data = []
 
@@ -1231,6 +1244,8 @@ def strava_club_members(*, club_ids, club_members_teams=None, timezone='UTC'):
 
 def strava_club_leaderboard(
     *,
+    strava_login,
+    strava_password,
     club_ids,
     filter_date_min,
     filter_date_max,
@@ -1248,7 +1263,7 @@ def strava_club_leaderboard(
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    driver = strava_login()
+    driver = strava_login(strava_login, strava_password)
 
     club_leaderboard_df = pd.DataFrame(data=None, index=None, dtype='str')
 
@@ -2253,18 +2268,20 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 
 # Get data (via web-scraping)
 # club_activities_df = strava_club_activities(
-#     club_ids=club_ids,
+#     strava_login=config['STRAVA']['LOGIN'],
+#     strava_password=config['STRAVA']['PASSWORD'],
+#     club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
 #     filter_activities_type=None,
-#     filter_date_min=filter_date_min,
-#     filter_date_max=filter_date_max,
-#     timezone=timezone,
+#     filter_date_min=config['GENERAL']['DATE_MIN'],
+#     filter_date_max=config['GENERAL']['DATE_MAX'],
+#     timezone=config['GENERAL']['TIMEZONE'],
 # )
 
 # Update Google Sheets sheet
 # strava_club_to_google_sheets(
 #     df=club_activities_df,
 #     club_members_df=club_members_df,
-#     sheet_id=sheet_id,
+#     sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
 #     sheet_name='Activities',
 # )
 
@@ -2272,7 +2289,7 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 # club_activities_df.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
 
 # Export club activities to .gpx files
-# club_activities_sample = (read_google_sheets(sheet_id=sheet_id, sheet_name='Activities')
+# club_activities_sample = (read_google_sheets(sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Activities')
 #     .drop(columns=['club_id'], axis=1, errors='ignore')
 #     .drop_duplicates(subset=None, keep='first', ignore_index=True)
 #     .query('activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
@@ -2280,20 +2297,22 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 #     # .assign(activity_type=lambda row: np.where(row['activity_type'].isin(['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride']), 'Cycling', (np.where(row['activity_type'].isin(['Run', 'Trail Run', 'Walk', 'Hike']), 'Run/Walk/Hike', row['activity_type']))))
 #     .sort_values(by=['activity_type', 'activity_date', 'activity_id'], ignore_index=True)
 # )
-# strava_export_activities(activities_id=club_activities_sample['activity_id'], file_type='.gpx')
-# # strava_export_activities(activities_id=club_activities_sample.query('activity_type.isin(["Cycling"])')['activity_id'], file_type='.gpx')
+# strava_export_activities(strava_login=config['STRAVA']['LOGIN'], strava_password=config['STRAVA']['PASSWORD'], activities_id=club_activities_sample['activity_id'], file_type='.gpx')
+# # strava_export_activities(strava_login=config['STRAVA']['LOGIN'], strava_password=config['STRAVA']['PASSWORD'], activities_id=club_activities_sample.query('activity_type.isin(["Cycling"])')['activity_id'], file_type='.gpx')
 
 # Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
-# club_leaderboard_manual_df = strava_club_leaderboard_manual(club_activities_df=club_activities_df, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride', 'Indoor Cycling', 'Virtual Ride', 'Run', 'Trail Run', 'Walk', 'Hike'])
+# club_leaderboard_manual_df = strava_club_leaderboard_manual(club_activities_df=club_activities_df, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=config['GENERAL']['ACTIVITIES_TYPE'].split(sep=', '))
 
 
 ## Club members
 
 # Get data (via web-scraping)
 club_members_df = strava_club_members(
-    club_ids=club_ids,
+    strava_login=config['STRAVA']['LOGIN'],
+    strava_password=config['STRAVA']['PASSWORD'],
+    club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
     club_members_teams=club_members_teams,
-    timezone=timezone,
+    timezone=config['GENERAL']['TIMEZONE'],
 )
 
 # Test
@@ -2312,7 +2331,7 @@ club_members_df = strava_club_members(
 club_members_df = strava_club_to_google_sheets(
     df=club_members_df,
     club_members_df=club_members_df,
-    sheet_id=sheet_id,
+    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
     sheet_name='Members',
 )
 
@@ -2321,17 +2340,19 @@ club_members_df = strava_club_to_google_sheets(
 
 # Get data (via web-scraping)
 club_leaderboard_df = strava_club_leaderboard(
-    club_ids=club_ids,
-    filter_date_min=filter_date_min,
-    filter_date_max=filter_date_max,
-    timezone=timezone,
+    strava_login=config['STRAVA']['LOGIN'],
+    strava_password=config['STRAVA']['PASSWORD'],
+    club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
+    filter_date_min=config['GENERAL']['DATE_MIN'],
+    filter_date_max=config['GENERAL']['DATE_MAX'],
+    timezone=config['GENERAL']['TIMEZONE'],
 )
 
 # Update Google Sheets sheet
 strava_club_to_google_sheets(
     df=club_leaderboard_df,
     club_members_df=club_members_df,
-    sheet_id=sheet_id,
+    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
     sheet_name='Leaderboard',
 )
 
@@ -2340,9 +2361,9 @@ strava_club_to_google_sheets(
 
 # Update Google Sheets sheet
 execution_time_to_google_sheets(
-    sheet_id=sheet_id,
+    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
     sheet_name='Execution Time',
-    timezone=timezone,
+    timezone=config['GENERAL']['TIMEZONE'],
 )
 
 
