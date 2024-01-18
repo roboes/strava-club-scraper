@@ -1,5 +1,5 @@
 geopy==2.4.1
-google_api_python_client==2.113.0
+google_api_python_client==2.114.0
 lxml==5.1.0
 natsort==8.4.0
 pandas==2.1.4
