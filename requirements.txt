@@ -1,9 +1,8 @@
 geopy==2.4.1
-google_api_python_client==2.114.0
+google_api_python_client==2.115.0
 lxml==5.1.0
 natsort==8.4.0
-pandas==2.1.4
+pandas==2.2.0
 protobuf==4.25.2
 python_dateutil==2.8.2
-selenium==4.16.0
-webdriver_manager==4.0.1
+selenium==4.17.2

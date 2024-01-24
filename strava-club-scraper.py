@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2024-01-11
+# Last update: 2024-01-24
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -36,9 +36,7 @@ from natsort import natsorted, ns
 import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 # Set working directory
@@ -130,10 +128,7 @@ def selenium_webdriver():
         webdriver_options.add_argument('window-size=1400,900')
         webdriver_options.add_argument('--start-maximized')
 
-    driver = webdriver.Chrome(
-        service=Service(executable_path=ChromeDriverManager().install()),
-        options=webdriver_options,
-    )
+    driver = webdriver.Chrome(options=webdriver_options)
 
     # Return objects
     return driver
