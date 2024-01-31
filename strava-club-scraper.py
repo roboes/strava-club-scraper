@@ -830,16 +830,20 @@ def strava_club_activities(
     # elapsed_time
     if 'elapsed_time' in club_activities_df.columns:
         club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].apply(
-            lambda row: re.sub(
-                pattern=r'^([0-9]+)s$',
-                repl=r'00:00:\1',
-                string=row,
-                flags=0,
-            )
-            if len(row.split(sep=':')) == 1
-            else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0)
-            if len(row.split(sep=':')) == 2
-            else row,
+            lambda row: (
+                re.sub(
+                    pattern=r'^([0-9]+)s$',
+                    repl=r'00:00:\1',
+                    string=row,
+                    flags=0,
+                )
+                if len(row.split(sep=':')) == 1
+                else (
+                    re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0)
+                    if len(row.split(sep=':')) == 2
+                    else row
+                )
+            ),
         )
 
         club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].apply(
@@ -849,16 +853,20 @@ def strava_club_activities(
     # moving_time
     if 'moving_time' in club_activities_df.columns:
         club_activities_df['moving_time'] = club_activities_df['moving_time'].apply(
-            lambda row: re.sub(
-                pattern=r'^([0-9]+)s$',
-                repl=r'00:00:\1',
-                string=row,
-                flags=0,
-            )
-            if len(row.split(sep=':')) == 1
-            else re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0)
-            if len(row.split(sep=':')) == 2
-            else row,
+            lambda row: (
+                re.sub(
+                    pattern=r'^([0-9]+)s$',
+                    repl=r'00:00:\1',
+                    string=row,
+                    flags=0,
+                )
+                if len(row.split(sep=':')) == 1
+                else (
+                    re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0)
+                    if len(row.split(sep=':')) == 2
+                    else row
+                )
+            ),
         )
 
         club_activities_df['moving_time'] = club_activities_df['moving_time'].apply(
@@ -911,13 +919,13 @@ def strava_club_activities(
     # Filter activity types
     if filter_activities_type is not None:
         club_activities_df = club_activities_df.query(
-            'activity_type.isin(@filter_activities_type)',
+            expr='activity_type.isin(@filter_activities_type)',
         ).reset_index(level=None, drop=True)
 
     # Filter date interval
     if filter_date_min is not None and filter_date_max is not None:
         club_activities_df = club_activities_df.query(
-            'activity_date >= @filter_date_min & activity_date <= @filter_date_max',
+            expr='activity_date >= @filter_date_min & activity_date <= @filter_date_max',
         ).reset_index(level=None, drop=True)
 
     # Rearrange rows
@@ -1104,44 +1112,50 @@ def strava_club_members(
     # Create DataFrame with distinct 'athlete_location' values
     club_members_geolocation = (
         club_members_df.filter(items=['athlete_location'])
-        .query('athlete_location.notna()')
+        .query(expr='athlete_location.notna()')
         .drop_duplicates(subset=None, keep='first', ignore_index=True)
         .sort_values(by=['athlete_location'], ignore_index=True)
     )
 
     # Create 'athlete_geolocation' column
     club_members_geolocation['athlete_geolocation'] = club_members_geolocation.apply(
-        lambda row: geocode(
-            row['athlete_location'],
-            language='en',
-            exactly_one=True,
-            addressdetails=True,
-            namedetails=True,
-            timeout=None,
-        )
-        if pd.notna(row['athlete_location'])
-        else None,
+        lambda row: (
+            geocode(
+                row['athlete_location'],
+                language='en',
+                exactly_one=True,
+                addressdetails=True,
+                namedetails=True,
+                timeout=None,
+            )
+            if pd.notna(row['athlete_location'])
+            else None
+        ),
         axis=1,
     )
 
     # Create 'athlete_location_country_code' column
-    club_members_geolocation[
-        'athlete_location_country_code'
-    ] = club_members_geolocation.apply(
-        lambda row: row['athlete_geolocation'].raw.get('address').get('country_code')
-        if pd.notna(row['athlete_geolocation'])
-        else None,
-        axis=1,
+    club_members_geolocation['athlete_location_country_code'] = (
+        club_members_geolocation.apply(
+            lambda row: (
+                row['athlete_geolocation'].raw.get('address').get('country_code')
+                if pd.notna(row['athlete_geolocation'])
+                else None
+            ),
+            axis=1,
+        )
     )
 
     # Create 'athlete_location_country' column
-    club_members_geolocation[
-        'athlete_location_country'
-    ] = club_members_geolocation.apply(
-        lambda row: row['athlete_geolocation'].raw.get('address').get('country')
-        if pd.notna(row['athlete_geolocation'])
-        else None,
-        axis=1,
+    club_members_geolocation['athlete_location_country'] = (
+        club_members_geolocation.apply(
+            lambda row: (
+                row['athlete_geolocation'].raw.get('address').get('country')
+                if pd.notna(row['athlete_geolocation'])
+                else None
+            ),
+            axis=1,
+        )
     )
 
     # Left join 'club_members_df' with 'club_members_geolocation'
@@ -1647,7 +1661,7 @@ def strava_club_leaderboard(
         )
         # Filter date interval
         .query(
-            'leaderboard_date_start >= @filter_date_min & leaderboard_date_end <= @filter_date_max',
+            expr='leaderboard_date_start >= @filter_date_min & leaderboard_date_end <= @filter_date_max',
         )
         # Rearrange rows
         .sort_values(
@@ -1673,7 +1687,7 @@ def strava_club_leaderboard_manual(
     club_leaderboard_manual_df = (
         club_activities_df
         # Filter activity types
-        .query('activity_type.isin(@filter_activities_type)').assign(
+        .query(expr='activity_type.isin(@filter_activities_type)').assign(
             # Create 'club_id' column
             club_id=club_id,
             # Create 'club_name' column
@@ -1686,26 +1700,26 @@ def strava_club_leaderboard_manual(
     )
 
     # leaderboard_date_start
-    club_leaderboard_manual_df[
-        'leaderboard_date_start'
-    ] = club_leaderboard_manual_df.apply(
-        lambda row: (
-            row['activity_date'].floor(freq='d')
-            + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
-        ),
-        axis=1,
+    club_leaderboard_manual_df['leaderboard_date_start'] = (
+        club_leaderboard_manual_df.apply(
+            lambda row: (
+                row['activity_date'].floor(freq='d')
+                + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
+            ),
+            axis=1,
+        )
     )
 
     # leaderboard_date_end
-    club_leaderboard_manual_df[
-        'leaderboard_date_end'
-    ] = club_leaderboard_manual_df.apply(
-        lambda row: (
-            row['activity_date'].floor(freq='d')
-            + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
-            + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
-        ),
-        axis=1,
+    club_leaderboard_manual_df['leaderboard_date_end'] = (
+        club_leaderboard_manual_df.apply(
+            lambda row: (
+                row['activity_date'].floor(freq='d')
+                + relativedelta.relativedelta(weekday=relativedelta.MO(-1))
+                + relativedelta.relativedelta(weekday=relativedelta.SU(+1))
+            ),
+            axis=1,
+        )
     )
 
     club_leaderboard_manual_df = (
@@ -1928,7 +1942,7 @@ def strava_club_to_google_sheets(*, df, club_members_df, sheet_id, sheet_name):
                     indicator=True,
                 )
                 # Filter rows
-                .query('_merge == "left_only"')
+                .query(expr='_merge == "left_only"')
                 # Remove columns
                 .drop(columns=['_merge'], axis=1, errors='ignore')
             )
@@ -1952,7 +1966,7 @@ def strava_club_to_google_sheets(*, df, club_members_df, sheet_id, sheet_name):
                     indicator=True,
                 )
                 # Filter rows
-                .query('_merge == "left_only"')
+                .query(expr='_merge == "left_only"')
                 # Remove columns
                 .drop(columns=['_merge'], axis=1, errors='ignore')
             )
@@ -1988,7 +2002,7 @@ def strava_club_to_google_sheets(*, df, club_members_df, sheet_id, sheet_name):
                     indicator=True,
                 )
                 # Filter rows
-                .query('_merge == "left_only"')
+                .query(expr='_merge == "left_only"')
                 # Remove columns
                 .drop(columns=['_merge'], axis=1, errors='ignore')
             )
@@ -2288,13 +2302,13 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 # club_activities_sample = (read_google_sheets(sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Activities')
 #     .drop(columns=['club_id'], axis=1, errors='ignore')
 #     .drop_duplicates(subset=None, keep='first', ignore_index=True)
-#     .query('activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
+#     .query(expr='activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
 #     # .assign(activity_type=lambda row: np.where((row['activity_type'] == 'Race') & (row['pace'].notna()), 'Run', (np.where((row['activity_type'] == 'Race') & (row['pace'].isna()), 'Ride', row['activity_type']))))
 #     # .assign(activity_type=lambda row: np.where(row['activity_type'].isin(['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride']), 'Cycling', (np.where(row['activity_type'].isin(['Run', 'Trail Run', 'Walk', 'Hike']), 'Run/Walk/Hike', row['activity_type']))))
 #     .sort_values(by=['activity_type', 'activity_date', 'activity_id'], ignore_index=True)
 # )
 # strava_export_activities(strava_login=config['STRAVA']['LOGIN'], strava_password=config['STRAVA']['PASSWORD'], activities_id=club_activities_sample['activity_id'], file_type='.gpx')
-# # strava_export_activities(strava_login=config['STRAVA']['LOGIN'], strava_password=config['STRAVA']['PASSWORD'], activities_id=club_activities_sample.query('activity_type.isin(["Cycling"])')['activity_id'], file_type='.gpx')
+# # strava_export_activities(strava_login=config['STRAVA']['LOGIN'], strava_password=config['STRAVA']['PASSWORD'], activities_id=club_activities_sample.query(expr='activity_type.isin(["Cycling"])')['activity_id'], file_type='.gpx')
 
 # Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
 # club_leaderboard_manual_df = strava_club_leaderboard_manual(club_activities_df=club_activities_df, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=config['GENERAL']['ACTIVITIES_TYPE'].split(sep=', '))
@@ -2314,7 +2328,7 @@ club_members_df = strava_club_members(
 # Test
 (
     club_members_df.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
-    .query('athlete_team.notna()')
+    .query(expr='athlete_team.notna()')
     .drop_duplicates(subset=None, keep='first', ignore_index=True)
     .assign(
         athlete_team=lambda row: row['athlete_team'].str.split(pat=', ', expand=False),
