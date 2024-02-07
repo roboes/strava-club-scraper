@@ -39,12 +39,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 
-# Set working directory
-# if sys.platform in {'win32', 'darwin'}:
-#     os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads'))
-
-
 # Settings
+
+## Config
 # Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
 # Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
 config = configparser.ConfigParser()
@@ -54,8 +51,7 @@ config.read(
 )
 google_api_key = os.path.join(os.getcwd(), 'settings', 'keys.json')  # Google API
 
-
-# club_members_teams
+## Club members teams
 if 'CLUB_MEMBERS_TEAMS' in config['STRAVA']:
     club_members_teams = pd.DataFrame.from_dict(
         data=dict(
@@ -69,6 +65,14 @@ if 'CLUB_MEMBERS_TEAMS' in config['STRAVA']:
 
 else:
     club_members_teams = None
+
+## Set working directory
+# if sys.platform in {'win32', 'darwin'}:
+#     os.chdir(path=os.path.join(os.path.expanduser('~'), 'Downloads'))
+
+## Copy-on-Write (will be enabled by default in version 3.0)
+if pd.__version__ >= '1.5.0' and pd.__version__ < '3.0.0':
+    pd.options.mode.copy_on_write = True
 
 
 ###########
