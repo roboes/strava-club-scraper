@@ -138,7 +138,7 @@ def selenium_webdriver():
     return driver
 
 
-def strava_login(*, strava_login, strava_password):
+def strava_login(*, strava_user, strava_password):
     # Load Selenium WebDriver
     if 'driver' in vars():
         if driver.service.is_connectable() is True:
@@ -162,7 +162,7 @@ def strava_login(*, strava_login, strava_password):
             pass
 
         # Login
-        driver.find_element(by=By.ID, value='email').send_keys(strava_login)
+        driver.find_element(by=By.ID, value='email').send_keys(strava_user)
         driver.find_element(by=By.ID, value='password').send_keys(strava_password)
         time.sleep(2)
 
@@ -174,7 +174,7 @@ def strava_login(*, strava_login, strava_password):
 
 def strava_club_activities(
     *,
-    strava_login,
+    strava_user,
     strava_password,
     club_ids,
     filter_activities_type,
@@ -197,7 +197,7 @@ def strava_club_activities(
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_login(strava_user, strava_password)
 
     data = []
 
@@ -944,14 +944,14 @@ def strava_club_activities(
 
 def strava_export_activities(
     *,
-    strava_login,
+    strava_user,
     strava_password,
     activities_id,
     file_type='.gpx',
 ):
     """Given a list of activity_id, export it to .gpx."""
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_login(strava_user, strava_password)
 
     # Export activity as .gpx
     if file_type == '.gpx':
@@ -989,7 +989,7 @@ def strava_export_activities(
 
 def strava_club_members(
     *,
-    strava_login,
+    strava_user,
     strava_password,
     club_ids,
     club_members_teams=None,
@@ -1001,7 +1001,7 @@ def strava_club_members(
     geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_login(strava_user, strava_password)
 
     data = []
 
@@ -1258,7 +1258,7 @@ def strava_club_members(
 
 def strava_club_leaderboard(
     *,
-    strava_login,
+    strava_user,
     strava_password,
     club_ids,
     filter_date_min,
@@ -1277,7 +1277,7 @@ def strava_club_leaderboard(
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_login(strava_user, strava_password)
 
     club_leaderboard_df = pd.DataFrame(data=None, index=None, dtype='str')
 
@@ -2322,7 +2322,7 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 
 # Get data (via web-scraping)
 club_members_df = strava_club_members(
-    strava_login=config['STRAVA']['LOGIN'],
+    strava_user=config['STRAVA']['LOGIN'],
     strava_password=config['STRAVA']['PASSWORD'],
     club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
     club_members_teams=club_members_teams,
@@ -2354,7 +2354,7 @@ club_members_df = strava_club_to_google_sheets(
 
 # Get data (via web-scraping)
 club_leaderboard_df = strava_club_leaderboard(
-    strava_login=config['STRAVA']['LOGIN'],
+    strava_user=config['STRAVA']['LOGIN'],
     strava_password=config['STRAVA']['PASSWORD'],
     club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
     filter_date_min=config['GENERAL']['DATE_MIN'],
