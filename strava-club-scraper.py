@@ -2341,13 +2341,16 @@ club_members_df = strava_club_members(
     .sort_values(by=['athlete_team', 'athlete_name'], ignore_index=True)
 )
 
+# Save as .csv
+club_members_df.to_csv(path_or_buf='club_members.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
+
 # Update Google Sheets sheet
-club_members_df = strava_club_to_google_sheets(
-    df=club_members_df,
-    club_members_df=club_members_df,
-    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
-    sheet_name='Members',
-)
+#club_members_df = strava_club_to_google_sheets(
+#    df=club_members_df,
+#    club_members_df=club_members_df,
+#    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
+#    sheet_name='Members',
+#)
 
 
 ## Club leaderboard
@@ -2362,23 +2365,25 @@ club_leaderboard_df = strava_club_leaderboard(
     timezone=config['GENERAL']['TIMEZONE'],
 )
 
+club_leaderboard_df.to_csv(path_or_buf='club_leaderboard.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
+
 # Update Google Sheets sheet
-strava_club_to_google_sheets(
-    df=club_leaderboard_df,
-    club_members_df=club_members_df,
-    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
-    sheet_name='Leaderboard',
-)
+#strava_club_to_google_sheets(
+#    df=club_leaderboard_df,
+#    club_members_df=club_members_df,
+#    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
+#    sheet_name='Leaderboard',
+#)
 
 
 ## Store execution time in Google Sheets
 
 # Update Google Sheets sheet
-execution_time_to_google_sheets(
-    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
-    sheet_name='Execution Time',
-    timezone=config['GENERAL']['TIMEZONE'],
-)
+#execution_time_to_google_sheets(
+#    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
+#    sheet_name='Execution Time',
+#    timezone=config['GENERAL']['TIMEZONE'],
+#)
 
 
 # Quit WebDriver
