@@ -10,8 +10,8 @@ name: pre-commit
 on:
   pull_request:
 
-  push:
-    branches: [main]
+  #push:
+  #  branches: [main]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

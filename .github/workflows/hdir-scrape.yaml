@@ -63,3 +63,10 @@ jobs:
 
       - name: Run Python script
         run: python strava-club-scraper.py
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          destination_dir: /CurrentBuild
