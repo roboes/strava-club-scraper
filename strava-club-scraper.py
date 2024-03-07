@@ -138,7 +138,7 @@ def selenium_webdriver():
     return driver
 
 
-def strava_login(*, strava_user, strava_password):
+def strava_login(strava_user, strava_password):
     # Load Selenium WebDriver
     if 'driver' in vars():
         if driver.service.is_connectable() is True:
