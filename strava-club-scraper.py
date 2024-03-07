@@ -38,6 +38,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
+directory="output"
+## If folder doesn't exists, create it ##
+if not os.path.isdir(directory):
+    os.mkdir(directory)
 
 # Settings
 
