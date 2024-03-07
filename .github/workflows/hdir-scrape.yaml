@@ -62,14 +62,4 @@ jobs:
       #   run: which python
 
       - name: Run Python script
-      #  if: |
-      #    github.event.schedule != '30 20 * * MON,THU'
-        # github.event.schedule == '00 10 * * *'
-        # || github.event.schedule == '00 17 * * *'
-        # || github.event.schedule == '30 21 * * *'
         run: python strava-club-scraper.py
-
-      # - name: Run Python script
-      #   if: |
-      #     github.event.schedule == '30 20 * * MON,THU'
-      #   run: python strava-club-scraper-activities.py
