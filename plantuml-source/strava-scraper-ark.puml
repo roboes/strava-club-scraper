@@ -10,13 +10,18 @@ Business_Service(bbehandler, "Databehandler")
 Application_DataObject(csvres, "club_leaderboard.csv")
 Application_DataObject(csvdelt, "club_members.csv")
 Application_Component(behandler, "Databehandler")
-Application_DataObject(csvuke, "ukeresultat.csv")
-Application_DataObject(csvtot, "totalresultat.csv")
+Application_DataObject(csvuke, "ukeresultat.json")
+Application_DataObject(csvtot, "totalresultat.json")
 }
 Application_Component(present, "Presentatør")
 rectangle "gh-pages\nbranch" {
 Application_DataObject(html, "Webside")
 }
+
+note "All kildekoden ligger i main branch" as kildekode
+kildekode -up- scraper
+kildekode -up- behandler
+kildekode -up- present
 
 bscraper -down- scraper
 bscraper -right[hidden]- bbehandler
