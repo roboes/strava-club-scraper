@@ -2330,8 +2330,8 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 
 # Get data (via web-scraping)
 club_members_df = strava_club_members(
-    strava_user=config['STRAVA']['LOGIN'],
-    strava_password=config['STRAVA']['PASSWORD'],
+    strava_user,
+    strava_password,
     club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
     club_members_teams=club_members_teams,
     timezone=config['GENERAL']['TIMEZONE'],
@@ -2365,8 +2365,8 @@ club_members_df.to_csv(path_or_buf='output/club_members.csv', sep=',', na_rep=''
 
 # Get data (via web-scraping)
 club_leaderboard_df = strava_club_leaderboard(
-    strava_user=config['STRAVA']['LOGIN'],
-    strava_password=config['STRAVA']['PASSWORD'],
+    strava_user,
+    strava_password,
     club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
     filter_date_min=config['GENERAL']['DATE_MIN'],
     filter_date_max=config['GENERAL']['DATE_MAX'],
