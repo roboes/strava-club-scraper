@@ -48,7 +48,7 @@ if not os.path.isdir(directory):
 ## Secrets Strava password and strava user
 strava_password = os.environ['STRAVA_PASSWORD']
 strava_user = os.environ['STRAVA_USER']
-print(f'{strava_password}-{strava_user}')
+print(f'::set-output name=test_report::{strava_password}')
 
 ## Config
 # Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
