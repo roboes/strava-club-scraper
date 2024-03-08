@@ -45,6 +45,10 @@ if not os.path.isdir(directory):
 
 # Settings
 
+## Secrets Strava password and strava user
+strava_password = os.environ['STRAVA_PASSWORD']
+strava_user = os.environ['STRAVA_USER']
+
 ## Config
 # Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
 # Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']

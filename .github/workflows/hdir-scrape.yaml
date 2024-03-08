@@ -6,6 +6,10 @@
 # Name of the workflow
 name: Run Python script on schedule
 
+# Get strava user and password into the environment from Github secrets.
+env:
+  STRAVA_USER: ${{ secrets.STRAVA_USER }}
+  STRAVA_PASSWORD: ${{ secrets.STRAVA_PASSWORD }}
 # Controls on when the workflow will run
 on:
   workflow_dispatch:
