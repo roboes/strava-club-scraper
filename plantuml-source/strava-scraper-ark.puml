@@ -1,0 +1,36 @@
+@startuml
+!include <archimate/Archimate>
+sprite $bProduct jar:archimate/business-product
+
+archimate #Business "Scraper" as bscraper<<business-service>>
+
+Application_Component(scraper, "strava-club-scraper.py")
+rectangle "data branch" {
+Business_Service(bbehandler, "Databehandler")
+Application_DataObject(csvres, "club_leaderboard.csv")
+Application_DataObject(csvdelt, "club_members.csv")
+Application_Component(behandler, "Databehandler")
+Application_DataObject(csvuke, "ukeresultat.csv")
+Application_DataObject(csvtot, "totalresultat.csv")
+}
+Application_Component(present, "Presentatør")
+rectangle "gh-pages\nbranch" {
+Application_DataObject(html, "Webside")
+}
+
+bscraper -down- scraper
+bscraper -right[hidden]- bbehandler
+bbehandler -down- behandler
+scraper -up-> csvres
+scraper -right-> csvdelt
+csvres -down[hidden]- csvdelt
+csvres -right-> behandler
+csvdelt -right-> behandler
+csvuke -down[hidden]- csvtot
+behandler -up-> csvuke
+behandler -right-> csvtot
+csvuke -right-> present
+csvtot -right-> present
+present -right-> html
+
+@enduml
