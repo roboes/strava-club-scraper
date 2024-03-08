@@ -10,7 +10,7 @@ Script og actions for å hente resultater fra Helsedirektoratet sin stravaklubb 
 
 ### Strava club scraper
 
-* Scraper startes av et [action script](https://github.com/hdir/strava-club/blob/main/.github/workflows/hdir-scrape.yaml), planen er at dette skal kjøre omtrent en gang om dagen, men akkurat nå startes dette manuelt.  
+* **Trigger** Scraper startes av et [action script](https://github.com/hdir/strava-club/blob/main/.github/workflows/hdir-scrape.yaml), planen er at dette skal kjøre omtrent en gang om dagen, men akkurat nå startes dette manuelt.  
 * Scraper applikasjonen er en fork av [strava club scraper](https://github.com/roboes/strava-club-scraper)
   * Forutsetter at det eksisterer en bruker som er medlem i Helsedirektoratet sin stravaklubb, passord og brukernavn ligger som hemmeligheter i repoet.  
   * Scraper koden er modifisert slik at output er csv filer istedenfor google sheets.
