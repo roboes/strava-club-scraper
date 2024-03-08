@@ -4,18 +4,21 @@ sprite $bProduct jar:archimate/business-product
 
 archimate #Business "Scraper" as bscraper<<business-service>>
 
+Application_Service(strava, "Strava")
+Application_DataObject(klubbdata, "Hdir\nclub")
 Application_Component(scraper, "strava-club-scraper.py")
 rectangle "data branch" {
-Business_Service(bbehandler, "Databehandler")
-Application_DataObject(csvres, "club_leaderboard.csv")
-Application_DataObject(csvdelt, "club_members.csv")
-Application_Component(behandler, "Databehandler")
-Application_DataObject(csvuke, "ukeresultat.json")
-Application_DataObject(csvtot, "totalresultat.json")
+  Business_Service(bbehandler, "Databehandler")
+  Application_DataObject(csvres, "club_leaderboard.csv")
+  Application_DataObject(csvdelt, "club_members.csv")
+  Application_Component(behandler, "Databehandler")
+  Application_DataObject(csvuke, "ukeresultat.json")
+  Application_DataObject(csvtot, "totalresultat.json")
 }
+
 Application_Component(present, "Presentatør")
 rectangle "gh-pages\nbranch" {
-Application_DataObject(html, "Webside")
+  Application_DataObject(html, "Webside")
 }
 
 note "All kildekoden ligger i main branch" as kildekode
@@ -23,6 +26,9 @@ kildekode -up- scraper
 kildekode -up- behandler
 kildekode -up- present
 
+strava -right[hidden]- bscraper
+strava -down-> klubbdata
+klubbdata -right-> scraper
 bscraper -down- scraper
 bscraper -right[hidden]- bbehandler
 bbehandler -down- behandler
