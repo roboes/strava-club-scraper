@@ -19,12 +19,13 @@ Script og actions for å hente resultater fra Helsedirektoratet sin stravaklubb 
 
 ### Databehandler
 
-Tar de siste CSV filene fra scraper og produserer to resultatlister som json.
+Tar de siste CSV filene fra scraper og produserer tre resultatlister som json.
 **Trigger** Nye eller oppdaterte CSV filer fra scraper. Kan muligens startes direkte fra [samme script som scraper](https://github.com/hdir/strava-club/blob/main/.github/workflows).
 
 * En akkumulert resultatliste for en bestemt periode hvor resultatene for hele perioden akkumuleres.
   * En linje pr. deltaker med: akkumulert tid, akkumuldert kilometer tilbakelagt, akkumulert antall aktiviteter, akkumulert høydemeter tilbakelagt, lengste distanse for en økt og gjennomsnittshastighet.
 * En resultatliste for den siste uken.
+* Et akkumulert resultat for hele klubben i hele perioden.
 
 ### Presentatør
 
