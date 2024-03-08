@@ -1,0 +1,8 @@
+club_id,club_name,club_activity_type,club_location,leaderboard_week,leaderboard_date_start,leaderboard_date_end,rank,athlete_id,athlete_name,activities,distance,distance_longest,average_speed,elevation_gain
+754665,Helsedirektoratet sykling,Cycling,"Oslo, Oslo, Norway",2024-02-26 to 2024-03-03,2024-02-26,2024-03-03,1,288479,Thomas Rosenlund,12,216200.0,44500.0,7.111111111111112,2362.0
+754665,Helsedirektoratet sykling,Cycling,"Oslo, Oslo, Norway",2024-02-26 to 2024-03-03,2024-02-26,2024-03-03,2,133260,Øivind Langeland,17,205500.0,30500.0,5.75,2058.0
+754665,Helsedirektoratet sykling,Cycling,"Oslo, Oslo, Norway",2024-02-26 to 2024-03-03,2024-02-26,2024-03-03,3,8849482,Ørjan Stene,1,20000.0,20000.0,2.7777777777777777,0.0
+754665,Helsedirektoratet sykling,Cycling,"Oslo, Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,1,288479,Thomas Rosenlund,10,118600.0,18000.0,6.861111111111111,1069.0
+754665,Helsedirektoratet sykling,Cycling,"Oslo, Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,2,133260,Øivind Langeland,9,106100.0,30400.0,6.194444444444445,1121.0
+754665,Helsedirektoratet sykling,Cycling,"Oslo, Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,3,8849482,Ørjan Stene,2,75900.0,43000.0,8.416666666666666,160.0
+754665,Helsedirektoratet sykling,Cycling,"Oslo, Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,4,132836745,TTR Hdir,1,13000.0,13000.0,2.361111111111111,100.0
