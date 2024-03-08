@@ -2335,8 +2335,8 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 
 # Get data (via web-scraping)
 club_members_df = strava_club_members(
-    strava_user,
-    strava_password,
+    strava_user=os.environ['STRAVA_USER'],
+    strava_password=os.environ['STRAVA_PASSWORD'],
     club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
     club_members_teams=club_members_teams,
     timezone=config['GENERAL']['TIMEZONE'],
