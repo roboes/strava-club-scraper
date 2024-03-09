@@ -36,7 +36,7 @@ class Transformer:
         for dictionary in csv_list:
             week_number = self.get_week_number(dictionary["leaderboard_date_start"])
             athlete_weekly_uid = f'{week_number}-{dictionary["athlete_id"]}'
-            self.datastore.update({athlete_weekly_uid: {"week_number": week_number,
+            self.datastore.update({athlete_weekly_uid: {"week_number": int(week_number),
                                     "athlete_name": dictionary["athlete_name"],
                                     "activities": int(dictionary["activities"]),
                                     "moving_time": int(float(dictionary["moving_time"])), #change to hh:mm

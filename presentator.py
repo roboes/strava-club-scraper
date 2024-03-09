@@ -2,6 +2,7 @@
 """Module to create html page of data from Strava web scraper"""
 
 import json
+from datetime import datetime
 
 # Configuration of global variables
 FILE_PATH = 'results.html'
@@ -9,6 +10,12 @@ FILE_PATH = 'results.html'
 # Load the JSON content from the file
 with open('results.json', 'r') as json_file:
     data = json.load(json_file)
+
+
+def get_current_week_number():
+    """Function to translate weekday to week number"""
+    week_number = datetime.now().strftime('%G-W%V')
+    return week_number.split('-W')[1]
 
 # Create a dictionary to store the accumulated data for each athlete
 athlete_summary = {}
@@ -39,7 +46,7 @@ ukens_resultater_table = "<table border='1'>\
                          <th>Høydemeter</th></tr>"
 
 for key, value in data.items():
-    if value["week_number"] == "10": #Make dynamic
+    if int(value["week_number"]) == int(get_current_week_number()):
         ukens_resultater_table += (
             f"<tr><td>{value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
@@ -57,7 +64,7 @@ forrige_ukes_resultater_table = "<table border='1'>\
                                 <th>Høydemeter</th></tr>"
 
 for key, value in data.items():
-    if value["week_number"] == "09": #Make dynamic
+    if int(value["week_number"]) == int(get_current_week_number())-1:
         forrige_ukes_resultater_table += (
             f"<tr><td>{value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
@@ -95,12 +102,12 @@ html_content = f"""
 </head>
 <body>
     <section id="ukens_resultater">
-        <h2>Ukens resultater</h2>
+        <h2>Ukens resultater (uke {int(get_current_week_number())})</h2>
         {ukens_resultater_table}
     </section>
 
     <section id="forrige_ukes_resultater">
-        <h2>Forrige ukes resultater</h2>
+        <h2>Forrige ukes resultater (uke {int(get_current_week_number())-1})</h2>
         {forrige_ukes_resultater_table}
     </section>
 
