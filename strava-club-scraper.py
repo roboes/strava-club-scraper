@@ -23,6 +23,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime
 
 from dateutil import parser, relativedelta
 from geopy.extra.rate_limiter import RateLimiter
@@ -37,11 +38,6 @@ import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
-
-directory="skrap"
-## If folder doesn't exists, create it ##
-if not os.path.isdir(directory):
-    os.mkdir(directory)
 
 # Settings
 
@@ -58,6 +54,16 @@ config.read(
     encoding='utf-8',
 )
 google_api_key = os.path.join(os.getcwd(), 'settings', 'keys.json')  # Google API
+
+directory="skrap"
+## If folder doesn't exists, create it ##
+if not os.path.isdir(directory):
+    os.mkdir(directory)
+
+directory="skrap\history"
+## If folder doesn't exists, create it ##
+if not os.path.isdir(directory):
+    os.mkdir(directory)
 
 ## Club members teams
 if 'CLUB_MEMBERS_TEAMS' in config['STRAVA']:
@@ -2373,7 +2379,12 @@ club_leaderboard_df = strava_club_leaderboard(
     timezone=config['GENERAL']['TIMEZONE'],
 )
 
+folder_time = datetime.now().strftime("%Y-%m-%d_%I-%M-%S_%p")
+folder_to_save_files = 'skrap/history/' + folder_time + '-club_leaderboard.csv'
+
 club_leaderboard_df.to_csv(path_or_buf='skrap/club_leaderboard.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
+club_leaderboard_df.to_csv(path_or_buf=folder_to_save_files, sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
+
 
 # Update Google Sheets sheet
 #strava_club_to_google_sheets(
