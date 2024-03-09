@@ -31,7 +31,13 @@ for key, value in data.items():
     athlete_summary[athlete_name]['elevation_gain'] += value['elevation_gain']
 
 # Create HTML tables for each section
-ukens_resultater_table = "<table border='1'><tr><th>Navn</th><th>Antall aktiviteter</th><th>Distanse</th><th>Varighet</th><th>Høydemeter</th></tr>"
+ukens_resultater_table = "<table border='1'>\
+                         <tr><th>Navn</th>\
+                         <th>Antall aktiviteter</th>\
+                         <th>Distanse</th>\
+                         <th>Varighet</th>\
+                         <th>Høydemeter</th></tr>"
+
 for key, value in data.items():
     if value["week_number"] == "10": #Make dynamic
         ukens_resultater_table += (
@@ -43,7 +49,13 @@ for key, value in data.items():
         )
 ukens_resultater_table += "</table>"
 
-forrige_ukes_resultater_table = "<table border='1'><tr><th>Navn</th><th>Antall aktiviteter</th><th>Distanse</th><th>Varighet</th><th>Høydemeter</th></tr>"
+forrige_ukes_resultater_table = "<table border='1'>\
+                                <tr><th>Navn</th>\
+                                <th>Antall aktiviteter</th>\
+                                <th>Distanse</th>\
+                                <th>Varighet</th>\
+                                <th>Høydemeter</th></tr>"
+
 for key, value in data.items():
     if value["week_number"] == "09": #Make dynamic
         forrige_ukes_resultater_table += (
@@ -55,7 +67,13 @@ for key, value in data.items():
         )
 forrige_ukes_resultater_table += "</table>"
 
-resultater_hele_perioden_table = "<table border='1'><tr><th>Athlete Name</th><th>Antall aktiviteter</th><th>Distanse</th><th>Varighet</th><th>Høydemeter</th></tr>"
+resultater_hele_perioden_table = "<table border='1'>\
+                                 <tr><th>Navn</th>\
+                                 <th>Antall aktiviteter</th>\
+                                 <th>Distanse</th>\
+                                 <th>Varighet</th>\
+                                 <th>Høydemeter</th></tr>"
+
 for athlete_name, summary_data in athlete_summary.items():
     resultater_hele_perioden_table += (
         f"<tr><td>{athlete_name}</td>"
