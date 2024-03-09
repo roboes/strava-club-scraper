@@ -4,7 +4,7 @@
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 # Name of the workflow
-name: Run Python script on schedule
+name: Skrape til data og resultat til gh-pages
 
 # Get strava user and password into the environment from Github secrets.
 env:
@@ -65,12 +65,24 @@ jobs:
       # - name: Python - Get Python pathway
       #   run: which python
 
-      - name: Run Python script
-        run: python strava-club-scraper.py
+      - name: Run Scraper, behandler og presentator script
+        run: |
+          python strava-club-scraper.py
+          python databehandler.py
+          python presentator.py
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
+          publish_branch: main
+          keep_files: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./output
+          publish_dir: ./skrap
+          destination_dir: ./data/skrap
+
+      - name: Deploy gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
           destination_dir: ./CurrentBuild
