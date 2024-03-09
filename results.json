@@ -1,58 +1,82 @@
 {
-  "09-Thomas Rosenlund": {
+  "09-288479": {
     "week_number": "09",
     "athlete_name": "Thomas Rosenlund",
-    "activities": 12,
+    "activities": 16,
+    "moving_time": "44040.0",
     "distance": 216.2,
-    "distance_longest": 44.5,
     "elevation_gain": 2362
   },
-  "09-\u00d8ivind Langeland": {
+  "09-133260": {
     "week_number": "09",
     "athlete_name": "\u00d8ivind Langeland",
-    "activities": 17,
+    "activities": 20,
+    "moving_time": "40320.0",
     "distance": 205.5,
-    "distance_longest": 30.5,
     "elevation_gain": 2058
   },
-  "09-\u00d8rjan Stene": {
+  "09-15305367": {
+    "week_number": "09",
+    "athlete_name": "Per \u00d8ivind Gaardsrud",
+    "activities": 3,
+    "moving_time": "27780.0",
+    "distance": 56.9,
+    "elevation_gain": 1702
+  },
+  "09-8849482": {
     "week_number": "09",
     "athlete_name": "\u00d8rjan Stene",
-    "activities": 1,
-    "distance": 20.0,
-    "distance_longest": 20.0,
+    "activities": 2,
+    "moving_time": "9600.0",
+    "distance": 27.1,
     "elevation_gain": 0
   },
-  "10-Thomas Rosenlund": {
+  "10-288479": {
     "week_number": "10",
     "athlete_name": "Thomas Rosenlund",
-    "activities": 10,
-    "distance": 118.6,
-    "distance_longest": 18.0,
-    "elevation_gain": 1069
+    "activities": 13,
+    "moving_time": "30240.0",
+    "distance": 157.9,
+    "elevation_gain": 1638
   },
-  "10-\u00d8ivind Langeland": {
-    "week_number": "10",
-    "athlete_name": "\u00d8ivind Langeland",
-    "activities": 9,
-    "distance": 106.1,
-    "distance_longest": 30.4,
-    "elevation_gain": 1121
-  },
-  "10-\u00d8rjan Stene": {
+  "10-8849482": {
     "week_number": "10",
     "athlete_name": "\u00d8rjan Stene",
-    "activities": 2,
-    "distance": 75.9,
-    "distance_longest": 43.0,
-    "elevation_gain": 160
+    "activities": 5,
+    "moving_time": "29280.0",
+    "distance": 139.3,
+    "elevation_gain": 3890
   },
-  "10-TTR Hdir": {
+  "10-133260": {
+    "week_number": "10",
+    "athlete_name": "\u00d8ivind Langeland",
+    "activities": 13,
+    "moving_time": "22440.0",
+    "distance": 130.4,
+    "elevation_gain": 1398
+  },
+  "10-15305367": {
+    "week_number": "10",
+    "athlete_name": "Per \u00d8ivind Gaardsrud",
+    "activities": 1,
+    "moving_time": "16620.0",
+    "distance": 44.6,
+    "elevation_gain": 726
+  },
+  "10-132836745": {
     "week_number": "10",
     "athlete_name": "TTR Hdir",
-    "activities": 1,
-    "distance": 13.0,
-    "distance_longest": 13.0,
+    "activities": 2,
+    "moving_time": "7320.0",
+    "distance": 19.0,
     "elevation_gain": 100
+  },
+  "10-4778110": {
+    "week_number": "10",
+    "athlete_name": "Even Espelid",
+    "activities": 4,
+    "moving_time": "4680.0",
+    "distance": 27.7,
+    "elevation_gain": 427
   }
 }
