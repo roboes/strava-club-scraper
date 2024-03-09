@@ -4,7 +4,7 @@
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 # Name of the workflow
-name: Run Python script on schedule
+name: Skrape til data/currentbuild
 
 # Get strava user and password into the environment from Github secrets.
 env:
