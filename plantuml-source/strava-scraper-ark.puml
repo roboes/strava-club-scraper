@@ -2,23 +2,23 @@
 !include <archimate/Archimate>
 sprite $bProduct jar:archimate/business-product
 
-archimate #Business "Scraper" as bscraper<<business-service>>
-
 Application_Service(strava, "<<external>>\nStrava")
 Application_DataObject(klubbdata, "<<external>>\nHdir club")
+
+archimate #Business "Scraper" as bscraper<<business-service>>
 'Application_Component(action, "action script")
 Application_Component(scraper, "strava-club-scraper.py")
 'action -down-> scraper
 'bscraper -down- action
-rectangle "data branch" {
-  Business_Service(bbehandler, "Databehandler")
-  Application_DataObject(csvres, "club_leaderboard.csv")
-  Application_DataObject(csvdelt, "club_members.csv")
-  Application_Component(behandler, "Databehandler")
-  Application_DataObject(csvuke, "ukeresultat.json")
-  Application_DataObject(csvtot, "totalresultat.json")
-  Application_DataObject(akk, "club_accumulated.json")
-}
+'rectangle "data branch" {
+Business_Service(bbehandler, "Databehandler")
+Application_DataObject(csvres, "club_leaderboard.csv")
+Application_DataObject(csvdelt, "club_members.csv")
+Application_Component(behandler, "Databehandler")
+Application_DataObject(resjson, "result.json")
+'Application_DataObject(csvtot, "totalresultat.json")
+'Application_DataObject(akk, "club_accumulated.json")
+'}
 
 Business_Service(bpresent, "Presentere")
 Application_Component(present, "Presentatør")
@@ -26,12 +26,11 @@ rectangle "gh-pages\nbranch" {
   Application_DataObject(html, "Webside")
 }
 
-note "All kildekoden\nligger i main branch" as kildekode
+'note "All kildekoden\nligger i main branch" as kildekode
 'kildekode -up- scraper
 'kildekode -up- behandler
 'kildekode -up- present
 
-bpresent -down- present
 strava -right[hidden]- bscraper
 strava -down-> klubbdata
 klubbdata -right-> scraper
@@ -43,14 +42,13 @@ scraper -right-> csvdelt
 csvres -down[hidden]- csvdelt
 csvres -right-> behandler
 csvdelt -right-> behandler
-csvuke -down[hidden]- csvtot
-csvtot -down[hidden]- akk
-behandler -up-> csvuke
-behandler -right-> csvtot
-behandler -right-> akk
-csvuke -right-> present
-csvtot -right-> present
-akk -right-> present
+'resjson -down[hidden]- csvtot
+'csvtot -down[hidden]- akk
+behandler -right-> resjson
+resjson -right-> present
+'csvtot -right-> present
+'akk -right-> present
+bpresent -down- present
 present -right-> html
 
 @enduml
