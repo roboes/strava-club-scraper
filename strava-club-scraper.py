@@ -60,7 +60,7 @@ directory="skrap"
 if not os.path.isdir(directory):
     os.mkdir(directory)
 
-directory = r'skrap\history'
+directory = r'skrap/history'
 ## If folder doesn't exists, create it ##
 if not os.path.isdir(directory):
     os.makedirs(directory)
