@@ -6,13 +6,13 @@ import json
 from datetime import datetime
 
 # Configuration of global variables
-CSV_FILE = "testdata.csv"
+CSV_FILE = "testdata-multi.csv"
 RESULTS_FILE = "results.json"
+
 
 class Transformer:
     """Class to transform data and handle files"""
     def __init__(self):
-        #self.backup()
         self.datastore = {}
         self.read_datastore()
         self.process_csv()
@@ -35,14 +35,14 @@ class Transformer:
 
         for dictionary in csv_list:
             week_number = self.get_week_number(dictionary["leaderboard_date_start"])
-            athlete_weekly_uid = f'{week_number}-{dictionary["athlete_name"]}'
+            athlete_weekly_uid = f'{week_number}-{dictionary["athlete_id"]}'
             self.datastore.update({athlete_weekly_uid: {"week_number": week_number,
-                                   "athlete_name": dictionary["athlete_name"],
-                                   "activities": int(dictionary["activities"]),
-                                   "distance": int(float(dictionary["distance"]))/1000,
-                                   "distance_longest": int(float(dictionary["distance_longest"]))/1000,
-                                   "elevation_gain": int(float(dictionary["elevation_gain"]))
-                                   }})
+                                    "athlete_name": dictionary["athlete_name"],
+                                    "activities": int(dictionary["activities"]),
+                                    "moving_time": dictionary["moving_time"], #change to hh:mm
+                                    "distance": int(float(dictionary["distance"]))/1000,
+                                    "elevation_gain": int(float(dictionary["elevation_gain"]))
+                                    }})
 
         self.save_datastore()
 
@@ -51,18 +51,10 @@ class Transformer:
         with open(RESULTS_FILE, 'w', encoding='utf-8') as file:
             json.dump(self.datastore, file, indent=2)
 
-class Enricher:
-    """Class to enrich datastore with aggregation etc"""
-    def __init__(self):
-        pass
-
-    def update_totals(self):
-        """Method to update totals for a given period"""
-
 if __name__ == "__main__":
 
     transformer = Transformer()
-    #tranfsformations = Transformations() Maybe handle in script to create html file
 
-#Add basic error handling with output file
-#Make backup of file,todays date
+
+#Add basic logging and error handling with output file
+
