@@ -9,8 +9,8 @@ from datetime import datetime
 CSV_FILE = "testdata.csv"
 RESULTS_FILE = "results.json"
 
-class Filehandler:
-    """Class to process data and handle files"""
+class Transformer:
+    """Class to transform data and handle files"""
     def __init__(self):
         #self.backup()
         self.datastore = {}
@@ -51,7 +51,7 @@ class Filehandler:
         with open(RESULTS_FILE, 'w', encoding='utf-8') as file:
             json.dump(self.datastore, file, indent=2)
 
-class Transformations:
+class Enricher:
     """Class to enrich datastore with aggregation etc"""
     def __init__(self):
         pass
@@ -61,7 +61,7 @@ class Transformations:
 
 if __name__ == "__main__":
 
-    filehandler = Filehandler()
+    transformer = Transformer()
     #tranfsformations = Transformations() Maybe handle in script to create html file
 
 #Add basic error handling with output file
