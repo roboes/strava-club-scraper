@@ -18,7 +18,7 @@ def get_current_week_number():
     return week_number.split('-W')[1]
 
 def format_duration(duration_minutes):
-    hours = int(duration_minutes/60)
+    hours = int((duration_minutes/60)/60)
     return hours
 
 def format_distance(distance):
