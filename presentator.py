@@ -17,6 +17,13 @@ def get_current_week_number():
     week_number = datetime.now().strftime('%G-W%V')
     return week_number.split('-W')[1]
 
+
+def format_duration(duration_minutes):
+    hours = int(duration_minutes/60)
+    return hours
+
+
+
 # Create a dictionary to store the accumulated data for each athlete
 athlete_summary = {}
 
@@ -41,8 +48,8 @@ for key, value in data.items():
 ukens_resultater_table = "<table border='1'>\
                          <tr><th>Navn</th>\
                          <th>Antall aktiviteter</th>\
-                         <th>Distanse</th>\
-                         <th>Varighet</th>\
+                         <th>Distanse (km)</th>\
+                         <th>Varighet (timer)</th>\
                          <th>Høydemeter</th></tr>"
 
 for key, value in data.items():
@@ -51,7 +58,7 @@ for key, value in data.items():
             f"<tr><td>{value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
             f"<td>{value['distance']}</td>"
-            f"<td>{value['moving_time']}</td>"
+            f"<td>{format_duration(value['moving_time'])}</td>"
             f"<td>{value['elevation_gain']}</td></tr>"
         )
 ukens_resultater_table += "</table>"
@@ -59,8 +66,8 @@ ukens_resultater_table += "</table>"
 forrige_ukes_resultater_table = "<table border='1'>\
                                 <tr><th>Navn</th>\
                                 <th>Antall aktiviteter</th>\
-                                <th>Distanse</th>\
-                                <th>Varighet</th>\
+                                <th>Distanse (km)</th>\
+                                <th>Varighet (timer)</th>\
                                 <th>Høydemeter</th></tr>"
 
 for key, value in data.items():
@@ -69,7 +76,7 @@ for key, value in data.items():
             f"<tr><td>{value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
             f"<td>{value['distance']}</td>"
-            f"<td>{value['moving_time']}</td>"
+            f"<td>{format_duration(value['moving_time'])}</td>"
             f"<td>{value['elevation_gain']}</td></tr>"
         )
 forrige_ukes_resultater_table += "</table>"
@@ -77,8 +84,8 @@ forrige_ukes_resultater_table += "</table>"
 resultater_hele_perioden_table = "<table border='1'>\
                                  <tr><th>Navn</th>\
                                  <th>Antall aktiviteter</th>\
-                                 <th>Distanse</th>\
-                                 <th>Varighet</th>\
+                                 <th>Distanse (km)</th>\
+                                 <th>Varighet (timer)</th>\
                                  <th>Høydemeter</th></tr>"
 
 for athlete_name, summary_data in athlete_summary.items():
@@ -86,7 +93,7 @@ for athlete_name, summary_data in athlete_summary.items():
         f"<tr><td>{athlete_name}</td>"
         f"<td>{summary_data['activities']}</td>"
         f"<td>{summary_data['distance']}</td>"
-        f"<td>{summary_data['moving_time']}</td>"
+        f"<td>{format_duration(summary_data['moving_time'])}</td>"
         f"<td>{summary_data['elevation_gain']}</td></tr>"
     )
 resultater_hele_perioden_table += "</table>"
