@@ -17,11 +17,13 @@ def get_current_week_number():
     week_number = datetime.now().strftime('%G-W%V')
     return week_number.split('-W')[1]
 
-
 def format_duration(duration_minutes):
     hours = int(duration_minutes/60)
     return hours
 
+def format_distance(distance):
+    km = float(distance/1000)
+    return km
 
 
 # Create a dictionary to store the accumulated data for each athlete
@@ -58,7 +60,7 @@ for key, value in data.items():
             f"<tr><td>{value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
             f"<td>{format_duration(value['moving_time'])}</td>"
-            f"<td>{value['distance']}</td>"
+            f"<td>{format_distance(value['distance'])}</td>"
             f"<td>{value['elevation_gain']}</td></tr>"
         )
 ukens_resultater_table += "</table>"
@@ -76,7 +78,7 @@ for key, value in data.items():
             f"<tr><td>{value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
             f"<td>{format_duration(value['moving_time'])}</td>"
-            f"<td>{value['distance']}</td>"
+            f"<td>{format_distance(value['distance'])}</td>"
             f"<td>{value['elevation_gain']}</td></tr>"
         )
 forrige_ukes_resultater_table += "</table>"
@@ -93,7 +95,7 @@ for athlete_name, summary_data in athlete_summary.items():
         f"<tr><td>{athlete_name}</td>"
         f"<td>{summary_data['activities']}</td>"
         f"<td>{format_duration(summary_data['moving_time'])}</td>"
-        f"<td>{summary_data['distance']}</td>"
+        f"<td>{format_distance(summary_data['distance'])}</td>"
         f"<td>{summary_data['elevation_gain']}</td></tr>"
     )
 resultater_hele_perioden_table += "</table>"
