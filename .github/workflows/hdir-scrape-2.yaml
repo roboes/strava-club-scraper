@@ -65,8 +65,11 @@ jobs:
       # - name: Python - Get Python pathway
       #   run: which python
 
-      - name: Run Python script
-        run: python strava-club-scraper.py
+      - name: Run Scraper, behandler og presentator script
+        run: |
+          python strava-club-scraper.py
+          python databehandler.py
+          python presentator.py
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -81,5 +84,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./skrap
+          publish_dir: ./web
           destination_dir: ./CurrentBuild
