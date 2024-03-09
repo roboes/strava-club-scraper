@@ -2,6 +2,7 @@
 """Module to create html page of data from Strava web scraper"""
 
 import json
+import os
 from datetime import datetime
 
 # Configuration of global variables
