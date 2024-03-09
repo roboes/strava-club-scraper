@@ -3,7 +3,7 @@
     "week_number": "09",
     "athlete_name": "Thomas Rosenlund",
     "activities": 16,
-    "moving_time": "44040.0",
+    "moving_time": 44040,
     "distance": 216.2,
     "elevation_gain": 2362
   },
@@ -11,7 +11,7 @@
     "week_number": "09",
     "athlete_name": "\u00d8ivind Langeland",
     "activities": 20,
-    "moving_time": "40320.0",
+    "moving_time": 40320,
     "distance": 205.5,
     "elevation_gain": 2058
   },
@@ -19,7 +19,7 @@
     "week_number": "09",
     "athlete_name": "Per \u00d8ivind Gaardsrud",
     "activities": 3,
-    "moving_time": "27780.0",
+    "moving_time": 27780,
     "distance": 56.9,
     "elevation_gain": 1702
   },
@@ -27,7 +27,7 @@
     "week_number": "09",
     "athlete_name": "\u00d8rjan Stene",
     "activities": 2,
-    "moving_time": "9600.0",
+    "moving_time": 9600,
     "distance": 27.1,
     "elevation_gain": 0
   },
@@ -35,7 +35,7 @@
     "week_number": "10",
     "athlete_name": "Thomas Rosenlund",
     "activities": 13,
-    "moving_time": "30240.0",
+    "moving_time": 30240,
     "distance": 157.9,
     "elevation_gain": 1638
   },
@@ -43,7 +43,7 @@
     "week_number": "10",
     "athlete_name": "\u00d8rjan Stene",
     "activities": 5,
-    "moving_time": "29280.0",
+    "moving_time": 29280,
     "distance": 139.3,
     "elevation_gain": 3890
   },
@@ -51,7 +51,7 @@
     "week_number": "10",
     "athlete_name": "\u00d8ivind Langeland",
     "activities": 13,
-    "moving_time": "22440.0",
+    "moving_time": 22440,
     "distance": 130.4,
     "elevation_gain": 1398
   },
@@ -59,7 +59,7 @@
     "week_number": "10",
     "athlete_name": "Per \u00d8ivind Gaardsrud",
     "activities": 1,
-    "moving_time": "16620.0",
+    "moving_time": 16620,
     "distance": 44.6,
     "elevation_gain": 726
   },
@@ -67,7 +67,7 @@
     "week_number": "10",
     "athlete_name": "TTR Hdir",
     "activities": 2,
-    "moving_time": "7320.0",
+    "moving_time": 7320,
     "distance": 19.0,
     "elevation_gain": 100
   },
@@ -75,7 +75,7 @@
     "week_number": "10",
     "athlete_name": "Even Espelid",
     "activities": 4,
-    "moving_time": "4680.0",
+    "moving_time": 4680,
     "distance": 27.7,
     "elevation_gain": 427
   }

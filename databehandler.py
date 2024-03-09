@@ -39,7 +39,7 @@ class Transformer:
             self.datastore.update({athlete_weekly_uid: {"week_number": week_number,
                                     "athlete_name": dictionary["athlete_name"],
                                     "activities": int(dictionary["activities"]),
-                                    "moving_time": dictionary["moving_time"], #change to hh:mm
+                                    "moving_time": int(float(dictionary["moving_time"])), #change to hh:mm
                                     "distance": int(float(dictionary["distance"]))/1000,
                                     "elevation_gain": int(float(dictionary["elevation_gain"]))
                                     }})
