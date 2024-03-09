@@ -72,7 +72,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           publish_branch: main
-          keep_files: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./skrap
           destination_dir: ./data/skrap
