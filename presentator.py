@@ -5,10 +5,10 @@ import json
 from datetime import datetime
 
 # Configuration of global variables
-FILE_PATH = 'results.html'
+FILE_PATH = 'web/results.html'
 
 # Load the JSON content from the file
-with open('results.json', 'r') as json_file:
+with open('data/result/results.json', 'r') as json_file:
     data = json.load(json_file)
 
 

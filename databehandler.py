@@ -6,8 +6,8 @@ import json
 from datetime import datetime
 
 # Configuration of global variables
-CSV_FILE = "testdata-multi.csv"
-RESULTS_FILE = "results.json"
+CSV_FILE = "data/skrap/club_leaderboard.csv"
+RESULTS_FILE = "data/result/results.json"
 
 
 class Transformer:
