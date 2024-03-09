@@ -1,0 +1,58 @@
+{
+  "09-Thomas Rosenlund": {
+    "week_number": "09",
+    "athlete_name": "Thomas Rosenlund",
+    "activities": 12,
+    "distance": 216.2,
+    "distance_longest": 44.5,
+    "elevation_gain": 2362
+  },
+  "09-\u00d8ivind Langeland": {
+    "week_number": "09",
+    "athlete_name": "\u00d8ivind Langeland",
+    "activities": 17,
+    "distance": 205.5,
+    "distance_longest": 30.5,
+    "elevation_gain": 2058
+  },
+  "09-\u00d8rjan Stene": {
+    "week_number": "09",
+    "athlete_name": "\u00d8rjan Stene",
+    "activities": 1,
+    "distance": 20.0,
+    "distance_longest": 20.0,
+    "elevation_gain": 0
+  },
+  "10-Thomas Rosenlund": {
+    "week_number": "10",
+    "athlete_name": "Thomas Rosenlund",
+    "activities": 10,
+    "distance": 118.6,
+    "distance_longest": 18.0,
+    "elevation_gain": 1069
+  },
+  "10-\u00d8ivind Langeland": {
+    "week_number": "10",
+    "athlete_name": "\u00d8ivind Langeland",
+    "activities": 9,
+    "distance": 106.1,
+    "distance_longest": 30.4,
+    "elevation_gain": 1121
+  },
+  "10-\u00d8rjan Stene": {
+    "week_number": "10",
+    "athlete_name": "\u00d8rjan Stene",
+    "activities": 2,
+    "distance": 75.9,
+    "distance_longest": 43.0,
+    "elevation_gain": 160
+  },
+  "10-TTR Hdir": {
+    "week_number": "10",
+    "athlete_name": "TTR Hdir",
+    "activities": 1,
+    "distance": 13.0,
+    "distance_longest": 13.0,
+    "elevation_gain": 100
+  }
+}
