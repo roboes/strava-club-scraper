@@ -13,6 +13,7 @@ if not os.path.isdir(directory):
     os.mkdir(directory)
 
 # Load the JSON content from the file
+
 with open('data/result/results.json', 'r') as json_file:
     data = json.load(json_file)
 
@@ -115,6 +116,9 @@ html_content = f"""
     <title>My HTML Page</title>
 </head>
 <body>
+    <section id="Aggregrerte data">
+        Placeholder aggregerte data: Siste ukes vinner, totalt tid, distanse, høydemeter, co2?
+    </section>
     <section id="ukens_resultater">
         <h2>Ukens resultater (uke {int(get_current_week_number())})</h2>
         {ukens_resultater_table}
