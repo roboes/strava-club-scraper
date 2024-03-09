@@ -2,13 +2,19 @@
 """Module to create html page of data from Strava web scraper"""
 
 import json
+import os
 from datetime import datetime
 
 # Configuration of global variables
-FILE_PATH = 'results.html'
+FILE_PATH = 'web/results.html'
+
+directory = 'web'
+if not os.path.isdir(directory):
+    os.mkdir(directory)
 
 # Load the JSON content from the file
-with open('results.json', 'r') as json_file: #Move to variable
+
+with open('data/result/results.json', 'r') as json_file:
     data = json.load(json_file)
 
 
