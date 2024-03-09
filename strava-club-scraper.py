@@ -2379,7 +2379,10 @@ club_leaderboard_df = strava_club_leaderboard(
     timezone=config['GENERAL']['TIMEZONE'],
 )
 
-folder_time = datetime.now()
+now = datetime.now()
+folder_time = "{}-{}-{}_{}-{}".format(now.year, now.month, now.day, now.hour, now.minute)
+
+#folder_time = datetime.now()
 #folder_time = datetime.now().strftime("%Y-%m-%d_%I-%M-%S_%p")
 folder_to_save_files = r'skrap/history/' + folder_time + '-club_leaderboard.csv'
 
