@@ -40,7 +40,7 @@ class Transformer:
                                     "moving_time": int(float(dictionary["moving_time"])),
                                     "distance": int(float(dictionary["distance"])),
                                     "elevation_gain": int(float(dictionary["elevation_gain"])),
-                                    "tickets": self.calculate_tickets(int(float(dictionary["moving_time"])))
+                                    "tickets": int(self.calculate_tickets(int(float(dictionary["moving_time"]))))
                                     }})
 
     def calculate_tickets(self, moving_time_seconds):
