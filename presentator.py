@@ -5,22 +5,21 @@ import json
 import os
 from datetime import datetime
 
-# Configuration of global variables
+# File handling
 FILE_PATH = 'web/results.html'  # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
-# FILE_PATH = 'results.html' # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
+#FILE_PATH = 'results.html' # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
 
 directory = 'web'
 if not os.path.isdir(directory):
     os.mkdir(directory)
 
 # Load the JSON content from the file
-
 with open('data/result/results.json', 'r') as json_file:
     data = json.load(json_file)
 
 
 def get_current_week_number():
-    """Function to translate weekday to week number"""
+    """Function to get current week number"""
     week_number = datetime.now().strftime('%G-W%V')
     return week_number.split('-W')[1]
 
@@ -35,7 +34,41 @@ def format_distance(distance):
     return km
 
 
-def get_ranking():
+def create_athlete_summary():
+    athlete_summary = {}
+
+    # Create a dictionary to store the accumulated data for each athlete
+    # Accumulate data for each athlete across all weeks
+    #use .values() instead, dont need key
+    for key, value in data.items():
+        athlete_name = value["athlete_name"]
+
+        if athlete_name not in athlete_summary:
+            athlete_summary[athlete_name] = {
+                'activities': 0,
+                'distance': 0,
+                'moving_time': 0,
+                'elevation_gain': 0
+            }
+
+        athlete_summary[athlete_name]['activities'] += value['activities']
+        athlete_summary[athlete_name]['distance'] += value['distance']
+        athlete_summary[athlete_name]['moving_time'] += value['moving_time']
+        athlete_summary[athlete_name]['elevation_gain'] += value['elevation_gain']
+    
+    return athlete_summary
+
+def create_aggregated_summary(): # aggregate activities missing
+    aggregated_summary = [0,0,0]
+
+    for records in data.values():
+        aggregated_summary[0] += format_duration(records["moving_time"])
+        aggregated_summary[1] += format_distance(records["distance"])
+        aggregated_summary[2] += records["elevation_gain"]
+        
+    return aggregated_summary
+
+def get_changed_ranking():
     ranking_current_week = []
     ranking_previous_week = []
     rankings = {}
@@ -64,28 +97,22 @@ def get_ranking():
 
     return rankings
 
-rankings = get_ranking()
-# Create a dictionary to store the accumulated data for each athlete
-athlete_summary = {}
 
-# Accumulate data for each athlete across all weeks
-for key, value in data.items():
-    athlete_name = value["athlete_name"]
+athlete_summary = create_athlete_summary()
+aggregated_summary = create_aggregated_summary()
+rankings = get_changed_ranking()
 
-    if athlete_name not in athlete_summary:
-        athlete_summary[athlete_name] = {
-            'activities': 0,
-            'distance': 0,
-            'moving_time': 0,
-            'elevation_gain': 0
-        }
 
-    athlete_summary[athlete_name]['activities'] += value['activities']
-    athlete_summary[athlete_name]['distance'] += value['distance']
-    athlete_summary[athlete_name]['moving_time'] += value['moving_time']
-    athlete_summary[athlete_name]['elevation_gain'] += value['elevation_gain']
 
 # Create HTML tables for each section - note, this way of doing this creates whitespace in html
+aggregerte_resultater_table = f"<table class='table-aggregated'>\
+<tr><td>⏳ {aggregated_summary[0]} timer</td>\
+<td>📏 {round(aggregated_summary[1], 1)} km</td>\
+<td>🧗 {aggregated_summary[2]} høydemeter</td></tr>\
+</table>"
+
+aggregerte_resultater_table += "</table>"
+
 ukens_resultater_table = "<table class='table'>\
                          <tr><th>Navn</th>\
                          <th>Antall aktiviteter</th>\
@@ -147,17 +174,19 @@ html_content = f"""
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="static/styles.css">
-    <title>Tittel</title>
+    <title>Vår 2024</title>
 </head>
 <body>
     <div class="page-wrapper">
         <div class="header" id="header">
-            <h1 class=>Tittel</h1>
+            <h1 class=>Vår 2024</h1>
         </div>
-        <div class="tile" id="Aggregrerte data">
-            <h2>Placeholder aggregerte data</h2>
-            Siste ukes vinner, totalt tid, distanse, høydemeter, co2?
+        
+        <div class="tile-aggregated" id="aggregerte_data">
+            <h2>Aggregerte data</h2>
+            {aggregerte_resultater_table}
         </div>
+
         <div class="tile" id="ukens_resultater">
             <h2>Ukens resultater (uke {int(get_current_week_number())})</h2>
             {ukens_resultater_table}
@@ -172,6 +201,7 @@ html_content = f"""
             <h2>Resultater hele perioden</h2>
             {resultater_hele_perioden_table}
         </div>
+    
     </div>
 </body>
 </html>
