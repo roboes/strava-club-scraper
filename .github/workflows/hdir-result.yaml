@@ -14,10 +14,11 @@ env:
 on:
   workflow_dispatch:
 
-  #schedule:
-  #  - cron: "00 10 * * *"
-  #  - cron: "00 17 * * *"
-  #  - cron: "30 21 * * *"
+  # Runs every day at 10, 17 and 23
+  schedule:
+    - cron: "00 10 * * *"
+    - cron: "50 17 * * *"
+    - cron: "00 23 * * *"
   #  - cron: "30 20 * * MON,THU"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
