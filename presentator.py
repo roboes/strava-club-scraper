@@ -44,6 +44,17 @@ def format_distance(distance):
     return km
 
 
+def get_tickets(int_tickets):
+    if int_tickets == 2:
+        visual_tickets = "🎫🎫"
+    elif int_tickets == 1:
+        visual_tickets = "🎫"
+    else:
+        visual_tickets = ""
+    return visual_tickets 
+
+
+
 def create_athlete_summary():
     athlete_summary = {}
 
@@ -135,7 +146,7 @@ for key, value in data.items():
         ukens_resultater_table += (
             f"<tr><td>{rankings[value['athlete_name']]} {value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
-            f"<td>{format_duration(value['moving_time'])}</td>"
+            f"<td>{format_duration(value['moving_time'])} {get_tickets(value['tickets'])}</td>"
             f"<td>{format_distance(value['distance'])}</td>"
             f"<td>{value['elevation_gain']}</td></tr>"
         )
@@ -153,7 +164,7 @@ for key, value in data.items():
         forrige_ukes_resultater_table += (
             f"<tr><td>{value['athlete_name']}</td>"
             f"<td>{value['activities']}</td>"
-            f"<td>{format_duration(value['moving_time'])}</td>"
+            f"<td>{format_duration(value['moving_time'])} {get_tickets(value['tickets'])}</td>"
             f"<td>{format_distance(value['distance'])}</td>"
             f"<td>{value['elevation_gain']}</td></tr>"
         )
@@ -182,7 +193,7 @@ html_content = f"""
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1024">
     <link rel="stylesheet" href="static/styles.css">
     <title>Vår 2024</title>
 </head>
