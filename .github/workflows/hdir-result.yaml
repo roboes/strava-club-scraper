@@ -15,6 +15,7 @@ on:
   # Runs every day at 10, 17 and 23
   schedule:
     - cron: '10 10,18,23 * * *'
+    - cron: '05 10,18,23 * * *'
     #  - cron: "30 20 * * MON,THU"
 
   workflow_dispatch:
