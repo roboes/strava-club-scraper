@@ -14,8 +14,8 @@ env:
 on:
   # Runs every day at 10, 17 and 23
   schedule:
-    - cron: "00 10 * * *"
-    - cron: "00 18 * * *"
+    - cron: "00 09 * * *"
+    - cron: "00 17 * * *"
     - cron: "00 23 * * *"
   #  - cron: "30 20 * * MON,THU"
 
