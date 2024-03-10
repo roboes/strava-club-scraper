@@ -12,14 +12,14 @@ env:
   STRAVA_PASSWORD: ${{ secrets.STRAVA_PASSWORD }}
 # Controls on when the workflow will run
 on:
-  workflow_dispatch:
-
   # Runs every day at 10, 17 and 23
   schedule:
     - cron: "00 10 * * *"
-    - cron: "50 17 * * *"
+    - cron: "00 18 * * *"
     - cron: "00 23 * * *"
   #  - cron: "30 20 * * MON,THU"
+
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
