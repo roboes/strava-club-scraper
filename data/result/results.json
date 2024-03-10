@@ -34,34 +34,34 @@
   "10-288479": {
     "week_number": 10,
     "athlete_name": "Thomas Rosenlund",
-    "activities": 13,
-    "moving_time": 30240,
-    "distance": 157900,
-    "elevation_gain": 1638
+    "activities": 16,
+    "moving_time": 40140,
+    "distance": 202900,
+    "elevation_gain": 2295
   },
   "10-8849482": {
     "week_number": 10,
     "athlete_name": "\u00d8rjan Stene",
-    "activities": 5,
-    "moving_time": 29280,
-    "distance": 139300,
-    "elevation_gain": 3890
+    "activities": 6,
+    "moving_time": 32280,
+    "distance": 144300,
+    "elevation_gain": 4266
   },
   "10-133260": {
     "week_number": 10,
     "athlete_name": "\u00d8ivind Langeland",
-    "activities": 13,
-    "moving_time": 22440,
-    "distance": 130400,
-    "elevation_gain": 1398
+    "activities": 17,
+    "moving_time": 35160,
+    "distance": 199400,
+    "elevation_gain": 2135
   },
   "10-15305367": {
     "week_number": 10,
     "athlete_name": "Per \u00d8ivind Gaardsrud",
-    "activities": 1,
-    "moving_time": 16620,
-    "distance": 44600,
-    "elevation_gain": 726
+    "activities": 3,
+    "moving_time": 33120,
+    "distance": 84300,
+    "elevation_gain": 1645
   },
   "10-132836745": {
     "week_number": 10,
@@ -74,9 +74,33 @@
   "10-4778110": {
     "week_number": 10,
     "athlete_name": "Even Espelid",
+    "activities": 5,
+    "moving_time": 9960,
+    "distance": 65700,
+    "elevation_gain": 921
+  },
+  "09-3450542": {
+    "week_number": 9,
+    "athlete_name": "Per Ludvig Skjerven",
     "activities": 4,
-    "moving_time": 4680,
-    "distance": 27700,
-    "elevation_gain": 427
+    "moving_time": 20640,
+    "distance": 20400,
+    "elevation_gain": 659
+  },
+  "10-3450542": {
+    "week_number": 10,
+    "athlete_name": "Per Ludvig Skjerven",
+    "activities": 5,
+    "moving_time": 21060,
+    "distance": 33000,
+    "elevation_gain": 821
+  },
+  "10-2407379": {
+    "week_number": 10,
+    "athlete_name": "Ingvar S\u00f8rlien",
+    "activities": 3,
+    "moving_time": 11580,
+    "distance": 46100,
+    "elevation_gain": 786
   }
 }
