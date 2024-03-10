@@ -41,6 +41,9 @@ body {
     padding-bottom: 10px;
     margin-bottom: 30px;
     box-sizing: border-box;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
 }
 
 .tile h2 {
@@ -53,9 +56,34 @@ body {
     color:rgb(45, 49, 53);
 }
 
+.tile-aggregated{
+    position: relative;
+    background-color: #edf0ef;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+    box-sizing: border-box;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.tile-aggregated h2 {
+    text-align: center;
+    font-family: 'Arial Black', sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color:rgb(45, 49, 53);
+    margin-bottom: 20px;
+}
+
 /* Styles for all tables */
 .table {
-    border-top: 1px solid #000;
+    border-top: 3px solid #000;
+    border-color: rgb(144, 148, 148);
     border-spacing: 50px 5px;
     padding-top: 10px;
     font-size: 1.2em;
@@ -66,6 +94,18 @@ body {
 .table td {
     padding-bottom: 5px;
     padding-right: 40px;
-    text-align: left;
     font-size: 1.0em;
+}
+
+.table-aggregated {
+    border-spacing: 50px 0px;
+    padding-top: 0px;
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.table-aggregated td{
+    padding-right: 30px;
+    padding-left: 30px;
+    font-size: 2.0em;
 }
