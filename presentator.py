@@ -3,15 +3,25 @@
 
 import json
 import os
+import shutil
 from datetime import datetime
 
 # File handling
 FILE_PATH = 'web/results.html'  # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
 #FILE_PATH = 'results.html' # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
 
+# Make directory for web output
 directory = 'web'
 if not os.path.isdir(directory):
     os.mkdir(directory)
+
+directory = r'web/static'
+## If folder doesn't exists, create it ##
+if not os.path.isdir(directory):
+    os.makedirs(directory)
+
+# Copy static css to web directory
+shutil.copyfile('./static/styles.css', './web/static/styles.css')
 
 # Load the JSON content from the file
 with open('data/result/results.json', 'r') as json_file:
