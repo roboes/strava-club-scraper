@@ -5,7 +5,8 @@
     "activities": 16,
     "moving_time": 44040,
     "distance": 216200,
-    "elevation_gain": 2362
+    "elevation_gain": 2362,
+    "tickets": 2
   },
   "09-133260": {
     "week_number": 9,
@@ -13,7 +14,8 @@
     "activities": 20,
     "moving_time": 40320,
     "distance": 205500,
-    "elevation_gain": 2058
+    "elevation_gain": 2058,
+    "tickets": 2
   },
   "09-15305367": {
     "week_number": 9,
@@ -21,7 +23,8 @@
     "activities": 3,
     "moving_time": 27780,
     "distance": 56900,
-    "elevation_gain": 1702
+    "elevation_gain": 1702,
+    "tickets": 2
   },
   "09-8849482": {
     "week_number": 9,
@@ -29,7 +32,8 @@
     "activities": 2,
     "moving_time": 9600,
     "distance": 27100,
-    "elevation_gain": 0
+    "elevation_gain": 0,
+    "tickets": 1
   },
   "10-288479": {
     "week_number": 10,
@@ -37,7 +41,8 @@
     "activities": 16,
     "moving_time": 40140,
     "distance": 202900,
-    "elevation_gain": 2295
+    "elevation_gain": 2295,
+    "tickets": 2
   },
   "10-8849482": {
     "week_number": 10,
@@ -45,7 +50,8 @@
     "activities": 6,
     "moving_time": 32280,
     "distance": 144300,
-    "elevation_gain": 4266
+    "elevation_gain": 4266,
+    "tickets": 2
   },
   "10-133260": {
     "week_number": 10,
@@ -53,7 +59,8 @@
     "activities": 17,
     "moving_time": 35160,
     "distance": 199400,
-    "elevation_gain": 2135
+    "elevation_gain": 2135,
+    "tickets": 2
   },
   "10-15305367": {
     "week_number": 10,
@@ -61,7 +68,8 @@
     "activities": 3,
     "moving_time": 33120,
     "distance": 84300,
-    "elevation_gain": 1645
+    "elevation_gain": 1645,
+    "tickets": 2
   },
   "10-132836745": {
     "week_number": 10,
@@ -69,7 +77,8 @@
     "activities": 2,
     "moving_time": 7320,
     "distance": 19000,
-    "elevation_gain": 100
+    "elevation_gain": 100,
+    "tickets": 0
   },
   "10-4778110": {
     "week_number": 10,
@@ -77,7 +86,8 @@
     "activities": 5,
     "moving_time": 9960,
     "distance": 65700,
-    "elevation_gain": 921
+    "elevation_gain": 921,
+    "tickets": 1
   },
   "09-3450542": {
     "week_number": 9,
@@ -85,7 +95,8 @@
     "activities": 4,
     "moving_time": 20640,
     "distance": 20400,
-    "elevation_gain": 659
+    "elevation_gain": 659,
+    "tickets": 2
   },
   "10-3450542": {
     "week_number": 10,
@@ -93,7 +104,8 @@
     "activities": 5,
     "moving_time": 21060,
     "distance": 33000,
-    "elevation_gain": 821
+    "elevation_gain": 821,
+    "tickets": 2
   },
   "10-2407379": {
     "week_number": 10,
@@ -101,6 +113,7 @@
     "activities": 3,
     "moving_time": 11580,
     "distance": 46100,
-    "elevation_gain": 786
+    "elevation_gain": 786,
+    "tickets": 1
   }
 }

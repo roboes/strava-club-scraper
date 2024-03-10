@@ -14,8 +14,6 @@ class Transformer:
     """Class to transform data and handle files"""
     def __init__(self):
         self.datastore = {}
-        self.read_datastore()
-        self.process_csv()
 
     def get_week_number(self, date_str):
         """Method to translate weekday to week number"""
@@ -41,10 +39,19 @@ class Transformer:
                                     "activities": int(dictionary["activities"]),
                                     "moving_time": int(float(dictionary["moving_time"])),
                                     "distance": int(float(dictionary["distance"])),
-                                    "elevation_gain": int(float(dictionary["elevation_gain"]))
+                                    "elevation_gain": int(float(dictionary["elevation_gain"])),
+                                    "tickets": self.calculate_tickets(int(float(dictionary["moving_time"])))
                                     }})
 
-        self.save_datastore()
+    def calculate_tickets(self, moving_time_seconds):
+        """Method to translate activity minutes into tickets"""
+        if moving_time_seconds/60 in range(150, 299):
+            tickets = 1
+        elif moving_time_seconds/60 >= 300:
+            tickets = 2
+        else:
+            tickets = 0
+        return tickets
 
     def save_datastore(self):
         """Method to write json data to file"""
@@ -54,7 +61,6 @@ class Transformer:
 if __name__ == "__main__":
 
     transformer = Transformer()
-
-
-#Add basic logging and error handling with output file
-
+    transformer.read_datastore()
+    transformer.process_csv()
+    transformer.save_datastore()
