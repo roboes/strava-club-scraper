@@ -39,7 +39,7 @@
     "week_number": 10,
     "athlete_name": "Thomas Rosenlund",
     "activities": 16,
-    "moving_time": 40140,
+    "moving_time": 0,
     "distance": 202900,
     "elevation_gain": 2295,
     "tickets": 2
@@ -48,7 +48,7 @@
     "week_number": 10,
     "athlete_name": "\u00d8rjan Stene",
     "activities": 6,
-    "moving_time": 32280,
+    "moving_time": 0,
     "distance": 144300,
     "elevation_gain": 4266,
     "tickets": 2
@@ -57,7 +57,7 @@
     "week_number": 10,
     "athlete_name": "\u00d8ivind Langeland",
     "activities": 18,
-    "moving_time": 37860,
+    "moving_time": 0,
     "distance": 199400,
     "elevation_gain": 2135,
     "tickets": 2
@@ -66,7 +66,7 @@
     "week_number": 10,
     "athlete_name": "Per \u00d8ivind Gaardsrud",
     "activities": 3,
-    "moving_time": 33120,
+    "moving_time": 0,
     "distance": 84300,
     "elevation_gain": 1645,
     "tickets": 2
@@ -75,7 +75,7 @@
     "week_number": 10,
     "athlete_name": "TTR Hdir",
     "activities": 2,
-    "moving_time": 7320,
+    "moving_time": 0,
     "distance": 19000,
     "elevation_gain": 100,
     "tickets": 0
@@ -84,7 +84,7 @@
     "week_number": 10,
     "athlete_name": "Even Espelid",
     "activities": 5,
-    "moving_time": 9960,
+    "moving_time": 0,
     "distance": 65700,
     "elevation_gain": 921,
     "tickets": 1
@@ -102,7 +102,7 @@
     "week_number": 10,
     "athlete_name": "Per Ludvig Skjerven",
     "activities": 5,
-    "moving_time": 21060,
+    "moving_time": 0,
     "distance": 33000,
     "elevation_gain": 821,
     "tickets": 2
@@ -111,7 +111,7 @@
     "week_number": 10,
     "athlete_name": "Ingvar S\u00f8rlien",
     "activities": 3,
-    "moving_time": 11580,
+    "moving_time": 0,
     "distance": 46100,
     "elevation_gain": 786,
     "tickets": 1
@@ -120,7 +120,7 @@
     "week_number": 10,
     "athlete_name": "Ragnhild Holst",
     "activities": 2,
-    "moving_time": 2160,
+    "moving_time": 0,
     "distance": 4800,
     "elevation_gain": 37,
     "tickets": 0
@@ -129,7 +129,7 @@
     "week_number": 11,
     "athlete_name": "Thomas Rosenlund",
     "activities": 2,
-    "moving_time": 4200,
+    "moving_time": 0,
     "distance": 30600,
     "elevation_gain": 280,
     "tickets": 0
@@ -138,7 +138,7 @@
     "week_number": 11,
     "athlete_name": "\u00d8ivind Langeland",
     "activities": 2,
-    "moving_time": 1800,
+    "moving_time": 0,
     "distance": 10800,
     "elevation_gain": 98,
     "tickets": 0
@@ -147,7 +147,7 @@
     "week_number": 10,
     "athlete_name": "Jonas Bergan",
     "activities": 4,
-    "moving_time": 15480,
+    "moving_time": 0,
     "distance": 50300,
     "elevation_gain": 221,
     "tickets": 1
@@ -156,7 +156,7 @@
     "week_number": 10,
     "athlete_name": "Jeppe Ugland",
     "activities": 4,
-    "moving_time": 11520,
+    "moving_time": 0,
     "distance": 27900,
     "elevation_gain": 331,
     "tickets": 1
@@ -165,7 +165,7 @@
     "week_number": 11,
     "athlete_name": "Jeppe Ugland",
     "activities": 1,
-    "moving_time": 3600,
+    "moving_time": 0,
     "distance": 12000,
     "elevation_gain": 157,
     "tickets": 0
