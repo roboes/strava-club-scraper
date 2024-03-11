@@ -115,5 +115,32 @@
     "distance": 46100,
     "elevation_gain": 786,
     "tickets": 1
+  },
+  "10-6207106": {
+    "week_number": 10,
+    "athlete_name": "Ragnhild Holst",
+    "activities": 2,
+    "moving_time": 2160,
+    "distance": 4800,
+    "elevation_gain": 37,
+    "tickets": 0
+  },
+  "11-288479": {
+    "week_number": 11,
+    "athlete_name": "Thomas Rosenlund",
+    "activities": 1,
+    "moving_time": 1920,
+    "distance": 14700,
+    "elevation_gain": 108,
+    "tickets": 0
+  },
+  "11-133260": {
+    "week_number": 11,
+    "athlete_name": "\u00d8ivind Langeland",
+    "activities": 1,
+    "moving_time": 660,
+    "distance": 5400,
+    "elevation_gain": 12,
+    "tickets": 0
   }
 }
