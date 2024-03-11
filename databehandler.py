@@ -50,7 +50,7 @@ class Transformer:
 
         for dictionary in csv_list:
 
-            if "moving_time" in csv_list:
+            if "moving_time" in dictionary:
                 moving_time = int(float(dictionary["moving_time"]))
             else:
                 moving_time = int(0)
@@ -67,9 +67,7 @@ class Transformer:
                         "moving_time": moving_time,
                         "distance": int(float(dictionary["distance"])),
                         "elevation_gain": int(float(dictionary["elevation_gain"])),
-                        "tickets": int(
-                            self.calculate_tickets(
-                                int(float(dictionary["moving_time"]))))
+                        "tickets": int(self.calculate_tickets(moving_time))
                     }})
 
             except (KeyError, ValueError) as error:
