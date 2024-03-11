@@ -63,7 +63,6 @@ def get_tickets(int_tickets):
     return visual_tickets 
 
 
-
 def create_athlete_summary():
     athlete_summary = {}
 
@@ -141,8 +140,6 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 <td>🧗 {aggregated_summary[2]} høydemeter</td></tr>\
 </table>"
 
-aggregerte_resultater_table += "</table>"
-
 ukens_resultater_table = "<table class='table'>\
                          <tr><th>Navn</th>\
                          <th>Antall aktiviteter</th>\
@@ -209,7 +206,15 @@ html_content = f"""
 <body>
     <div class="page-wrapper">
         <div class="header" id="header">
-            <h1 class=>Vår 2024</h1>
+            <h1>Vår 2024</h1>
+        </div>
+        
+        <div class="tile-info" id="info">
+            <h2>Informasjon om kampanjen</h2>
+            <p>
+                Placeholder for tekst</br>
+                Lenke til klubben på Strava
+            </p>
         </div>
         
         <div class="tile-aggregated" id="aggregerte_data">
