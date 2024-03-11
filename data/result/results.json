@@ -128,10 +128,10 @@
   "11-288479": {
     "week_number": 11,
     "athlete_name": "Thomas Rosenlund",
-    "activities": 2,
-    "moving_time": 4200,
-    "distance": 30600,
-    "elevation_gain": 280,
+    "activities": 4,
+    "moving_time": 8580,
+    "distance": 33400,
+    "elevation_gain": 308,
     "tickets": 0
   },
   "11-133260": {
@@ -168,6 +168,24 @@
     "moving_time": 3600,
     "distance": 12000,
     "elevation_gain": 157,
+    "tickets": 0
+  },
+  "11-8849482": {
+    "week_number": 11,
+    "athlete_name": "\u00d8rjan Stene",
+    "activities": 3,
+    "moving_time": 10860,
+    "distance": 73600,
+    "elevation_gain": 281,
+    "tickets": 1
+  },
+  "11-2407379": {
+    "week_number": 11,
+    "athlete_name": "Ingvar S\u00f8rlien",
+    "activities": 1,
+    "moving_time": 2400,
+    "distance": 7200,
+    "elevation_gain": 94,
     "tickets": 0
   }
 }
