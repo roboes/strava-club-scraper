@@ -25,7 +25,10 @@ shutil.copyfile('./static/styles.css', './web/static/styles.css')
 
 # Load the JSON content from the file
 with open('data/result/results.json', 'r') as json_file:
-    data = json.load(json_file)
+    unsorted_data = json.load(json_file)
+    data = dict(
+        sorted(
+            unsorted_data.items(), key=lambda item: item[1]["distance"], reverse=True))
 
 
 def get_current_week_number():
