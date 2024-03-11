@@ -142,5 +142,14 @@
     "distance": 5400,
     "elevation_gain": 12,
     "tickets": 0
+  },
+  "10-4040211": {
+    "week_number": 10,
+    "athlete_name": "Jonas Bergan",
+    "activities": 4,
+    "moving_time": 15480,
+    "distance": 50300,
+    "elevation_gain": 221,
+    "tickets": 1
   }
 }
