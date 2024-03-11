@@ -2,6 +2,8 @@
 .page-wrapper {
     display: flex;
     flex-direction: column;
+    padding-left: 10px;
+    padding-right: 20px;
 }
 
 /* Style for the html body */
