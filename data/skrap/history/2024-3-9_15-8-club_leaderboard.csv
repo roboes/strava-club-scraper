@@ -1,0 +1,12 @@
+club_id,club_name,club_activity_type,club_location,leaderboard_week,leaderboard_date_start,leaderboard_date_end,rank,athlete_id,athlete_name,activities,moving_time,distance,elevation_gain
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-02-26 to 2024-03-03,2024-02-26,2024-03-03,1,288479,Thomas Rosenlund,16,44040.0,216200.0,2362.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-02-26 to 2024-03-03,2024-02-26,2024-03-03,2,133260,Øivind Langeland,20,40320.0,205500.0,2058.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-02-26 to 2024-03-03,2024-02-26,2024-03-03,3,15305367,Per Øivind Gaardsrud,3,27780.0,56900.0,1702.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-02-26 to 2024-03-03,2024-02-26,2024-03-03,4,8849482,Ørjan Stene,2,9600.0,27100.0,0.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,1,288479,Thomas Rosenlund,14,34440.0,189300.0,2075.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,2,8849482,Ørjan Stene,6,32280.0,144300.0,4266.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,3,15305367,Per Øivind Gaardsrud,2,24000.0,62800.0,1107.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,4,133260,Øivind Langeland,13,22440.0,130400.0,1398.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,5,4778110,Even Espelid,5,9960.0,65700.0,921.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,6,132836745,TTR Hdir,2,7320.0,19000.0,100.0
+754665,Helsedirektoratet,Multisport,"Oslo, Norway",2024-03-04 to 2024-03-10,2024-03-04,2024-03-10,7,2407379,Ingvar Sørlien,2,5880.0,21900.0,368.0

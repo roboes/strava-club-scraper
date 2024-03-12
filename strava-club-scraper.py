@@ -2384,9 +2384,9 @@ folder_time = "{}-{}-{}_{}-{}".format(now.year, now.month, now.day, now.hour, no
 
 #folder_time = datetime.now()
 #folder_time = datetime.now().strftime("%Y-%m-%d_%I-%M-%S_%p")
-folder_to_save_files = r'skrap/history/' + folder_time + '-club_leaderboard.csv'
+folder_to_save_files = r'data/skrap/history/' + folder_time + '-club_leaderboard.csv'
 
-club_leaderboard_df.to_csv(path_or_buf='skrap/club_leaderboard.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
+club_leaderboard_df.to_csv(path_or_buf='data/skrap/club_leaderboard.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
 club_leaderboard_df.to_csv(path_or_buf=folder_to_save_files, sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
 
 

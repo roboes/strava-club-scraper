@@ -4,7 +4,7 @@
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 # Name of the workflow
-name: Run Python script on schedule
+name: Skrape til data og resultat til gh-pages
 
 # Get strava user and password into the environment from Github secrets.
 env:
@@ -12,13 +12,13 @@ env:
   STRAVA_PASSWORD: ${{ secrets.STRAVA_PASSWORD }}
 # Controls on when the workflow will run
 on:
-  workflow_dispatch:
+  # Runs every day at 10, 17 and 23
+  schedule:
+    - cron: '0 10,17,23 * * *'
+    #- cron: '7 10,18,23 * * *'
+    #  - cron: "30 20 * * MON,THU"
 
-  #schedule:
-  #  - cron: "00 10 * * *"
-  #  - cron: "00 17 * * *"
-  #  - cron: "30 21 * * *"
-  #  - cron: "30 20 * * MON,THU"
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -65,12 +65,24 @@ jobs:
       # - name: Python - Get Python pathway
       #   run: which python
 
-      - name: Run Python script
-        run: python strava-club-scraper.py
+      - name: Run Scraper, behandler og presentator script
+        run: |
+          python strava-club-scraper.py
+          python databehandler.py
+          python presentator.py
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
+          publish_branch: main
+          keep_files: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./output
+          publish_dir: ./data
+          destination_dir: ./data
+
+      - name: Deploy gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
           destination_dir: ./CurrentBuild

@@ -1,6 +1,6 @@
 # Helsedirektoratet Strava scraper
 
-Script og actions for å hente resultater fra Helsedirektoratet sin stravaklubb og publisere dette som resultatlister i forbindelse med sykle til jobben aksjonen.
+Script og actions for å hente resultater fra Helsedirektoratet sin [stravaklubb](https://www.strava.com/clubs/754665) og publisere dette som resultatlister i forbindelse med sykle til jobben aksjonen. Resultatene oppdateres tre ganger i døgnet (klokken 10.00, 17.00 og 23.00) og ligger på [websiden](https://hdir.github.io/strava-club/CurrentBuild/results.html).  
 
 ## Arkitektur
 
