@@ -32,6 +32,41 @@ body {
 }
 
 /* Styles for all tiles */
+.infopage {
+    position: relative;
+    background-color: #edf0ef;
+    padding-left: 50px;
+    padding-right: 50px;
+    padding-bottom: 0px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    align-items: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.infopage h2 {
+    text-align: center;
+    font-family: 'Arial Black', sans-serif;
+    font-size: 25px;
+    font-weight: normal;
+    text-transform: normal;
+    letter-spacing: 1px;
+    color:rgb(112, 123, 134);
+    margin-bottom: 10px;
+}
+
+.infopage p {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-size: 14px;
+    color: rgb(44, 44, 49);
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-weight: normal;
+    font-style: italic;
+}
+
 .tile-info {
     position: relative;
     background-color: #edf0ef;
