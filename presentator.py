@@ -183,7 +183,7 @@ forrige_ukes_resultater_table += "</table>"
 resultater_hele_perioden_table = "<table class='table'>\
                                  <tr><th>Navn</th>\
                                  <th>Antall aktiviteter</th>\
-                                 <th>Varighet</th>\
+                                 <th>Varighet (t:m)</th>\
                                  <th>Distanse (km)</th>\
                                  <th>Høydemeter</th></tr>"
 
