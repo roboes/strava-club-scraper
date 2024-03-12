@@ -19,8 +19,8 @@ directory = r'web/static'
 if not os.path.isdir(directory):
     os.makedirs(directory)
 
-# Copy static css to web directory
-shutil.copyfile('./static/styles.css', './web/static/styles.css')
+# Copy static css to web directory - not needed, original is in web/static
+#shutil.copyfile('./static/styles.css', './web/static/styles.css')
 
 # Load the JSON content from the file
 with open('data/result/results.json', 'r') as json_file:
@@ -144,11 +144,11 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 </table>"
 
 ukens_resultater_table = "<table class='table'>\
-                         <tr><th>Navn</th>\
-                         <th>Antall aktiviteter</th>\
-                         <th>Varighet (t:m)</th>\
-                         <th>Distanse (km)</th>\
-                         <th>Høydemeter</th></tr>"
+<tr><th>Navn</th>\
+<th>Antall aktiviteter</th>\
+<th>Varighet (t:m)</th>\
+<th>Distanse (km)</th>\
+<th>Høydemeter</th></tr>"
 
 for key, value in data.items():
     if int(value["week_number"]) == int(get_current_week_number()):
@@ -162,11 +162,11 @@ for key, value in data.items():
 ukens_resultater_table += "</table>"
 
 forrige_ukes_resultater_table = "<table class='table'>\
-                                <tr><th>Navn</th>\
-                                <th>Antall aktiviteter</th>\
-                                <th>Varighet (t:m)</th>\
-                                <th>Distanse (km)</th>\
-                                <th>Høydemeter</th></tr>"
+<tr><th>Navn</th>\
+<th>Antall aktiviteter</th>\
+<th>Varighet (t:m)</th>\
+<th>Distanse (km)</th>\
+<th>Høydemeter</th></tr>"
 
 for key, value in data.items():
     if int(value["week_number"]) == int(get_current_week_number())-1:
@@ -180,11 +180,11 @@ for key, value in data.items():
 forrige_ukes_resultater_table += "</table>"
 
 resultater_hele_perioden_table = "<table class='table'>\
-                                 <tr><th>Navn</th>\
-                                 <th>Antall aktiviteter</th>\
-                                 <th>Varighet (t:m)</th>\
-                                 <th>Distanse (km)</th>\
-                                 <th>Høydemeter</th></tr>"
+<tr><th>Navn</th>\
+<th>Antall aktiviteter</th>\
+<th>Varighet (t:m)</th>\
+<th>Distanse (km)</th>\
+<th>Høydemeter</th></tr>"
 
 for athlete_name, summary_data in athlete_summary.items():
     resultater_hele_perioden_table += (
@@ -215,7 +215,7 @@ html_content = f"""
         <div class="tile-info" id="info">
             <p>
                 Les mer om <a href="https://hdir.github.io/strava-club/CurrentBuild/info.html">aktivitetskampanjen</a> og 
-                bli medlem i <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>.
+                bli medlem i <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>
             </p>
         </div>
         
