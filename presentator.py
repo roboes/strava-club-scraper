@@ -37,13 +37,17 @@ def get_current_week_number():
     return week_number.split('-W')[1]
 
 
-def format_duration(duration_minutes):
+def format_duration(duration_seconds):
     try:
-        hours = int((duration_minutes/60)/60)
-    
-    except (ZeroDivisionError) as error:
-            hours = 0
-            print(f'An error occured formating time: {error}')
+        seconds = int(max(0, seconds))
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+
+        hours = f"{hours:02d}:{minutes:02d}"
+
+    except ZeroDivisionError as error:
+        hours = 0   
+        print(f'An error occured formating time: {error}')
     
     return hours
 
