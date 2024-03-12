@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2024-01-24
+# Last update: 2024-03-12
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -49,7 +49,31 @@ config.read(
     filenames=os.path.join(os.getcwd(), 'settings', 'config.ini'),
     encoding='utf-8',
 )
-google_api_key = os.path.join(os.getcwd(), 'settings', 'keys.json')  # Google API
+# config.read_file(
+#     f=StringIO(
+#         """
+#         [GENERAL]
+#         DATE_MIN = 2023-06-05
+#         DATE_MAX = 2023-07-30
+#         # ACTIVITIES_TYPE = Ride, E-Bike Ride, Mountain Bike Ride, E-Mountain Bike Ride, Indoor Cycling, Virtual Ride, Race, Run, Trail Run, Treadmill workout, Walk, Hike
+#         TIMEZONE = CET
+#
+#         [STRAVA]
+#         LOGIN = test@email.com
+#         PASSWORD = Password12345
+#         CLUB_IDS = 445017, 789955, 1045852
+#         # CLUB_MEMBERS_TEAMS = Team A: 1234, 5678; Team B: 12345
+#
+#         [GOOGLE_DOCS]
+#         SHEET_ID = 12345
+#         """,
+#     ),
+# )
+
+## Google API
+google_api_key = os.path.join(os.getcwd(), 'settings', 'keys.json')
+if os.path.exists(path=google_api_key) is False:
+    google_api_key = None
 
 ## Club members teams
 if 'CLUB_MEMBERS_TEAMS' in config['STRAVA']:
@@ -138,7 +162,7 @@ def selenium_webdriver():
     return driver
 
 
-def strava_login(*, strava_login, strava_password):
+def strava_authentication(*, strava_login, strava_password):
     # Load Selenium WebDriver
     if 'driver' in vars():
         if driver.service.is_connectable() is True:
@@ -197,7 +221,10 @@ def strava_club_activities(
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_authentication(
+        strava_login=strava_login,
+        strava_password=strava_password,
+    )
 
     data = []
 
@@ -951,7 +978,10 @@ def strava_export_activities(
 ):
     """Given a list of activity_id, export it to .gpx."""
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_authentication(
+        strava_login=strava_login,
+        strava_password=strava_password,
+    )
 
     # Export activity as .gpx
     if file_type == '.gpx':
@@ -971,7 +1001,7 @@ def strava_export_activities(
             # latest_file_new_filename = os.path.join(os.getcwd(), 'activities', '{}_{}.gpx').format(row['activity_type'], row['activity_id'])
             # os.rename(src=latest_file, dst=latest_file_new_filename)
 
-    # Export activity as .tcx (requires Sauce for Strava extension for Google Chrome, which can be manually downloaded after invoking strava_login() function - https://chrome.google.com/webstore/detail/sauce-for-strava/eigiefcapdcdmncdghkeahgfmnobigha)
+    # Export activity as .tcx (requires Sauce for Strava extension for Google Chrome, which can be manually downloaded after invoking strava_authentication() function - https://chrome.google.com/webstore/detail/sauce-for-strava/eigiefcapdcdmncdghkeahgfmnobigha)
     if file_type == '.tcx':
         for activity_id in activities_id:
             driver.get(url=('https://www.strava.com/activities/' + str(activity_id)))
@@ -1001,7 +1031,10 @@ def strava_club_members(
     geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_authentication(
+        strava_login=strava_login,
+        strava_password=strava_password,
+    )
 
     data = []
 
@@ -1277,7 +1310,10 @@ def strava_club_leaderboard(
     filter_date_max = parser.parse(filter_date_max)
 
     # Strava login
-    driver = strava_login(strava_login, strava_password)
+    driver = strava_authentication(
+        strava_login=strava_login,
+        strava_password=strava_password,
+    )
 
     club_leaderboard_df = pd.DataFrame(data=None, index=None, dtype='str')
 
@@ -2292,12 +2328,13 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
 # )
 
 # Update Google Sheets sheet
-# strava_club_to_google_sheets(
-#     df=club_activities_df,
-#     club_members_df=club_members_df,
-#     sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
-#     sheet_name='Activities',
-# )
+# if google_api_key is not None:
+#     strava_club_to_google_sheets(
+#         df=club_activities_df,
+#         club_members_df=club_members_df,
+#         sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
+#         sheet_name='Activities',
+#     )
 
 # Save as .csv
 # club_activities_df.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
@@ -2342,12 +2379,13 @@ club_members_df = strava_club_members(
 )
 
 # Update Google Sheets sheet
-club_members_df = strava_club_to_google_sheets(
-    df=club_members_df,
-    club_members_df=club_members_df,
-    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
-    sheet_name='Members',
-)
+if google_api_key is not None:
+    club_members_df = strava_club_to_google_sheets(
+        df=club_members_df,
+        club_members_df=club_members_df,
+        sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
+        sheet_name='Members',
+    )
 
 
 ## Club leaderboard
@@ -2363,22 +2401,24 @@ club_leaderboard_df = strava_club_leaderboard(
 )
 
 # Update Google Sheets sheet
-strava_club_to_google_sheets(
-    df=club_leaderboard_df,
-    club_members_df=club_members_df,
-    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
-    sheet_name='Leaderboard',
-)
+if google_api_key is not None:
+    strava_club_to_google_sheets(
+        df=club_leaderboard_df,
+        club_members_df=club_members_df,
+        sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
+        sheet_name='Leaderboard',
+    )
 
 
 ## Store execution time in Google Sheets
 
 # Update Google Sheets sheet
-execution_time_to_google_sheets(
-    sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
-    sheet_name='Execution Time',
-    timezone=config['GENERAL']['TIMEZONE'],
-)
+if google_api_key is not None:
+    execution_time_to_google_sheets(
+        sheet_id=config['GOOGLE_DOCS']['SHEET_ID'],
+        sheet_name='Execution Time',
+        timezone=config['GENERAL']['TIMEZONE'],
+    )
 
 
 # Quit WebDriver
