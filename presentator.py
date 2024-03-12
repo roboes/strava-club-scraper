@@ -210,17 +210,13 @@ html_content = f"""
 <body>
     <div class="page-wrapper">
         <div class="header" id="header">
-            <h1>Vår 2024</h1>
+            <h1>Vår 2024 - Resultatside</h1>
         </div>
         
-        <div class="tile-info" id="info">
+        <div class="tile-aggregated" id="info">
             <h2>Informasjon om kampanjen</h2>
             <p>
-                Hva denne siden er </br>
-                Reglene for aksjonen </br>
-                Hva symbolene betyr </br>
-                </br>
-                <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>
+                Les mer om Vår 2024 her og bli medlem i <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>.
             </p>
         </div>
         
