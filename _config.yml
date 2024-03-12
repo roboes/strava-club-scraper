@@ -12,6 +12,15 @@ exclude:
 - Gemfile
 - Gemfile.lock
 - examples/
+- plantuml-source/
+- settings/
+- static/
+- web/
+- data/
+- databehandler.py
+- presentator.py
+- readme.old
+- strava-club-scraper.py
 #- images/
 #- docs/dgi/
 - README.md
