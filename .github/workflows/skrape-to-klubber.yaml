@@ -1,0 +1,90 @@
+## GitHub Actions Workflow
+# Last update: 2024-01-25
+
+# Save this file to '.github/workflows/github-actions-workflow.yaml'
+
+# Name of the workflow
+name: TEST Skrape to klubber output til test branch
+
+# Get strava user and password into the environment from Github secrets.
+env:
+  STRAVA_USER: ${{ secrets.STRAVA_USER }}
+  STRAVA_PASSWORD: ${{ secrets.STRAVA_PASSWORD }}
+# Controls on when the workflow will run
+on:
+  workflow_dispatch:
+  # Runs every day at 10, 17 and 23
+  # schedule:
+  #  - cron: '0 10,17,23 * * *'
+    #- cron: '7 10,18,23 * * *'
+    #  - cron: "30 20 * * MON,THU"
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # Job name
+  build:
+    # Type of machine to run the job on
+    runs-on: ubuntu-latest
+
+    # Sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout repository content - https://github.com/actions/checkout
+        uses: actions/checkout@v4
+        with:
+         ref: 'test'
+
+      - name: Install Google Chrome - https://github.com/browser-actions/setup-chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache action - pip cache - https://github.com/actions/cache
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Setup Python - https://github.com/actions/setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x" #  Latest stable major version of Python
+          cache: "pip" # Caching pip dependencies
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      # - name: Python - Get Python pathway
+      #   run: which python
+
+      - name: Run Scraper, behandler og presentator script
+        run: |
+          python strava-club-scraper.py
+          python databehandler.py
+          python presentator.py
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_branch: test
+          keep_files: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./data
+          destination_dir: ./data
+
+      - name: Deploy gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
+          destination_dir: ./TestBuild
