@@ -32,7 +32,7 @@ class Transformer:
             else:
                 tickets = 0
 
-        except (ZeroDivisionError) as error:
+        except ZeroDivisionError as error:
             tickets = 0
             print(f'An error occured calculating tickets: {error}')
 
