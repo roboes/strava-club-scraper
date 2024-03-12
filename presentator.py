@@ -39,7 +39,7 @@ def get_current_week_number():
 
 def format_duration(duration_seconds):
     try:
-        seconds = int(max(0, seconds))
+        seconds = int(max(0, duration_seconds))
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
 
@@ -95,7 +95,7 @@ def create_aggregated_summary(): # aggregate activities missing
     aggregated_summary = [0,0,0]
 
     for records in data.values():
-        aggregated_summary[0] += format_duration(records["moving_time"])
+        aggregated_summary[0] += records["moving_time"]
         aggregated_summary[1] += format_distance(records["distance"])
         aggregated_summary[2] += records["elevation_gain"]
         
@@ -139,7 +139,7 @@ rankings = get_changed_ranking()
 
 # Create HTML tables for each section - note, this way of doing this creates whitespace in html
 aggregerte_resultater_table = f"<table class='table-aggregated'>\
-<tr><td>⏳ {aggregated_summary[0]} timer</td>\
+<tr><td>⏳ {format_duration(aggregated_summary[0])} (t:m)</td>\
 <td>📏 {round(aggregated_summary[1], 1)} km</td>\
 <td>🧗 {aggregated_summary[2]} høydemeter</td></tr>\
 </table>"
@@ -147,7 +147,7 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 ukens_resultater_table = "<table class='table'>\
                          <tr><th>Navn</th>\
                          <th>Antall aktiviteter</th>\
-                         <th>Varighet og lodd</th>\
+                         <th>Varighet (t:m)</th>\
                          <th>Distanse (km)</th>\
                          <th>Høydemeter</th></tr>"
 
@@ -165,7 +165,7 @@ ukens_resultater_table += "</table>"
 forrige_ukes_resultater_table = "<table class='table'>\
                                 <tr><th>Navn</th>\
                                 <th>Antall aktiviteter</th>\
-                                <th>Varighet og lodd</th>\
+                                <th>Varighet (t:m)</th>\
                                 <th>Distanse (km)</th>\
                                 <th>Høydemeter</th></tr>"
 
