@@ -4,7 +4,7 @@
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 # Name of the workflow
-name: TEST Skrape to klubber output til test branch
+name: TEST output til test branch
 
 # Get strava user and password into the environment from Github secrets.
 env:
