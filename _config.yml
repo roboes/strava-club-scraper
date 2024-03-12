@@ -23,7 +23,7 @@ exclude:
 - strava-club-scraper.py
 #- images/
 #- docs/dgi/
-- README.md
+- readme.md
 #- docs/horingsvar/
 #- docs/FHIR-faglig-forum/_agenda/ical
 #- docs/FHIR-faglig-forum/_referat/fremmote/
