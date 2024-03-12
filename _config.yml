@@ -1,0 +1,48 @@
+title: Resultater Hdir akvitetsaksjon
+description: Resultater Hdir akvitetsaksjon
+#logo: assets/images/logo.png
+#baseurl: "/best-practice-material/" # the subpath of your site, e.g. /blog
+#url: "https://thomiz.github.io/best-practice-material/" # the base hostname & protocol for your site, e.g. http://example.com
+remote_theme: just-the-docs/just-the-docs
+future: true
+
+#exclude: README.md
+exclude:
+- vendor/bundle/ruby
+- Gemfile
+- Gemfile.lock
+- examples/
+#- images/
+#- docs/dgi/
+- README.md
+#- docs/horingsvar/
+#- docs/FHIR-faglig-forum/_agenda/ical
+#- docs/FHIR-faglig-forum/_referat/fremmote/
+#- docs/FHIR-faglig-forum/planlegging/
+#- docs/FHIR-faglig-forum/presentasjon/
+#- docs/FHIR-faglig-forum/mal-agenda.md
+
+#mermaid:
+  # Version of mermaid library
+  # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
+#  version: "9.1.6"
+
+#collections_dir: /docs/FHIR-faglig-forum/
+#collections:
+#  agenda:
+    #permalink: /best-practice-material/:collection/:path
+#    output: true
+#  referat:
+#    output: true
+
+#just_the_docs:
+#  collections:
+#    agenda:
+#      name: "Agenda FHIR fagforum"
+#      nav_fold: true 
+#    referat:
+#      name: "Referat FHIR fagforum"
+#      nav_fold: true 
+
+plugins:
+  - jekyll-seo-tag

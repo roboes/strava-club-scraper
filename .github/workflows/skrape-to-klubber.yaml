@@ -4,8 +4,7 @@
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 # Name of the workflow
-name: TEST output til test branch
-
+name: Teste just the docs
 # Get strava user and password into the environment from Github secrets.
 env:
   STRAVA_USER: ${{ secrets.STRAVA_USER }}
@@ -13,12 +12,6 @@ env:
 # Controls on when the workflow will run
 on:
   workflow_dispatch:
-  # Runs every day at 10, 17 and 23
-  # schedule:
-  #  - cron: '0 10,17,23 * * *'
-    #- cron: '7 10,18,23 * * *'
-    #  - cron: "30 20 * * MON,THU"
-
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -33,58 +26,26 @@ jobs:
         uses: actions/checkout@v4
         with:
          ref: 'test'
-
-      - name: Install Google Chrome - https://github.com/browser-actions/setup-chrome
-        uses: browser-actions/setup-chrome@v1
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          chrome-version: stable
-
-      - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache action - pip cache - https://github.com/actions/cache
-        uses: actions/cache@v4
-        id: cache
+          ruby-version: '3.1' # Not needed with a .ruby-version file
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 0 # Increment this number if you need to re-download cached gems
+      
+          - name: Setup Pages
+        uses: actions/configure-pages@v2
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
         with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Setup Python - https://github.com/actions/setup-python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x" #  Latest stable major version of Python
-          cache: "pip" # Caching pip dependencies
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-
-      # - name: Python - Get Python pathway
-      #   run: which python
-
-      - name: Run Scraper, behandler og presentator script
-        run: |
-          python strava-club-scraper.py
-          python databehandler.py
-          python presentator.py
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          publish_branch: test
-          keep_files: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./data
-          destination_dir: ./data
+          source: ./
+          destination: ./_site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
 
       - name: Deploy gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./web
-          destination_dir: ./TestBuild
+          publish_dir: ./_site
+          destination_dir: ./TestBuildJTD
