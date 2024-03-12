@@ -37,10 +37,11 @@ body {
     background-color: #edf0ef;
     padding-left: 50px;
     padding-right: 50px;
-    padding-bottom: 10px;
-    margin-bottom: 30px;
+    padding-bottom: 0px;
+    margin-top: 20px;
+    margin-bottom: 20px;
     box-sizing: border-box;
-    align-items: left;
+    align-items: center;
     display: flex;
     flex-direction: column;
 }
@@ -58,9 +59,11 @@ body {
 
 .tile-info p {
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-    font-size: 22px;
+    font-size: 18px;
     color: rgb(44, 44, 49);
     margin-top: 0px;
+    margin-bottom: 0px;
+    font-weight: bold;
 }
 
 .tile-aggregated{

@@ -7,8 +7,7 @@ import shutil
 from datetime import datetime
 
 # File handling
-FILE_PATH = 'web/results.html'  # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
-#FILE_PATH = 'results.html' # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
+FILE_PATH = 'web/results.html'
 
 # Make directory for web output
 directory = 'web'
@@ -213,10 +212,10 @@ html_content = f"""
             <h1>Vår 2024 - Resultatside</h1>
         </div>
         
-        <div class="tile-aggregated" id="info">
-            <h2>Informasjon om kampanjen</h2>
+        <div class="tile-info" id="info">
             <p>
-                Les mer om <a href="https://hdir.github.io/strava-club/CurrentBuild/info.html">aktivitetskampanjen</a> og bli medlem i <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>.
+                Les mer om <a href="https://hdir.github.io/strava-club/CurrentBuild/info.html">aktivitetskampanjen</a> og 
+                bli medlem i <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>.
             </p>
         </div>
         
