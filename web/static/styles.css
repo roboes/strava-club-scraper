@@ -51,16 +51,18 @@ body {
     text-align: center;
     font-family: 'Arial Black', sans-serif;
     font-size: 25px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color:rgb(45, 49, 53);
+    font-weight: normal;
+    text-transform: normal;
+    letter-spacing: 1px;
+    color:rgb(112, 123, 134);
+    margin-bottom: 10px;
 }
 
 .tile-info p {
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     font-size: 22px;
     color: rgb(44, 44, 49);
+    margin-top: 0px;
 }
 
 .tile-aggregated{

@@ -143,7 +143,7 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 ukens_resultater_table = "<table class='table'>\
                          <tr><th>Navn</th>\
                          <th>Antall aktiviteter</th>\
-                         <th>Varighet (timer)</th>\
+                         <th>Varighet og lodd</th>\
                          <th>Distanse (km)</th>\
                          <th>Høydemeter</th></tr>"
 
@@ -161,7 +161,7 @@ ukens_resultater_table += "</table>"
 forrige_ukes_resultater_table = "<table class='table'>\
                                 <tr><th>Navn</th>\
                                 <th>Antall aktiviteter</th>\
-                                <th>Varighet (timer)</th>\
+                                <th>Varighet og lodd</th>\
                                 <th>Distanse (km)</th>\
                                 <th>Høydemeter</th></tr>"
 
@@ -179,7 +179,7 @@ forrige_ukes_resultater_table += "</table>"
 resultater_hele_perioden_table = "<table class='table'>\
                                  <tr><th>Navn</th>\
                                  <th>Antall aktiviteter</th>\
-                                 <th>Varighet (timer)</th>\
+                                 <th>Varighet</th>\
                                  <th>Distanse (km)</th>\
                                  <th>Høydemeter</th></tr>"
 
@@ -212,8 +212,11 @@ html_content = f"""
         <div class="tile-info" id="info">
             <h2>Informasjon om kampanjen</h2>
             <p>
-                Placeholder for tekst</br>
-                Lenke til klubben på Strava
+                Hva denne siden er </br>
+                Reglene for aksjonen </br>
+                Hva symbolene betyr </br>
+                </br>
+                <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>
             </p>
         </div>
         

@@ -34,9 +34,7 @@ body {
 /* Styles for all tiles */
 .tile-info {
     position: relative;
-    border: 2px solid #ece9e9; /* Adjust border properties */
-    box-shadow: 3px 3px 5px rgba(0.3, 0.3 , 0.3, 0.3);
-    background-color: #c4ebde;
+    background-color: #edf0ef;
     padding-left: 50px;
     padding-right: 50px;
     padding-bottom: 10px;
@@ -51,16 +49,18 @@ body {
     text-align: center;
     font-family: 'Arial Black', sans-serif;
     font-size: 25px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color:rgb(45, 49, 53);
+    font-weight: normal;
+    text-transform: normal;
+    letter-spacing: 1px;
+    color:rgb(112, 123, 134);
+    margin-bottom: 10px;
 }
 
 .tile-info p {
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     font-size: 22px;
     color: rgb(44, 44, 49);
+    margin-top: 0px;
 }
 
 .tile-aggregated{
