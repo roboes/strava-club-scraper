@@ -92,11 +92,16 @@ def create_athlete_summary():
 
 def create_aggregated_summary(): # aggregate activities missing
     aggregated_summary = [0,0,0]
+    #activity_counter = 0
 
-    for records in data.values():
+    for records in data.values(): #skriv om til dict
         aggregated_summary[0] += records["moving_time"]
         aggregated_summary[1] += format_distance(records["distance"])
         aggregated_summary[2] += records["elevation_gain"]
+        #aggregated_summary[3] += activity_counter+1
+    
+    #aggregated_summary[4] += athlete_counter+1
+    #aggregated_summary[5] += athlete_counter+1
         
     return aggregated_summary
 
@@ -141,9 +146,9 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 <tr><td>⏳ {format_duration(aggregated_summary[0])} (t:m)</td>\
 <td>📏 {round(aggregated_summary[1], 1)} km</td>\
 <td>🧗 {aggregated_summary[2]} høydemeter</td></tr>\
-<tr><td>👥 0 utøvere</td>
-<tr><td>🏁 0 aktiviteter</td>
-<tr><td>🌱 0 kg CO2 spart</td></tr>
+<tr><td>👥 0 kolleger</td>\
+<tr><td>🏁 0 aktiviteter</td>\
+<tr><td>🌱 0 kg CO2 spart</td></tr>\
 </table>"
 
 ukens_resultater_table = "<table class='table'>\
