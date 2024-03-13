@@ -7,12 +7,12 @@ import shutil
 from datetime import datetime
 
 # File handling
-FILE_PATH = 'web/results.html'
+FILE_PATH = 'index.md'
 
 # Make directory for web output
-directory = 'web'
-if not os.path.isdir(directory):
-    os.mkdir(directory)
+#directory = 'web'
+#if not os.path.isdir(directory):
+#    os.mkdir(directory)
 
 #directory = r'web/static'
 ### If folder doesn't exists, create it ##
