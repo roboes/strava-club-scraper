@@ -8,6 +8,7 @@ from datetime import datetime
 
 # File handling
 FILE_PATH = 'index.md'
+FILE_PATH_DATA = 'data/index.md'
 
 # Make directory for web output
 #directory = 'web'
@@ -210,6 +211,7 @@ layout: default
 title: Resultater
 nav_order: 1
 ---
+
     <div class="page-wrapper">
         <div class="header" id="header">
             <h1>Vår 2024 - Resultatside</h1>
@@ -243,6 +245,9 @@ nav_order: 1
 
 # Write the HTML content to the file
 with open(FILE_PATH, 'w', encoding='utf-8') as html_file:
+    html_file.write(html_content)
+# debugging
+with open(FILE_PATH_DATA, 'w', encoding='utf-8') as html_file:
     html_file.write(html_content)
 
 print(f"HTML file created at: {FILE_PATH}")
