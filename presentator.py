@@ -247,7 +247,7 @@ nav_order: 1
 with open(FILE_PATH, 'w', encoding='utf-8') as html_file:
     html_file.write(html_content)
 # debugging
-with open(FILE_PATH_DATA, 'w', encoding='utf-8') as html_file:
-    html_file.write(html_content)
+#with open(FILE_PATH_DATA, 'w', encoding='utf-8') as html_file:
+#    html_file.write(html_content)
 
 print(f"HTML file created at: {FILE_PATH}")
