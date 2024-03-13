@@ -14,10 +14,10 @@ directory = 'web'
 if not os.path.isdir(directory):
     os.mkdir(directory)
 
-directory = r'web/static'
-## If folder doesn't exists, create it ##
-if not os.path.isdir(directory):
-    os.makedirs(directory)
+#directory = r'web/static'
+### If folder doesn't exists, create it ##
+#if not os.path.isdir(directory):
+#    os.makedirs(directory)
 
 # Copy static css to web directory - not needed, original is in web/static
 #shutil.copyfile('./static/styles.css', './web/static/styles.css')
@@ -141,6 +141,9 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 <tr><td>⏳ {format_duration(aggregated_summary[0])} (t:m)</td>\
 <td>📏 {round(aggregated_summary[1], 1)} km</td>\
 <td>🧗 {aggregated_summary[2]} høydemeter</td></tr>\
+<tr><td>👥 0 utøvere</td>
+<tr><td>🏁 0 aktiviteter</td>
+<tr><td>🌱 0 kg CO2 spart</td></tr>
 </table>"
 
 ukens_resultater_table = "<table class='table'>\
