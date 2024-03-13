@@ -71,7 +71,7 @@ jobs:
           python databehandler.py
           python presentator.py
 
-      - name: Deploy
+      - name: Deploy data til repoet
         uses: peaceiris/actions-gh-pages@v3
         with:
           publish_branch: main
@@ -80,9 +80,33 @@ jobs:
           publish_dir: ./data
           destination_dir: ./data
 
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1' # Not needed with a .ruby-version file
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 0 # Increment this number if you need to re-download cached gems          
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+
       - name: Deploy gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./web
-          destination_dir: ./CurrentBuild
+          publish_dir: ./_site
+          destination_dir: ./TestBuildJTD
+
+#      - name: Deploy gh-pages
+#        uses: peaceiris/actions-gh-pages@v3
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          publish_dir: ./web
+#          destination_dir: ./CurrentBuild

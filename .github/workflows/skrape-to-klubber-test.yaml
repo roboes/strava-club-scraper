@@ -4,20 +4,13 @@
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 # Name of the workflow
-name: TEST Skrape to klubber output til test branch
-
+name: Teste just the docs
 # Get strava user and password into the environment from Github secrets.
 env:
   STRAVA_USER: ${{ secrets.STRAVA_USER }}
   STRAVA_PASSWORD: ${{ secrets.STRAVA_PASSWORD }}
 # Controls on when the workflow will run
 on:
-  # Runs every day at 10, 17 and 23
-  # schedule:
-  #  - cron: '0 10,17,23 * * *'
-    #- cron: '7 10,18,23 * * *'
-    #  - cron: "30 20 * * MON,THU"
-
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -31,8 +24,6 @@ jobs:
     steps:
       - name: Checkout repository content - https://github.com/actions/checkout
         uses: actions/checkout@v4
-        with:
-         ref: 'test'
 
       - name: Install Google Chrome - https://github.com/browser-actions/setup-chrome
         uses: browser-actions/setup-chrome@v1
@@ -73,18 +64,35 @@ jobs:
           python databehandler.py
           python presentator.py
 
-      - name: Deploy
+      - name: Deploy oppdaterte data til repoet
         uses: peaceiris/actions-gh-pages@v3
         with:
-          publish_branch: test
+          publish_branch: main
           keep_files: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./data
           destination_dir: ./data
 
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1' # Not needed with a .ruby-version file
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 0 # Increment this number if you need to re-download cached gems          
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+
       - name: Deploy gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./web
-          destination_dir: ./TestBuild
+          publish_dir: ./_site
+          destination_dir: ./TestBuildJTD
