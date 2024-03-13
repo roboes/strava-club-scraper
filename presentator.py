@@ -205,12 +205,11 @@ for athlete_name, summary_data in athlete_summary.items():
 resultater_hele_perioden_table += "</table>"
 
 # HTML content with the summarized table
-html_content = f"""
-    ---
-    layout: default
-    title: Resultater
-    nav_order: 1
-    ---
+html_content = f"""---
+layout: default
+title: Resultater
+nav_order: 1
+---
     
     <div class="page-wrapper">
         <div class="header" id="header">
