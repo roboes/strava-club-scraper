@@ -201,15 +201,13 @@ resultater_hele_perioden_table += "</table>"
 
 # HTML content with the summarized table
 html_content = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=1024">
-    <link rel="stylesheet" href="static/styles.css">
-    <title>Vår 2024</title>
-</head>
-<body>
+    [FRONTMATTER]
+    RESULTS = '---
+    layout: default
+    title: Resultater
+    nav_order: 1
+    ---'
+    
     <div class="page-wrapper">
         <div class="header" id="header">
             <h1>Vår 2024 - Resultatside</h1>
@@ -243,8 +241,6 @@ html_content = f"""
         </div>
     
     </div>
-</body>
-</html>
 """
 
 
