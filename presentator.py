@@ -7,21 +7,20 @@ import shutil
 from datetime import datetime
 
 # File handling
-FILE_PATH = 'web/results.html'  # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
-#FILE_PATH = 'results.html' # CHANGE BEFORE PUSHING TO REMOTE, FOR DEBUG
+FILE_PATH = 'web/results.html'
 
 # Make directory for web output
 directory = 'web'
 if not os.path.isdir(directory):
     os.mkdir(directory)
 
-directory = r'web/static'
-## If folder doesn't exists, create it ##
-if not os.path.isdir(directory):
-    os.makedirs(directory)
+#directory = r'web/static'
+### If folder doesn't exists, create it ##
+#if not os.path.isdir(directory):
+#    os.makedirs(directory)
 
-# Copy static css to web directory
-shutil.copyfile('./static/styles.css', './web/static/styles.css')
+# Copy static css to web directory - not needed, original is in web/static
+#shutil.copyfile('./static/styles.css', './web/static/styles.css')
 
 # Load the JSON content from the file
 with open('data/result/results.json', 'r') as json_file:
@@ -142,14 +141,17 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 <tr><td>⏳ {format_duration(aggregated_summary[0])} (t:m)</td>\
 <td>📏 {round(aggregated_summary[1], 1)} km</td>\
 <td>🧗 {aggregated_summary[2]} høydemeter</td></tr>\
+<tr><td>👥 0 utøvere</td>
+<tr><td>🏁 0 aktiviteter</td>
+<tr><td>🌱 0 kg CO2 spart</td></tr>
 </table>"
 
 ukens_resultater_table = "<table class='table'>\
-                         <tr><th>Navn</th>\
-                         <th>Antall aktiviteter</th>\
-                         <th>Varighet (t:m)</th>\
-                         <th>Distanse (km)</th>\
-                         <th>Høydemeter</th></tr>"
+<tr><th>Navn</th>\
+<th>Antall aktiviteter</th>\
+<th>Varighet (t:m)</th>\
+<th>Distanse (km)</th>\
+<th>Høydemeter</th></tr>"
 
 for key, value in data.items():
     if int(value["week_number"]) == int(get_current_week_number()):
@@ -163,11 +165,11 @@ for key, value in data.items():
 ukens_resultater_table += "</table>"
 
 forrige_ukes_resultater_table = "<table class='table'>\
-                                <tr><th>Navn</th>\
-                                <th>Antall aktiviteter</th>\
-                                <th>Varighet (t:m)</th>\
-                                <th>Distanse (km)</th>\
-                                <th>Høydemeter</th></tr>"
+<tr><th>Navn</th>\
+<th>Antall aktiviteter</th>\
+<th>Varighet (t:m)</th>\
+<th>Distanse (km)</th>\
+<th>Høydemeter</th></tr>"
 
 for key, value in data.items():
     if int(value["week_number"]) == int(get_current_week_number())-1:
@@ -181,11 +183,11 @@ for key, value in data.items():
 forrige_ukes_resultater_table += "</table>"
 
 resultater_hele_perioden_table = "<table class='table'>\
-                                 <tr><th>Navn</th>\
-                                 <th>Antall aktiviteter</th>\
-                                 <th>Varighet (t:m)</th>\
-                                 <th>Distanse (km)</th>\
-                                 <th>Høydemeter</th></tr>"
+<tr><th>Navn</th>\
+<th>Antall aktiviteter</th>\
+<th>Varighet (t:m)</th>\
+<th>Distanse (km)</th>\
+<th>Høydemeter</th></tr>"
 
 for athlete_name, summary_data in athlete_summary.items():
     resultater_hele_perioden_table += (
@@ -213,10 +215,10 @@ html_content = f"""
             <h1>Vår 2024 - Resultatside</h1>
         </div>
         
-        <div class="tile-aggregated" id="info">
-            <h2>Informasjon om kampanjen</h2>
+        <div class="tile-info" id="info">
             <p>
-                Les mer om <a href="https://hdir.github.io/strava-club/CurrentBuild/info.html">aktivitetskampanjen</a> og bli medlem i <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>.
+                Les mer om <a href="https://hdir.github.io/strava-club/CurrentBuild/info.html">aktivitetskampanjen</a> og 
+                bli medlem i <a href="https://www.strava.com/clubs/754665">Helsedirektoratets klubb på Strava</a>
             </p>
         </div>
         
