@@ -1,8 +1,8 @@
-title: Resultater Hdir akvitetsaksjon
-description: Resultater Hdir akvitetsaksjon
+title: Resultater Hdir aktivitetsaksjon
+description: Resultater Hdir aktivitetsaksjon
 #logo: assets/images/logo.png
 #baseurl: "/best-practice-material/" # the subpath of your site, e.g. /blog
-#url: "https://thomiz.github.io/best-practice-material/" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://hdir.github.io/strava-club/TestBuildJTD/" # the base hostname & protocol for your site, e.g. http://example.com
 remote_theme: just-the-docs/just-the-docs
 future: true
 
