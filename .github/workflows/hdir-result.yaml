@@ -4,7 +4,7 @@
 # Save this file to '.github/workflows/github-actions-workflow.yaml'
 
 # Name of the workflow
-name: Skrape til data og resultat til gh-pages
+name: PRODUKSJON Skrape til data og resultat til gh-pages
 
 # Get strava user and password into the environment from Github secrets.
 env:
@@ -74,7 +74,7 @@ jobs:
       - name: Deploy data til repoet
         uses: peaceiris/actions-gh-pages@v3
         with:
-          publish_branch: test
+          publish_branch: main
           keep_files: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./data
