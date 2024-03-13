@@ -128,19 +128,19 @@
   "11-288479": {
     "week_number": 11,
     "athlete_name": "Thomas Rosenlund",
-    "activities": 8,
-    "moving_time": 19320,
-    "distance": 86400,
-    "elevation_gain": 960,
+    "activities": 10,
+    "moving_time": 23580,
+    "distance": 117100,
+    "elevation_gain": 1223,
     "tickets": 2
   },
   "11-133260": {
     "week_number": 11,
     "athlete_name": "\u00d8ivind Langeland",
-    "activities": 8,
-    "moving_time": 11460,
-    "distance": 66200,
-    "elevation_gain": 607,
+    "activities": 9,
+    "moving_time": 12480,
+    "distance": 71600,
+    "elevation_gain": 692,
     "tickets": 1
   },
   "10-4040211": {
@@ -173,10 +173,10 @@
   "11-8849482": {
     "week_number": 11,
     "athlete_name": "\u00d8rjan Stene",
-    "activities": 3,
-    "moving_time": 10860,
-    "distance": 73600,
-    "elevation_gain": 281,
+    "activities": 4,
+    "moving_time": 15780,
+    "distance": 106900,
+    "elevation_gain": 569,
     "tickets": 1
   },
   "11-2407379": {
@@ -191,19 +191,19 @@
   "11-4778110": {
     "week_number": 11,
     "athlete_name": "Even Espelid",
-    "activities": 3,
-    "moving_time": 3420,
-    "distance": 20800,
-    "elevation_gain": 300,
+    "activities": 4,
+    "moving_time": 4740,
+    "distance": 27700,
+    "elevation_gain": 428,
     "tickets": 0
   },
   "11-3450542": {
     "week_number": 11,
     "athlete_name": "Per Ludvig Skjerven",
-    "activities": 1,
-    "moving_time": 4920,
-    "distance": 0,
-    "elevation_gain": 69,
+    "activities": 2,
+    "moving_time": 6900,
+    "distance": 5500,
+    "elevation_gain": 116,
     "tickets": 0
   },
   "11-15951168": {
@@ -213,6 +213,33 @@
     "moving_time": 5160,
     "distance": 8200,
     "elevation_gain": 92,
+    "tickets": 0
+  },
+  "10-71873694": {
+    "week_number": 10,
+    "athlete_name": "Hans Christian Sundsfjord",
+    "activities": 2,
+    "moving_time": 5580,
+    "distance": 12000,
+    "elevation_gain": 0,
+    "tickets": 0
+  },
+  "11-71873694": {
+    "week_number": 11,
+    "athlete_name": "Hans Christian Sundsfjord",
+    "activities": 2,
+    "moving_time": 5580,
+    "distance": 0,
+    "elevation_gain": 0,
+    "tickets": 0
+  },
+  "11-4040211": {
+    "week_number": 11,
+    "athlete_name": "Jonas Bergan",
+    "activities": 1,
+    "moving_time": 3300,
+    "distance": 10500,
+    "elevation_gain": 0,
     "tickets": 0
   }
 }
