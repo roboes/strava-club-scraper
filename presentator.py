@@ -147,8 +147,8 @@ aggregerte_resultater_table = f"<table class='table-aggregated'>\
 <td>📏 {round(aggregated_summary[1], 1)} km</td>\
 <td>🧗 {aggregated_summary[2]} høydemeter</td></tr>\
 <tr><td>👥 0 kolleger</td>\
-<tr><td>🏁 0 aktiviteter</td>\
-<tr><td>🌱 0 kg CO2 spart</td></tr>\
+<td>🏁 0 aktiviteter</td>\
+<td>🌱 0 kg CO2 spart</td></tr>\
 </table>"
 
 ukens_resultater_table = "<table class='table'>\
