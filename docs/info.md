@@ -4,7 +4,7 @@ title: Informasjonsside
 nav_order: 2
 ---
 
-    <div class="page-wrapper">
+   <div class="page-wrapper">
         <div class="header" id="header">
             <h1>Vår 2024 - Informasjonsside</h1>
         </div>
@@ -26,7 +26,6 @@ nav_order: 2
                     <li>Alle lodd er med alle trekningene. Man kan maksimalt bli tildelt 16 lodd i løpet av konkurranseperioden som går over åtte uker.</li>
                     <li>Det er en trekning etter to uker og tre trekninger ved konkurransens slutt.</li>
                 </ol>
-
             </p>
             <p>
                 (*) ved manuell registrering i Strava appen deles ingen lokasjonsdata med Strava eller Strava sine brukere.
