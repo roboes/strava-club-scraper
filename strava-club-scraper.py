@@ -124,6 +124,7 @@ def rename_columns(*, df):
     df.columns = (
         df.columns.astype(str)
         .str.strip()
+        .str.replace(pat=r'([A-Z])', repl=r'_\1', regex=True)
         .str.lower()
         .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
         .str.replace(pat=r':', repl=r'', regex=True)
