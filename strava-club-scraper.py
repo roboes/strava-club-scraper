@@ -952,13 +952,13 @@ def strava_club_activities(
     if filter_activities_type is not None:
         club_activities_df = club_activities_df.query(
             expr='activity_type.isin(@filter_activities_type)',
-        ).reset_index(level=None, drop=True)
+        ).reset_index(level=None, drop=True, names=None)
 
     # Filter date interval
     if filter_date_min is not None and filter_date_max is not None:
         club_activities_df = club_activities_df.query(
             expr='activity_date >= @filter_date_min & activity_date <= @filter_date_max',
-        ).reset_index(level=None, drop=True)
+        ).reset_index(level=None, drop=True, names=None)
 
     # Rearrange rows
     club_activities_df = club_activities_df.sort_values(
@@ -1214,7 +1214,7 @@ def strava_club_members(
                 columns=['athlete_id'],
             )
             # Index to column
-            .reset_index(level=None, drop=False)
+            .reset_index(level=None, drop=False, names=None)
             .rename(columns={'index': 'athlete_team'})
             # Replace multiple whitespaces by single whitespace in all columns
             .replace(to_replace=r'\s+', value=r' ', regex=True)
@@ -1863,7 +1863,7 @@ def read_google_sheets(*, sheet_id, sheet_name):
     if not df_import.empty:
         # Rename columns
         df_import = df_import.rename(columns=df_import.iloc[0])
-        df_import = df_import.iloc[1:].reset_index(level=None, drop=True)
+        df_import = df_import.iloc[1:].reset_index(level=None, drop=True, names=None)
 
         # Change dtypes
         df_import = df_import.replace(to_replace=r'^\s*$', value=None, regex=True)
