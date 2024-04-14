@@ -1,11 +1,11 @@
 ## Pre-commit configuration
-# Last update: 2024-03-26
+# Last update: 2024-04-08
 
 # Save this file to '/.pre-commit-config.yaml'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=500"]
@@ -75,7 +75,7 @@ repos:
         args: ["--disable", "MD013,MD033,MD045"] # "--disable=" does not work for multiple rules
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.3.4
+    rev: v0.3.5
     hooks:
       - id: ruff
         args: ["--fix", "--exit-non-zero-on-fix", "--ignore=B007,B023,C408,D103,E203,E266,E402,E501,F821,S105,S110,S310,SIM105"] # ruff-pre-commit does not recognize these rule selectors: B902,CM001,S410,SCS109,W503,W504

@@ -138,7 +138,7 @@ def rename_columns(*, df):
 def selenium_webdriver():
     # WebDriver options
     webdriver_options = webdriver.ChromeOptions()
-    webdriver_options.page_load_strategy = 'normal'
+    webdriver_options.page_load_strategy = 'eager'
     webdriver_options.add_experimental_option(
         'prefs',
         {
