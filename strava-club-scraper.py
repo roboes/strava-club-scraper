@@ -151,7 +151,8 @@ def selenium_webdriver():
         webdriver_options.add_argument('--headless=new')
         webdriver_options.add_argument('--disable-dev-shm-usage')
         webdriver_options.add_argument('--no-sandbox')
-        webdriver_options.add_argument('window-size=1400,900')
+        webdriver_options.add_argument('--user-agent=Mozilla/5.0')
+        webdriver_options.add_argument('window-size=1920,1080')
         webdriver_options.add_argument('--start-maximized')
 
     driver = webdriver.Chrome(options=webdriver_options)
@@ -305,7 +306,7 @@ def strava_club_activities(
                 )
 
                 for activity_id in activity_ids:
-                    activity_id = activity_id.get_attribute('href')
+                    activity_id = activity_id.get_attribute(name='href')
                     activity_id = re.sub(
                         pattern=r'^.*/activities/(.*)$',
                         repl=r'\1',
@@ -394,7 +395,7 @@ def strava_club_activities(
                 d['athlete_id'] = driver.find_element(
                     by=By.XPATH,
                     value='.//div[@class="details-container"]//a',
-                ).get_attribute('href')
+                ).get_attribute(name='href')
                 d['athlete_id'] = re.sub(
                     pattern=r'^.*/athletes/(.*)$',
                     repl=r'\1',
@@ -1070,7 +1071,7 @@ def strava_club_members(
                     d['athlete_id'] = member.find_element(
                         by=By.XPATH,
                         value='.//div[@class="text-headline"]//a',
-                    ).get_attribute('href')
+                    ).get_attribute(name='href')
                     d['athlete_id'] = re.sub(
                         pattern=r'^.*/athletes/(.*)$',
                         repl=r'\1',
@@ -1095,7 +1096,7 @@ def strava_club_members(
                     d['athlete_picture'] = member.find_element(
                         by=By.XPATH,
                         value='.//img[@class="avatar-img"]',
-                    ).get_attribute('src')
+                    ).get_attribute(name='src')
 
                     data.append(d)
 
@@ -1321,7 +1322,7 @@ def strava_club_leaderboard(
             leaderboard_html = driver.find_element(
                 by=By.XPATH,
                 value='//table[@class="dense striped sortable"]',
-            ).get_attribute('outerHTML')
+            ).get_attribute(name='outerHTML')
 
             leaderboard_df = pd.read_html(
                 io=StringIO(leaderboard_html),
@@ -1389,7 +1390,7 @@ def strava_club_leaderboard(
             leaderboard_html = driver.find_element(
                 by=By.XPATH,
                 value='//table[@class="dense striped sortable"]',
-            ).get_attribute('outerHTML')
+            ).get_attribute(name='outerHTML')
 
             leaderboard_df = pd.read_html(
                 io=StringIO(leaderboard_html),
