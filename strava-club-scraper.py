@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2024-06-23
+# Last update: 2024-06-24
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -46,7 +46,7 @@ from selenium.webdriver.common.by import By
 # Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
 config = configparser.ConfigParser()
 config.read(
-    filenames=os.path.join(os.getcwd(), 'settings', 'config.ini'),
+    filenames=os.path.join(os.getcwd(), 'strava-club-scraper', 'settings', 'config.ini'),
     encoding='utf-8',
 )
 # config.read_file(
