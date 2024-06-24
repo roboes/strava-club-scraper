@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2024-03-12
+# Last update: 2024-06-24
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -46,7 +46,7 @@ from selenium.webdriver.common.by import By
 # Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
 config = configparser.ConfigParser()
 config.read(
-    filenames=os.path.join(os.getcwd(), 'settings', 'config.ini'),
+    filenames=os.path.join(os.getcwd(), 'strava-club-scraper', 'settings', 'config.ini'),
     encoding='utf-8',
 )
 # config.read_file(
@@ -72,7 +72,7 @@ config.read(
 
 ## Google API
 google_api_key = os.path.join(os.getcwd(), 'settings', 'keys.json')
-if os.path.exists(path=google_api_key) is False:
+if os.path.exists(google_api_key) is False:
     google_api_key = None
 
 ## Club members teams
@@ -1483,6 +1483,8 @@ def strava_club_leaderboard(
             )
 
     # Rename columns
+    club_leaderboard_df = club_leaderboard_df.rename(columns=lambda column: column.lstrip('_') if column.startswith('_') else column)
+
     club_leaderboard_df = club_leaderboard_df.rename(
         columns={
             'athlete': 'athlete_name',
@@ -1762,7 +1764,8 @@ def read_google_sheets(*, sheet_id, sheet_name):
 
     # Import DataFrame stored in Google Sheets
     result = service.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name).execute()
-    df_import = pd.DataFrame(data=result.get('values', []), index=None, dtype='str')
+    result = result.get('values', [])
+    df_import = pd.DataFrame(data=result[1:], index=None, columns=result[0], dtype='str')
 
     if not df_import.empty:
         # Rename columns
@@ -2260,7 +2263,7 @@ club_members_df = strava_club_members(
 )
 
 # Test
-(
+print(
     club_members_df.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
     .query(expr='athlete_team.notna()')
     .drop_duplicates(subset=None, keep='first', ignore_index=True)
@@ -2268,7 +2271,7 @@ club_members_df = strava_club_members(
         athlete_team=lambda row: row['athlete_team'].str.split(pat=', ', expand=False),
     )
     .explode(column=['athlete_team'])
-    .sort_values(by=['athlete_team', 'athlete_name'], ignore_index=True)
+    .sort_values(by=['athlete_team', 'athlete_name'], ignore_index=True),
 )
 
 # Update Google Sheets sheet
