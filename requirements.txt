@@ -1,6 +1,6 @@
 geopy==2.4.1
-google_api_python_client==2.139.0
-lxml==5.2.2
+google_api_python_client==2.142.0
+lxml==5.3.0
 natsort==8.4.0
 pandas==2.2.2
 protobuf==5.27.3

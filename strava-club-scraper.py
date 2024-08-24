@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2024-07-31
+# Last update: 2024-08-24
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -124,31 +124,53 @@ def rename_columns(*, df):
     return df
 
 
-def selenium_webdriver():
+def selenium_webdriver(*, web_browser='chrome'):
     # WebDriver options
-    webdriver_options = webdriver.ChromeOptions()
-    webdriver_options.page_load_strategy = 'eager'
-    webdriver_options.add_argument('--disable-search-engine-choice-screen')
-    webdriver_options.add_experimental_option(
-        'prefs',
-        {
-            'intl.accept_languages': 'en_us',
-            'enable_do_not_track': True,
-            # 'download.default_directory': os.path.join(os.path.expanduser('~'), 'Downloads'),
-            'download.prompt_for_download': False,
-            'profile.default_content_setting_values.automatic_downloads': True,
-        },
-    )
+    if web_browser == 'chrome':
+        webdriver_options = webdriver.ChromeOptions()
+        webdriver_options.page_load_strategy = 'eager'
+        webdriver_options.add_argument('--disable-search-engine-choice-screen')
+        webdriver_options.add_experimental_option(
+            'prefs',
+            {
+                'intl.accept_languages': 'en_us',
+                'enable_do_not_track': True,
+                # 'download.default_directory': os.path.join(os.path.expanduser('~'), 'Downloads'),
+                'download.prompt_for_download': False,
+                'profile.default_content_setting_values.automatic_downloads': True,
+            },
+        )
 
-    if sys.platform in {'linux', 'linux2'}:
-        webdriver_options.add_argument('--headless=new')
-        webdriver_options.add_argument('--disable-dev-shm-usage')
-        webdriver_options.add_argument('--no-sandbox')
-        webdriver_options.add_argument('--user-agent=Mozilla/5.0')
-        webdriver_options.add_argument('window-size=1920,1080')
-        webdriver_options.add_argument('--start-maximized')
+        if sys.platform in {'linux', 'linux2'}:
+            webdriver_options.add_argument('--headless=new')
+            webdriver_options.add_argument('--disable-dev-shm-usage')
+            webdriver_options.add_argument('--no-sandbox')
+            webdriver_options.add_argument('--user-agent=Mozilla/5.0')
+            webdriver_options.add_argument('window-size=1920,1080')
+            webdriver_options.add_argument('--start-maximized')
 
-    driver = webdriver.Chrome(options=webdriver_options)
+        driver = webdriver.Chrome(options=webdriver_options)
+
+    if web_browser == 'firefox':
+        webdriver_options = webdriver.FirefoxOptions()
+        webdriver_options.page_load_strategy = 'eager'
+        webdriver_options.set_preference('intl.accept_languages', 'en_us')
+        webdriver_options.set_preference('privacy.donottrackheader.enabled', True)
+        webdriver_options.set_preference('browser.download.manager.showWhenStarting', False)
+        webdriver_options.set_preference('browser.download.dir', os.path.join(os.path.expanduser('~'), 'Downloads'))
+        webdriver_options.set_preference('browser.helperApps.neverAsk.saveToDisk', 'application/octet-stream')
+        webdriver_options.set_preference('browser.download.folderList', 2)
+
+        if sys.platform in {'linux', 'linux2'}:
+            webdriver_options.add_argument('--headless')
+            webdriver_options.add_argument('--disable-dev-shm-usage')
+            webdriver_options.add_argument('--no-sandbox')
+            webdriver_options.set_preference('general.useragent.override', 'Mozilla/5.0')
+            webdriver_options.add_argument('--width=1920')
+            webdriver_options.add_argument('--height=1080')
+            webdriver_options.add_argument('--start-maximized')
+
+        driver = webdriver.Firefox(options=webdriver_options)
 
     # Return objects
     return driver
