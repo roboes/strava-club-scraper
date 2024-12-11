@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2024-08-24
+# Last update: 2024-12-08
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -43,33 +43,13 @@ from selenium.webdriver.common.by import By
 
 ## Set working directory
 if sys.platform in {'win32', 'darwin'}:
-    os.chdir(path=os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'private'))
+    os.chdir(path=os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects'))
 
 ## Config
 # Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
 # Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
 config = configparser.ConfigParser()
 config.read(filenames=os.path.join(os.getcwd(), 'strava-club-scraper', 'settings', 'config.ini'), encoding='utf-8')
-# config.read_file(
-#     f=StringIO(
-#         """
-#         [GENERAL]
-#         DATE_MIN = 2023-06-05
-#         DATE_MAX = 2023-07-30
-#         # ACTIVITIES_TYPE = Ride, E-Bike Ride, Mountain Bike Ride, E-Mountain Bike Ride, Indoor Cycling, Virtual Ride, Race, Run, Trail Run, Treadmill workout, Walk, Hike
-#         TIMEZONE = CET
-#
-#         [STRAVA]
-#         LOGIN = test@email.com
-#         PASSWORD = Password12345
-#         CLUB_IDS = 445017, 789955, 1045852
-#         # CLUB_MEMBERS_TEAMS = Team A: 1234, 5678; Team B: 12345
-#
-#         [GOOGLE_DOCS]
-#         SHEET_ID = 12345
-#         """
-#     )
-# )
 
 ## Google API
 google_api_key = os.path.join(os.getcwd(), 'strava-club-scraper', 'settings', 'keys.json')
@@ -187,21 +167,35 @@ def strava_authentication(*, strava_login, strava_password):
 
         # Open website
         driver.get(url='https://www.strava.com/login')
-        time.sleep(2)
+        time.sleep(3)
+
+        try:
+            if driver.find_element(by=By.ID, value='desktop-email'):
+                pass
+
+        except NoSuchElementException:
+            while True:
+                try:
+                    driver.find_element(by=By.ID, value='desktop-email')
+                    break
+
+                except NoSuchElementException:
+                    time.sleep(2)
 
         # Reject cookies
         try:
-            driver.find_element(by=By.XPATH, value='.//button[@class="btn-deny-cookie-banner"]').click()
+            driver.find_element(by=By.XPATH, value='.//button[@data-cy="deny-cookies"]').click()
 
         except NoSuchElementException:
             pass
 
         # Login
-        driver.find_element(by=By.ID, value='email').send_keys(strava_login)
-        driver.find_element(by=By.ID, value='password').send_keys(strava_password)
+        next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="email"]') if element.is_displayed()).send_keys(strava_login)
+        next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed()).send_keys(strava_password)
         time.sleep(2)
 
-        driver.find_element(by=By.XPATH, value='.//*[@type="submit"]').submit()
+        driver.find_element(by=By.ID, value='desktop-login-button').click()
+        time.sleep(2)
 
         # Return objects
         return driver
