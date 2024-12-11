@@ -36,9 +36,9 @@ Strava allows users to create a [Group Challenge](https://support.strava.com/hc/
 ## Strava settings
 
 This tool assumes that [Strava's Display Preferences](https://www.strava.com/settings/display) are set to:
-`Units & Measurements` = "Kilometers and Kilograms"
-`Temperature` = "Celsius"
-`Feed Ordering` = "Latest Activities" ([chronological feed](https://support.strava.com/hc/en-us/articles/115001183630-Feed-Ordering))
+- `Units & Measurements` = "Kilometers and Kilograms"
+- `Temperature` = "Celsius"
+- `Feed Ordering` = "Latest Activities" ([chronological feed](https://support.strava.com/hc/en-us/articles/115001183630-Feed-Ordering))
 
 And that your Strava display language is `English (US)`. To change the language, log in to [Strava](https://www.strava.com) and on the bottom right-hand corner of any page, select `English (US)` from the drop-down menu (more on this [here](https://support.strava.com/hc/en-us/articles/216917337-Changing-your-language-in-the-Strava-App)).
 
@@ -62,7 +62,7 @@ strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter
 
 #### Parameters
 
-- `club_ids`: _str list_. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
+- `club_ids`: _str list_. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '789955', '1045852']`).
 - `filter_activities_type`: _str list_, default: _None_. List of activities type filter (e.g. `filter_activities_type=['E-Bike Ride', 'Hike', 'Ride', 'Run', 'Walk']`).
 - `filter_date_min`: _str_. Start date filter (e.g. `filter_date_min='2023-06-05'`).
 - `filter_date_max`: _str_. End date filter (e.g. `filter_date_max='2023-07-30'`).
@@ -82,7 +82,7 @@ strava_club_members(club_ids, club_members_teams=None, timezone='UTC')
 
 #### Parameters
 
-- `club_ids`: _str list_. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
+- `club_ids`: _str list_. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '789955', '1045852']`).
 - `club_members_teams`: _dict_, default: _None_. Option to add `athlete_id` to one or multiple teams (stored in the `athlete_team` column). `athlete_id` assigned to multiple teams will have its unique teams assignment comma separated.
 - `timezone`: _str or timezone object_, default: _'UTC'_.
 
@@ -109,7 +109,7 @@ strava_club_leaderboard(club_ids, filter_date_min, filter_date_max, timezone='UT
 
 #### Parameters
 
-- `club_ids`: _str list_. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '1045852']`).
+- `club_ids`: _str list_. List of Strava Club ids in which the tool should scrap data from (e.g. `club_ids=['445017', '789955', '1045852']`).
 - `filter_date_min`: _str_. Start date filter (e.g. `filter_date_min='2023-06-05'`).
 - `filter_date_max`: _str_. End date filter (e.g. `filter_date_max='2023-07-30'`).
 - `timezone`: _str or timezone object_, default: _'UTC'_.
