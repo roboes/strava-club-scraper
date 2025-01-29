@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2024-12-08
+# Last update: 2025-01-29
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -29,6 +29,7 @@ from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from janitor import clean_names
 import lxml.html as lh
 from natsort import natsorted, ns
 
@@ -37,6 +38,7 @@ import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
 # Settings
@@ -89,27 +91,14 @@ def get_seconds(*, time_str):
     return int(h) * 3600 + int(m) * 60 + int(s)
 
 
-def rename_columns(*, df):
-    df.columns = (
-        df.columns.astype(str)
-        .str.strip()
-        .str.replace(pat=r'(?<!^)([A-Z])', repl=r'_\1', regex=True)
-        .str.lower()
-        .str.replace(pat=r' |\.|-|/', repl=r'_', regex=True)
-        .str.replace(pat=r':', repl=r'', regex=True)
-        .str.replace(pat=r'_+', repl=r'_', regex=True)
-    )
-
-    # Return objects
-    return df
-
-
 def selenium_webdriver(*, web_browser='chrome'):
     # WebDriver options
     if web_browser == 'chrome':
         webdriver_options = webdriver.ChromeOptions()
         webdriver_options.page_load_strategy = 'eager'
+        webdriver_options.add_argument('--disable-blink-features=AutomationControlled')
         webdriver_options.add_argument('--disable-search-engine-choice-screen')
+        # webdriver_options.add_argument('--disable-javascript')
         webdriver_options.add_experimental_option(
             'prefs',
             {
@@ -134,6 +123,7 @@ def selenium_webdriver(*, web_browser='chrome'):
     if web_browser == 'firefox':
         webdriver_options = webdriver.FirefoxOptions()
         webdriver_options.page_load_strategy = 'eager'
+        # webdriver_options.set_preference('javascript.enabled', False)
         webdriver_options.set_preference('intl.accept_languages', 'en_us')
         webdriver_options.set_preference('privacy.donottrackheader.enabled', True)
         webdriver_options.set_preference('browser.download.manager.showWhenStarting', False)
@@ -149,6 +139,10 @@ def selenium_webdriver(*, web_browser='chrome'):
             webdriver_options.add_argument('--width=1920')
             webdriver_options.add_argument('--height=1080')
             webdriver_options.add_argument('--start-maximized')
+
+        # Firefox About Profiles - about:profiles
+        # webdriver_options.add_argument('-profile')
+        # webdriver_options.add_argument(os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'Mozilla', 'Firefox', 'Profiles', 'nsp3n4ed.default-release'))
 
         driver = webdriver.Firefox(options=webdriver_options)
 
@@ -190,12 +184,19 @@ def strava_authentication(*, strava_login, strava_password):
             pass
 
         # Login
-        next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="email"]') if element.is_displayed()).send_keys(strava_login)
-        next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed()).send_keys(strava_password)
+        field_login = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="email"]') if element.is_displayed())
+        field_login.send_keys(strava_login)
+        field_login.send_keys(Keys.ENTER)
+
         time.sleep(2)
 
-        driver.find_element(by=By.ID, value='desktop-login-button').click()
-        time.sleep(2)
+        # Password
+        field_password = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed())
+        field_password.send_keys(strava_password)
+        field_password.send_keys(Keys.ENTER)
+
+        # Delete objects
+        del field_login, field_password
 
         # Return objects
         return driver
@@ -557,7 +558,7 @@ def strava_club_activities(*, strava_login, strava_password, club_ids, filter_ac
     club_activities_df = pd.DataFrame(data=data, index=None, dtype=None)
 
     # Rename columns
-    club_activities_df = rename_columns(df=club_activities_df)
+    club_activities_df = clean_names(club_activities_df)
 
     club_activities_df = club_activities_df.rename(columns={'elevation': 'elevation_gain', 'max_power': 'max_watts', 'average_power': 'average_watts', 'temperature': 'average_temperature'})
 
@@ -973,7 +974,7 @@ def strava_club_leaderboard(*, strava_login, strava_password, club_ids, filter_d
             )
 
             # Rename columns
-            club_leaderboard_import_df = rename_columns(df=club_leaderboard_import_df)
+            club_leaderboard_import_df = clean_names(club_leaderboard_import_df)
 
             if club_activity_type == 'Cycling':
                 club_leaderboard_import_df = club_leaderboard_import_df.rename(columns={'rides': 'activities', 'longest': 'distance_longest', 'avg_speed': 'average_speed'})
