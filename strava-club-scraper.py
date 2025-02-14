@@ -51,10 +51,10 @@ if sys.platform in {'win32', 'darwin'}:
 # Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
 # Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
 config = configparser.ConfigParser()
-config.read(filenames=os.path.join(os.getcwd(), 'strava-club-scraper', 'settings', 'config.ini'), encoding='utf-8')
+config.read(filenames=os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper', 'settings', 'config.ini'), encoding='utf-8')
 
 ## Google API
-google_api_key = os.path.join(os.getcwd(), 'strava-club-scraper', 'settings', 'keys.json')
+google_api_key = os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper', 'settings', 'keys.json')
 if os.path.exists(google_api_key) is False:
     google_api_key = None
 
@@ -186,6 +186,7 @@ def strava_authentication(*, strava_login, strava_password):
         # Login
         field_login = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="email"]') if element.is_displayed())
         field_login.send_keys(strava_login)
+        time.sleep(2)
         field_login.send_keys(Keys.ENTER)
 
         time.sleep(2)
@@ -193,6 +194,7 @@ def strava_authentication(*, strava_login, strava_password):
         # Password
         field_password = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed())
         field_password.send_keys(strava_password)
+        time.sleep(2)
         field_password.send_keys(Keys.ENTER)
 
         # Delete objects
@@ -673,8 +675,8 @@ def strava_export_activities(*, strava_login, strava_password, activities_id, fi
             # time.sleep(3)
 
             # Rename downloaded .gpx file
-            # latest_file = max(glob.glob(pathname=os.path.join(os.getcwd(), 'activities', '*.gpx'), recursive=False), key=os.path.getctime)
-            # latest_file_new_filename = os.path.join(os.getcwd(), 'activities', '{}_{}.gpx').format(row['activity_type'], row['activity_id'])
+            # latest_file = max(glob.glob(pathname=os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava', 'activities', '*.gpx'), recursive=False), key=os.path.getctime)
+            # latest_file_new_filename = os.path.join(os.path.expanduser('~'), 'Downloads', 'Strava', 'activities', '{}_{}.gpx').format(row['activity_type'], row['activity_id'])
             # os.rename(src=latest_file, dst=latest_file_new_filename)
 
     # Export activity as .tcx (requires Sauce for Strava extension for Google Chrome, which can be manually downloaded after invoking strava_authentication() function - https://chrome.google.com/webstore/detail/sauce-for-strava/eigiefcapdcdmncdghkeahgfmnobigha)
