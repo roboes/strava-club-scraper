@@ -1,5 +1,7 @@
 # Strava Club Scraper
 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/roboes)
+
 ## Description
 
 This web-scraping tool aims to extract activities data from Strava Club to complete the lack of features of the standard Strava API. The main features are:

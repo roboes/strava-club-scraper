@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2025-01-29
+# Last update: 2025-03-07
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -192,6 +192,7 @@ def strava_authentication(*, strava_login, strava_password):
         time.sleep(2)
 
         # Password
+        next(element for element in driver.find_elements(by=By.XPATH, value='.//button[text()="Use password instead"]') if element.is_displayed()).click()
         field_password = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed())
         field_password.send_keys(strava_password)
         time.sleep(2)
