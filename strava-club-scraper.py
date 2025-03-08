@@ -192,7 +192,7 @@ def strava_authentication(*, strava_login, strava_password):
         time.sleep(2)
 
         # Password
-        driver.find_element(by=By.XPATH, value='//button[text()="Use password instead"]').click()
+        next(element for element in driver.find_elements(by=By.XPATH, value='.//button[text()="Use password instead"]') if element.is_displayed()).click()
         field_password = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed())
         field_password.send_keys(strava_password)
         time.sleep(2)
