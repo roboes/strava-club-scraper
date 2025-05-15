@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2025-03-07
+# Last update: 2025-05-15
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -91,13 +91,14 @@ def get_seconds(*, time_str):
     return int(h) * 3600 + int(m) * 60 + int(s)
 
 
-def selenium_webdriver(*, web_browser='chrome'):
+def selenium_webdriver(*, web_browser='chrome', headless=False):
     # WebDriver options
     if web_browser == 'chrome':
         webdriver_options = webdriver.ChromeOptions()
         webdriver_options.page_load_strategy = 'eager'
         webdriver_options.add_argument('--disable-blink-features=AutomationControlled')
         webdriver_options.add_argument('--disable-search-engine-choice-screen')
+        webdriver_options.add_argument('--log-level=3')
         # webdriver_options.add_argument('--disable-javascript')
         webdriver_options.add_experimental_option(
             'prefs',
@@ -110,7 +111,7 @@ def selenium_webdriver(*, web_browser='chrome'):
             },
         )
 
-        if sys.platform in {'linux', 'linux2'}:
+        if headless is True:
             webdriver_options.add_argument('--headless=new')
             webdriver_options.add_argument('--disable-dev-shm-usage')
             webdriver_options.add_argument('--no-sandbox')
@@ -131,7 +132,7 @@ def selenium_webdriver(*, web_browser='chrome'):
         webdriver_options.set_preference('browser.helperApps.neverAsk.saveToDisk', 'application/octet-stream')
         webdriver_options.set_preference('browser.download.folderList', 2)
 
-        if sys.platform in {'linux', 'linux2'}:
+        if headless is True:
             webdriver_options.add_argument('--headless')
             webdriver_options.add_argument('--disable-dev-shm-usage')
             webdriver_options.add_argument('--no-sandbox')
