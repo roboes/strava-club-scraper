@@ -1,5 +1,5 @@
 ## Strava Club Scraper
-# Last update: 2025-03-07
+# Last update: 2025-05-22
 
 
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
@@ -38,6 +38,8 @@ import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 
 
@@ -91,13 +93,14 @@ def get_seconds(*, time_str):
     return int(h) * 3600 + int(m) * 60 + int(s)
 
 
-def selenium_webdriver(*, web_browser='chrome'):
+def selenium_webdriver(*, web_browser='chrome', headless=False):
     # WebDriver options
     if web_browser == 'chrome':
         webdriver_options = webdriver.ChromeOptions()
         webdriver_options.page_load_strategy = 'eager'
         webdriver_options.add_argument('--disable-blink-features=AutomationControlled')
         webdriver_options.add_argument('--disable-search-engine-choice-screen')
+        webdriver_options.add_argument('--log-level=3')
         # webdriver_options.add_argument('--disable-javascript')
         webdriver_options.add_experimental_option(
             'prefs',
@@ -110,7 +113,7 @@ def selenium_webdriver(*, web_browser='chrome'):
             },
         )
 
-        if sys.platform in {'linux', 'linux2'}:
+        if headless is True:
             webdriver_options.add_argument('--headless=new')
             webdriver_options.add_argument('--disable-dev-shm-usage')
             webdriver_options.add_argument('--no-sandbox')
@@ -131,7 +134,7 @@ def selenium_webdriver(*, web_browser='chrome'):
         webdriver_options.set_preference('browser.helperApps.neverAsk.saveToDisk', 'application/octet-stream')
         webdriver_options.set_preference('browser.download.folderList', 2)
 
-        if sys.platform in {'linux', 'linux2'}:
+        if headless is True:
             webdriver_options.add_argument('--headless')
             webdriver_options.add_argument('--disable-dev-shm-usage')
             webdriver_options.add_argument('--no-sandbox')
@@ -150,7 +153,7 @@ def selenium_webdriver(*, web_browser='chrome'):
     return driver
 
 
-def strava_authentication(*, strava_login, strava_password):
+def strava_authentication(*, strava_login=None, strava_password=None, login_mode='user'):
     # Load Selenium WebDriver
     if 'driver' in vars():
         if driver.service.is_connectable() is True:
@@ -183,23 +186,27 @@ def strava_authentication(*, strava_login, strava_password):
         except NoSuchElementException:
             pass
 
-        # Login
-        field_login = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="email"]') if element.is_displayed())
-        field_login.send_keys(strava_login)
-        time.sleep(2)
-        field_login.send_keys(Keys.ENTER)
+        if login_mode == 'credentials' and strava_login is not None and strava_password is not None:
+            # Login
+            field_login = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="email"]') if element.is_displayed())
+            field_login.send_keys(strava_login)
+            time.sleep(2)
+            field_login.send_keys(Keys.ENTER)
 
-        time.sleep(2)
+            time.sleep(2)
 
-        # Password
-        next(element for element in driver.find_elements(by=By.XPATH, value='.//button[text()="Use password instead"]') if element.is_displayed()).click()
-        field_password = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed())
-        field_password.send_keys(strava_password)
-        time.sleep(2)
-        field_password.send_keys(Keys.ENTER)
+            # Password
+            next(element for element in driver.find_elements(by=By.XPATH, value='.//button[text()="Use password instead"]') if element.is_displayed()).click()
+            field_password = next(element for element in driver.find_elements(by=By.XPATH, value='.//*[@data-cy="password"]') if element.is_displayed())
+            field_password.send_keys(strava_password)
+            time.sleep(2)
+            field_password.send_keys(Keys.ENTER)
 
-        # Delete objects
-        del field_login, field_password
+            # Delete objects
+            del field_login, field_password
+
+        else:
+            WebDriverWait(driver=driver, timeout=300).until(method=EC.url_contains(url='https://www.strava.com/dashboard'))
 
         # Return objects
         return driver
