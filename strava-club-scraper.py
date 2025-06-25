@@ -102,6 +102,7 @@ def selenium_webdriver(*, web_browser='chrome', headless=False):
         webdriver_options.add_argument('--disable-search-engine-choice-screen')
         webdriver_options.add_argument('--log-level=3')
         # webdriver_options.add_argument('--disable-javascript')
+        # webdriver_options.ignore_local_proxy_environment_variables()
         webdriver_options.add_experimental_option(
             'prefs',
             {
