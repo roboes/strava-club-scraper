@@ -11,6 +11,9 @@ This web-scraping tool aims to extract activities data from Strava Club to compl
 - Strava Club Members scraper: imports all members that joined a Strava Club (including athletes' `id`) to a dataset (requires a Strava account).
 - Strava Club to Google Sheets importer: automatically retrieves data and updates Strava Club Activities, Leaderboard and/or Members dataset(s) into a Google Sheets (requires a Google API key).
 
+> [!WARNING]
+> Due to recent changes in Strava's login process, which now requires a 6-digit verification code sent via email, full automation of this project is no longer feasible.
+
 ## Strava API
 
 This tool does not rely on the Strava API. Strava's API turned to be very limited in the recent years. For getting [List Club Activities](https://developers.strava.com/docs/reference/#api-Clubs-getClubActivitiesById), it returns only the following variables:
@@ -45,10 +48,10 @@ This tool assumes that [Strava's Display Preferences](https://www.strava.com/set
 
 And that your Strava display language is `English (US)`. To change the language, log in to [Strava](https://www.strava.com) and on the bottom right-hand corner of any page, select `English (US)` from the drop-down menu (more on this [here](https://support.strava.com/hc/en-us/articles/216917337-Changing-your-language-in-the-Strava-App)).
 
-### Python dependencies
+### Installation
 
 ```.ps1
-python -m pip install pyjanitor python-dateutil geopy google-api-python-client google-auth lxml pandas selenium webdriver-manager
+python -m pip install "git+https://github.com/roboes/strava-club-scraper.git@main"
 ```
 
 ### Functions
@@ -185,6 +188,129 @@ selenium_webdriver_quit()
 ##### Parameters
 
 - None.
+
+### Code Workflow Example
+
+```.py
+# Import packages
+import configparser
+import os
+
+# import numpy as np
+import pandas as pd
+from strava_club_scraper.strava_club_scraper import strava_club_members, strava_club_to_google_sheets, strava_club_leaderboard, strava_club_activities, execution_time_to_google_sheets
+
+
+# Settings
+
+## Config
+# Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
+# Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
+config = configparser.ConfigParser()
+config.read(filenames=os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper', 'settings', 'config.ini'), encoding='utf-8')
+
+## Google API
+google_api_key = os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper', 'settings', 'keys.json')
+if os.path.exists(google_api_key) is False:
+    google_api_key = None
+
+## Club members teams
+if 'CLUB_MEMBERS_TEAMS' in config['STRAVA']:
+    club_members_teams = pd.DataFrame.from_dict(data=dict(item.split(sep=': ') for item in config['STRAVA']['CLUB_MEMBERS_TEAMS'].split(sep='; ')), orient='index', dtype='str', columns=['athlete_id'])
+
+else:
+    club_members_teams = None
+
+
+# Club members
+
+## Get data (via web-scraping)
+club_members_df = strava_club_members(
+    strava_login=config['STRAVA']['LOGIN'],
+    strava_password=config['STRAVA']['PASSWORD'],
+    club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
+    club_members_teams=club_members_teams,
+    timezone=config['GENERAL']['TIMEZONE'],
+)
+
+## Test
+print(
+    club_members_df.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
+    .query(expr='athlete_team.notna()')
+    .drop_duplicates(subset=None, keep='first', ignore_index=True)
+    .assign(athlete_team=lambda row: row['athlete_team'].str.split(pat=', ', expand=False))
+    .explode(column=['athlete_team'])
+    .sort_values(by=['athlete_team', 'athlete_name'], ignore_index=True),
+)
+
+## Update Google Sheets sheet
+if google_api_key is not None:
+    club_members_df = strava_club_to_google_sheets(df=club_members_df, club_members_df=club_members_df, sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Members')
+
+
+# Club leaderboard
+
+## Get data (via web-scraping)
+club_leaderboard_df = strava_club_leaderboard(
+    strava_login=config['STRAVA']['LOGIN'],
+    strava_password=config['STRAVA']['PASSWORD'],
+    club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
+    filter_date_min=config['GENERAL']['DATE_MIN'],
+    filter_date_max=config['GENERAL']['DATE_MAX'],
+    timezone=config['GENERAL']['TIMEZONE'],
+)
+
+## Update Google Sheets sheet
+if google_api_key is not None:
+    strava_club_to_google_sheets(df=club_leaderboard_df, club_members_df=club_members_df, sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Leaderboard')
+
+
+# Club activities
+if config['GENERAL'].getboolean('SCRAP_CLUB_ACTIVITIES') is True:
+    # Get data (via web-scraping)
+    club_activities_df = strava_club_activities(
+        strava_login=config['STRAVA']['LOGIN'],
+        strava_password=config['STRAVA']['PASSWORD'],
+        club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
+        filter_activities_type=None,
+        filter_date_min=config['GENERAL']['DATE_MIN'],
+        filter_date_max=config['GENERAL']['DATE_MAX'],
+        timezone=config['GENERAL']['TIMEZONE'],
+    )
+
+    # Update Google Sheets sheet
+    if google_api_key is not None:
+        strava_club_to_google_sheets(df=club_activities_df, club_members_df=club_members_df, sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Activities')
+
+## Save as .csv
+# club_activities_df.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
+
+# # Export club activities to .gpx files
+# club_activities_sample_df = (read_google_sheets(sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Activities')
+# .drop(columns=['club_id'], axis=1, errors='ignore')
+# .drop_duplicates(subset=None, keep='first', ignore_index=True)
+# .query(expr='activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
+# .assign(activity_type=lambda row: np.where((row['activity_type'] == 'Race') & (row['pace'].notna()), 'Run', (np.where((row['activity_type'] == 'Race') & (row['pace'].isna()), 'Ride', row['activity_type']))))
+# .assign(activity_type=lambda row: np.where(row['activity_type'].isin(['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride']), 'Cycling', (np.where(row['activity_type'].isin(['Run', 'Trail Run', 'Walk', 'Hike']), 'Run/Walk/Hike', row['activity_type']))))
+# .sort_values(by=['activity_type', 'activity_date', 'activity_id'], ignore_index=True)
+# )
+# strava_export_activities(strava_login=config['STRAVA']['LOGIN'], strava_password=config['STRAVA']['PASSWORD'], activities_id=club_activities_sample_df.query(expr='activity_type.isin(["Run/Walk/Hike"])')['activity_id'], file_type='.gpx')
+
+# # Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
+# club_leaderboard_manual_df = strava_club_leaderboard_manual(club_activities_df=club_activities_df, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=config['GENERAL']['ACTIVITIES_TYPE'].split(sep=', '))
+
+
+# Store execution time in Google Sheets
+
+## Update Google Sheets sheet
+if google_api_key is not None:
+    execution_time_to_google_sheets(sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Execution Time', timezone=config['GENERAL']['TIMEZONE'])
+
+
+## Quit WebDriver
+if 'driver' in vars():
+    driver.quit()
+```
 
 ## Legal
 

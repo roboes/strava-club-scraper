@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "strava-club-scraper"
+version = "1.0.0"
+authors = [{ name = "roboes" }]
+readme = { file = "readme.md", content-type = "text/markdown" }
+description = "Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."
+requires-python = ">=3.11"
+license = { file = "license" }
+dependencies = [
+  "geopy",
+  "google_api_python_client",
+  "lxml",
+  "natsort",
+  "pandas",
+  "protobuf",
+  "pyjanitor",
+  "python_dateutil",
+  "selenium",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/roboes/strava-club-scraper"
+
+[project.scripts]
+strava-club-scraper = "strava_club_scraper:entrypoint"
+
+[tool.setuptools]
+packages = ["strava_club_scraper"]

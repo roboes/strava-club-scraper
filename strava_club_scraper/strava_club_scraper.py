@@ -1,83 +1,49 @@
-## Strava Club Scraper
-# Last update: 2025-05-22
-
-
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
 
-
-###############
-# Initial Setup
-###############
-
-# Erase all declared global variables
-globals().clear()
-
-
 # Import packages
-import configparser
+
 from datetime import timedelta
 
 # import glob
 from io import StringIO
-import os
+import json
+import html
 import re
-import sys
 import time
+from typing import Any
 
 from dateutil import parser, relativedelta
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.discovery import Resource
 from janitor import clean_names
 import lxml.html as lh
 from natsort import natsorted, ns
 
 # import numpy as np
 import pandas as pd
-from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from .selenium_utils import selenium_webdriver
 
 
 # Settings
 
-## Set working directory
-if sys.platform in {'win32', 'darwin'}:
-    os.chdir(path=os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects'))
-
-## Config
-# Required: config['GENERAL']['DATE_MIN'], config['GENERAL']['DATE_MAX'], config['GENERAL']['TIMEZONE'], config['STRAVA']['LOGIN'], config['STRAVA']['PASSWORD'], config['STRAVA']['CLUB_IDS']
-# Optional: config['GENERAL']['ACTIVITIES_TYPE'], config['STRAVA']['CLUB_MEMBERS_TEAMS'], config['GOOGLE_DOCS']['SHEET_ID']
-config = configparser.ConfigParser()
-config.read(filenames=os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper', 'settings', 'config.ini'), encoding='utf-8')
-
-## Google API
-google_api_key = os.path.join(os.path.expanduser('~'), 'Documents', 'Documents', 'Projects', 'strava-club-scraper', 'settings', 'keys.json')
-if os.path.exists(google_api_key) is False:
-    google_api_key = None
-
-## Club members teams
-if 'CLUB_MEMBERS_TEAMS' in config['STRAVA']:
-    club_members_teams = pd.DataFrame.from_dict(data=dict(item.split(sep=': ') for item in config['STRAVA']['CLUB_MEMBERS_TEAMS'].split(sep='; ')), orient='index', dtype='str', columns=['athlete_id'])
-
-else:
-    club_members_teams = None
 
 ## Copy-on-Write (will be enabled by default in version 3.0)
 if pd.__version__ >= '1.5.0' and pd.__version__ < '3.0.0':
     pd.options.mode.copy_on_write = True
 
 
-###########
 # Functions
-###########
 
 
-def convert_list_to_dictionary(*, to_convert):
+def convert_list_to_dictionary(*, to_convert: list[str]) -> dict[str, str]:
     to_convert = iter(to_convert)
     dictionary = dict(zip(to_convert, to_convert))
 
@@ -85,7 +51,7 @@ def convert_list_to_dictionary(*, to_convert):
     return dictionary
 
 
-def get_seconds(*, time_str):
+def get_seconds(*, time_str: str) -> int:
     """Get seconds from time."""
     h, m, s = time_str.split(sep=':')
 
@@ -93,68 +59,7 @@ def get_seconds(*, time_str):
     return int(h) * 3600 + int(m) * 60 + int(s)
 
 
-def selenium_webdriver(*, web_browser='chrome', headless=False):
-    # WebDriver options
-    if web_browser == 'chrome':
-        webdriver_options = webdriver.ChromeOptions()
-        webdriver_options.page_load_strategy = 'eager'
-        webdriver_options.add_argument('--disable-blink-features=AutomationControlled')
-        webdriver_options.add_argument('--disable-search-engine-choice-screen')
-        webdriver_options.add_argument('--log-level=3')
-        # webdriver_options.add_argument('--disable-javascript')
-        # webdriver_options.ignore_local_proxy_environment_variables()
-        webdriver_options.add_experimental_option(
-            'prefs',
-            {
-                'intl.accept_languages': 'en_us',
-                'enable_do_not_track': True,
-                # 'download.default_directory': os.path.join(os.path.expanduser('~'), 'Downloads'),
-                'download.prompt_for_download': False,
-                'profile.default_content_setting_values.automatic_downloads': True,
-            },
-        )
-
-        if headless is True:
-            webdriver_options.add_argument('--headless=new')
-            webdriver_options.add_argument('--disable-dev-shm-usage')
-            webdriver_options.add_argument('--no-sandbox')
-            webdriver_options.add_argument('--user-agent=Mozilla/5.0')
-            webdriver_options.add_argument('window-size=1920,1080')
-            webdriver_options.add_argument('--start-maximized')
-
-        driver = webdriver.Chrome(options=webdriver_options)
-
-    if web_browser == 'firefox':
-        webdriver_options = webdriver.FirefoxOptions()
-        webdriver_options.page_load_strategy = 'eager'
-        # webdriver_options.set_preference('javascript.enabled', False)
-        webdriver_options.set_preference('intl.accept_languages', 'en_us')
-        webdriver_options.set_preference('privacy.donottrackheader.enabled', True)
-        webdriver_options.set_preference('browser.download.manager.showWhenStarting', False)
-        webdriver_options.set_preference('browser.download.dir', os.path.join(os.path.expanduser('~'), 'Downloads'))
-        webdriver_options.set_preference('browser.helperApps.neverAsk.saveToDisk', 'application/octet-stream')
-        webdriver_options.set_preference('browser.download.folderList', 2)
-
-        if headless is True:
-            webdriver_options.add_argument('--headless')
-            webdriver_options.add_argument('--disable-dev-shm-usage')
-            webdriver_options.add_argument('--no-sandbox')
-            webdriver_options.set_preference('general.useragent.override', 'Mozilla/5.0')
-            webdriver_options.add_argument('--width=1920')
-            webdriver_options.add_argument('--height=1080')
-            webdriver_options.add_argument('--start-maximized')
-
-        # Firefox About Profiles - about:profiles
-        # webdriver_options.add_argument('-profile')
-        # webdriver_options.add_argument(os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'Mozilla', 'Firefox', 'Profiles', 'nsp3n4ed.default-release'))
-
-        driver = webdriver.Firefox(options=webdriver_options)
-
-    # Return objects
-    return driver
-
-
-def strava_authentication(*, strava_login=None, strava_password=None, login_mode='user'):
+def strava_authentication(*, strava_login: str | None = None, strava_password: str | None = None, login_mode: str = 'user') -> Any:
     # Load Selenium WebDriver
     if 'driver' in vars():
         if driver.service.is_connectable() is True:
@@ -213,7 +118,7 @@ def strava_authentication(*, strava_login=None, strava_password=None, login_mode
         return driver
 
 
-def strava_club_activities(*, strava_login, strava_password, club_ids, filter_activities_type, filter_date_min, filter_date_max, timezone='UTC'):
+def strava_club_activities(*, strava_login: str, strava_password: str, club_ids: list[str], filter_activities_type: str, filter_date_min: str, filter_date_max: str, timezone: str = 'UTC') -> list[dict[str, Any]]:
     """
     Scraps and imports activities belonging to one or multiple Strava Club(s) (public activities or activities that the account that is scraping the data has access to) to a dataset.
 
@@ -671,7 +576,7 @@ def strava_club_activities(*, strava_login, strava_password, club_ids, filter_ac
     return club_activities_df
 
 
-def strava_export_activities(*, strava_login, strava_password, activities_id, file_type='.gpx'):
+def strava_export_activities(*, strava_login: str, strava_password: str, activities_id: list[int], file_type: str = '.gpx') -> None:
     """Given a list of activity_id, export it to .gpx."""
     # Strava login
     driver = strava_authentication(strava_login=strava_login, strava_password=strava_password)
@@ -701,7 +606,7 @@ def strava_export_activities(*, strava_login, strava_password, activities_id, fi
                 pass
 
 
-def strava_club_members(*, strava_login, strava_password, club_ids, club_members_teams=None, timezone='UTC'):
+def strava_club_members(*, strava_login: str, strava_password: str, club_ids: list[str], club_members_teams: dict[str, str] | None = None, timezone: str = 'UTC') -> pd.DataFrame:
     """Scraps and imports members of one or multiple Strava Club(s) to a dataset."""
     # Settings and variables
     geolocator = Nominatim(user_agent='strava-club-scraper')
@@ -761,7 +666,7 @@ def strava_club_members(*, strava_login, strava_password, club_ids, club_members
                     d['athlete_location'] = d['athlete_location'].strip()
 
                     # athlete_picture
-                    d['athlete_picture'] = member.find_element(by=By.XPATH, value='.//img[@class="avatar-img"]').get_attribute(name='src')
+                    d['athlete_picture'] = json.loads(html.unescape(member.find_element(by=By.XPATH, value='.//div[contains(@data-react-class, "AvatarWrapper")]').get_attribute(name='data-react-props'))).get('src')
 
                     data.append(d)
 
@@ -865,7 +770,7 @@ def strava_club_members(*, strava_login, strava_password, club_ids, club_members
     return club_members_df
 
 
-def strava_club_leaderboard(*, strava_login, strava_password, club_ids, filter_date_min, filter_date_max, timezone='UTC'):
+def strava_club_leaderboard(*, strava_login: str, strava_password: str, club_ids: list[str], filter_date_min: str, filter_date_max: str, timezone: str = 'UTC') -> pd.DataFrame:
     """
     Scraps and imports leaderboard of one or multiple Strava Club(s) to a dataset.
 
@@ -1091,7 +996,15 @@ def strava_club_leaderboard(*, strava_login, strava_password, club_ids, filter_d
     return club_leaderboard_df
 
 
-def strava_club_leaderboard_manual(*, club_activities_df, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=None):
+def strava_club_leaderboard_manual(
+    *,
+    club_activities_df: pd.DataFrame,
+    club_id: str | None = None,
+    club_name: str | None = None,
+    club_activity_type: str | None = None,
+    club_location: str | None = None,
+    filter_activities_type: list[str] | None = None,
+) -> pd.DataFrame:
     """For members that joined the challenge later, manually scrap inividual activities and group them by week."""
     club_leaderboard_manual_df = (
         club_activities_df
@@ -1168,7 +1081,7 @@ def strava_club_leaderboard_manual(*, club_activities_df, club_id=None, club_nam
     return club_leaderboard_manual_df
 
 
-def google_api_credentials():
+def google_api_credentials() -> Resource:
     # Credentials settings
     credentials = Credentials.from_service_account_file(filename=google_api_key, scopes=['https://www.googleapis.com/auth/spreadsheets'])
 
@@ -1179,7 +1092,7 @@ def google_api_credentials():
     return service
 
 
-def read_google_sheets(*, sheet_id, sheet_name):
+def read_google_sheets(*, sheet_id: str, sheet_name: str) -> pd.DataFrame:
     # Google API Credentials
     service = google_api_credentials()
 
@@ -1282,7 +1195,7 @@ def read_google_sheets(*, sheet_id, sheet_name):
     return df_import
 
 
-def strava_club_to_google_sheets(*, df, club_members_df, sheet_id, sheet_name):
+def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFrame, sheet_id: str, sheet_name: str) -> None:
     # Google API Credentials
     service = google_api_credentials()
 
@@ -1538,7 +1451,7 @@ def strava_club_to_google_sheets(*, df, club_members_df, sheet_id, sheet_name):
     return df_updated
 
 
-def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
+def execution_time_to_google_sheets(*, sheet_id: str, sheet_name: str, timezone: str = 'UTC') -> None:
     # Google API Credentials
     service = google_api_credentials()
 
@@ -1552,97 +1465,3 @@ def execution_time_to_google_sheets(*, sheet_id, sheet_name, timezone='UTC'):
         valueInputOption='USER_ENTERED',
         body={'values': [['last_execution'], [str(pd.Timestamp.now(tz=timezone).replace(microsecond=0, tzinfo=None))]]},
     ).execute()
-
-
-################################
-# Strava Club activities scraper
-################################
-
-## Club members
-
-# Get data (via web-scraping)
-club_members_df = strava_club_members(
-    strava_login=config['STRAVA']['LOGIN'],
-    strava_password=config['STRAVA']['PASSWORD'],
-    club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
-    club_members_teams=club_members_teams,
-    timezone=config['GENERAL']['TIMEZONE'],
-)
-
-# Test
-print(
-    club_members_df.filter(items=['athlete_team', 'athlete_name', 'athlete_id'])
-    .query(expr='athlete_team.notna()')
-    .drop_duplicates(subset=None, keep='first', ignore_index=True)
-    .assign(athlete_team=lambda row: row['athlete_team'].str.split(pat=', ', expand=False))
-    .explode(column=['athlete_team'])
-    .sort_values(by=['athlete_team', 'athlete_name'], ignore_index=True),
-)
-
-# Update Google Sheets sheet
-if google_api_key is not None:
-    club_members_df = strava_club_to_google_sheets(df=club_members_df, club_members_df=club_members_df, sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Members')
-
-
-## Club leaderboard
-
-# Get data (via web-scraping)
-club_leaderboard_df = strava_club_leaderboard(
-    strava_login=config['STRAVA']['LOGIN'],
-    strava_password=config['STRAVA']['PASSWORD'],
-    club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
-    filter_date_min=config['GENERAL']['DATE_MIN'],
-    filter_date_max=config['GENERAL']['DATE_MAX'],
-    timezone=config['GENERAL']['TIMEZONE'],
-)
-
-# Update Google Sheets sheet
-if google_api_key is not None:
-    strava_club_to_google_sheets(df=club_leaderboard_df, club_members_df=club_members_df, sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Leaderboard')
-
-
-## Club activities
-if config['GENERAL'].getboolean('SCRAP_CLUB_ACTIVITIES') is True:
-    # Get data (via web-scraping)
-    club_activities_df = strava_club_activities(
-        strava_login=config['STRAVA']['LOGIN'],
-        strava_password=config['STRAVA']['PASSWORD'],
-        club_ids=config['STRAVA']['CLUB_IDS'].split(sep=', '),
-        filter_activities_type=None,
-        filter_date_min=config['GENERAL']['DATE_MIN'],
-        filter_date_max=config['GENERAL']['DATE_MAX'],
-        timezone=config['GENERAL']['TIMEZONE'],
-    )
-
-    # Update Google Sheets sheet
-    if google_api_key is not None:
-        strava_club_to_google_sheets(df=club_activities_df, club_members_df=club_members_df, sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Activities')
-
-# Save as .csv
-# club_activities_df.to_csv(path_or_buf='club_activities.csv', sep=',', na_rep='', header=True, index=False, index_label=None, encoding='utf-8')
-
-# # Export club activities to .gpx files
-# club_activities_sample_df = (read_google_sheets(sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Activities')
-# .drop(columns=['club_id'], axis=1, errors='ignore')
-# .drop_duplicates(subset=None, keep='first', ignore_index=True)
-# .query(expr='activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
-# .assign(activity_type=lambda row: np.where((row['activity_type'] == 'Race') & (row['pace'].notna()), 'Run', (np.where((row['activity_type'] == 'Race') & (row['pace'].isna()), 'Ride', row['activity_type']))))
-# .assign(activity_type=lambda row: np.where(row['activity_type'].isin(['Ride', 'E-Bike Ride', 'Mountain Bike Ride', 'E-Mountain Bike Ride']), 'Cycling', (np.where(row['activity_type'].isin(['Run', 'Trail Run', 'Walk', 'Hike']), 'Run/Walk/Hike', row['activity_type']))))
-# .sort_values(by=['activity_type', 'activity_date', 'activity_id'], ignore_index=True)
-# )
-# strava_export_activities(strava_login=config['STRAVA']['LOGIN'], strava_password=config['STRAVA']['PASSWORD'], activities_id=club_activities_sample_df.query(expr='activity_type.isin(["Run/Walk/Hike"])')['activity_id'], file_type='.gpx')
-
-# Strava Club Leaderboard manual import - For members that joined the challenge later, manually scrap inividual activities and group them by week
-# club_leaderboard_manual_df = strava_club_leaderboard_manual(club_activities_df=club_activities_df, club_id=None, club_name=None, club_activity_type=None, club_location=None, filter_activities_type=config['GENERAL']['ACTIVITIES_TYPE'].split(sep=', '))
-
-
-## Store execution time in Google Sheets
-
-# Update Google Sheets sheet
-if google_api_key is not None:
-    execution_time_to_google_sheets(sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Execution Time', timezone=config['GENERAL']['TIMEZONE'])
-
-
-# Quit WebDriver
-if 'driver' in vars():
-    driver.quit()
