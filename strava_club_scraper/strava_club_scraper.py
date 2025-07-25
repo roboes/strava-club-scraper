@@ -1,6 +1,7 @@
 """About: Web-scraping tool to extract public activities data from Strava Clubs (without Strava's API) using Selenium library in Python."""
 
 # Import packages
+
 from datetime import timedelta
 
 # import glob
@@ -10,7 +11,6 @@ import html
 import re
 import time
 from typing import Any
-
 
 from dateutil import parser, relativedelta
 from geopy.extra.rate_limiter import RateLimiter
