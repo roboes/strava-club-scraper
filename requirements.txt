@@ -3,7 +3,7 @@ google_api_python_client==2.188.0
 lxml==5.4.0
 natsort==8.4.0
 pandas==3.0.0
-protobuf==6.33.4
-pyjanitor==0.32.8
+protobuf==6.33.5
+pyjanitor==0.32.9
 python_dateutil==2.9.0.post0
 selenium==4.40.0

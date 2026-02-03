@@ -287,7 +287,7 @@ if config['GENERAL'].getboolean('SCRAP_CLUB_ACTIVITIES') is True:
 
 # # Export club activities to .gpx files
 # club_activities_sample_df = (read_google_sheets(sheet_id=config['GOOGLE_DOCS']['SHEET_ID'], sheet_name='Activities')
-# .drop(columns=['club_id'], axis=1, errors='ignore')
+# .drop(columns=['club_id'], errors='ignore')
 # .drop_duplicates(subset=None, keep='first', ignore_index=True)
 # .query(expr='activity_type.isin(["Ride", "E-Bike Ride", "Mountain Bike Ride", "E-Mountain Bike Ride", "Race", "Run", "Trail Run", "Walk", "Hike"])')
 # .assign(activity_type=lambda row: np.where((row['activity_type'] == 'Race') & (row['pace'].notna()), 'Run', (np.where((row['activity_type'] == 'Race') & (row['pace'].isna()), 'Ride', row['activity_type']))))

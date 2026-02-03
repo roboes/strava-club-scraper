@@ -474,11 +474,11 @@ def strava_club_activities(*, strava_login: str, strava_password: str, club_ids:
 
     # duration
     if 'duration' in club_activities_df.columns:
-        club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].fillna(value=club_activities_df['duration'], method=None, axis=0)
+        club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].fillna(value=club_activities_df['duration'], axis=0)
 
-        club_activities_df['moving_time'] = club_activities_df['moving_time'].fillna(value=club_activities_df['duration'], method=None, axis=0)
+        club_activities_df['moving_time'] = club_activities_df['moving_time'].fillna(value=club_activities_df['duration'], axis=0)
 
-        club_activities_df = club_activities_df.drop(columns=['duration'], axis=1, errors='ignore')
+        club_activities_df = club_activities_df.drop(columns=['duration'], errors='ignore')
 
     # elapsed_time
     if 'elapsed_time' in club_activities_df.columns:
@@ -734,7 +734,7 @@ def strava_club_members(*, strava_login: str, strava_password: str, club_ids: li
     club_members_df = (
         club_members_df
         # Remove columns
-        .drop(columns=['athlete_geolocation'], axis=1, errors='ignore')
+        .drop(columns=['athlete_geolocation'], errors='ignore')
         # Create 'join_date' column
         .assign(join_date=pd.Timestamp.now(tz=timezone).replace(tzinfo=None).floor(freq='d').to_pydatetime())
         # Select columns
@@ -935,7 +935,7 @@ def strava_club_leaderboard(*, strava_login: str, strava_password: str, club_ids
 
     # moving_time: '%H:%M' to seconds
     if 'moving_time' in club_leaderboard_df.columns:
-        club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].fillna(value='0m', method=None, axis=0)
+        club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].fillna(value='0m', axis=0)
         club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].replace(to_replace=r'^([0-9]+m)$', value=r'00:\1', regex=True)
         club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].replace(to_replace=r'h ', value=r':', regex=True)
         club_leaderboard_df['moving_time'] = club_leaderboard_df['moving_time'].replace(to_replace=r'm$', value=r'', regex=True)
@@ -1204,7 +1204,7 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
                 # Filter rows
                 .query(expr='_merge == "left_only"')
                 # Remove columns
-                .drop(columns=['_merge'], axis=1, errors='ignore')
+                .drop(columns=['_merge'], errors='ignore')
             )
 
         # club_members
@@ -1224,7 +1224,7 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
                 # Filter rows
                 .query(expr='_merge == "left_only"')
                 # Remove columns
-                .drop(columns=['_merge'], axis=1, errors='ignore')
+                .drop(columns=['_merge'], errors='ignore')
             )
 
         # club_leaderboard
@@ -1233,7 +1233,7 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
             df_import = (
                 df_import
                 # Remove columns
-                .drop(columns=['athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'], axis=1, errors='ignore')
+                .drop(columns=['athlete_location', 'athlete_location_country_code', 'athlete_location_country', 'athlete_team', 'athlete_picture'], errors='ignore')
                 # Outer join 'df'
                 .merge(
                     right=df.filter(
@@ -1246,7 +1246,7 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
                 # Filter rows
                 .query(expr='_merge == "left_only"')
                 # Remove columns
-                .drop(columns=['_merge'], axis=1, errors='ignore')
+                .drop(columns=['_merge'], errors='ignore')
             )
 
     else:
@@ -1308,7 +1308,7 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
         df_updated['join_date'] = df_updated['join_date'].dt.strftime(date_format='%Y-%m-%d')
 
         # Remove columns
-        df_updated = df_updated.drop(columns=['athlete_team'], axis=1, errors='ignore')
+        df_updated = df_updated.drop(columns=['athlete_team'], errors='ignore')
 
         # Left join 'club_members_df'
         df_updated = df_updated.merge(
@@ -1329,10 +1329,10 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
         )
 
         # In case club_members scraped 'club_id' and 'athlete_id' information, update 'df_updated'
-        df_updated['athlete_location'] = df_updated['athlete_location_y'].fillna(value=df_updated['athlete_location_x'], method=None, axis=0)
-        df_updated['athlete_location_country_code'] = df_updated['athlete_location_country_code_y'].fillna(value=df_updated['athlete_location_country_code_x'], method=None, axis=0)
-        df_updated['athlete_location_country'] = df_updated['athlete_location_country_y'].fillna(value=df_updated['athlete_location_country_x'], method=None, axis=0)
-        df_updated['athlete_picture'] = df_updated['athlete_picture_y'].fillna(value=df_updated['athlete_picture_x'], method=None, axis=0)
+        df_updated['athlete_location'] = df_updated['athlete_location_y'].fillna(value=df_updated['athlete_location_x'], axis=0)
+        df_updated['athlete_location_country_code'] = df_updated['athlete_location_country_code_y'].fillna(value=df_updated['athlete_location_country_code_x'], axis=0)
+        df_updated['athlete_location_country'] = df_updated['athlete_location_country_y'].fillna(value=df_updated['athlete_location_country_x'], axis=0)
+        df_updated['athlete_picture'] = df_updated['athlete_picture_y'].fillna(value=df_updated['athlete_picture_x'], axis=0)
         df_updated = df_updated.drop(
             columns=[
                 'athlete_location_x',
@@ -1344,7 +1344,6 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
                 'athlete_picture_x',
                 'athlete_picture_y',
             ],
-            axis=1,
             errors='ignore',
         )
 
@@ -1427,7 +1426,7 @@ def strava_club_to_google_sheets(*, df: pd.DataFrame, club_members_df: pd.DataFr
         df_updated = df_updated.sort_values(by=['club_id', 'leaderboard_date_start', 'rank'], ignore_index=True)
 
     # Change dtypes
-    df_updated = df_updated.fillna(value='', method=None, axis=0)
+    df_updated = df_updated.fillna(value='', axis=0)
 
     # DataFrame to list
     data = [df_updated.columns.values.tolist()]
