@@ -50,7 +50,7 @@ And that your Strava display language is `English (US)`. To change the language,
 
 ### Installation
 
-```.ps1
+```ps1
 python -m pip install "git+https://github.com/roboes/strava-club-scraper.git@main"
 ```
 
@@ -58,7 +58,7 @@ python -m pip install "git+https://github.com/roboes/strava-club-scraper.git@mai
 
 #### `strava_club_activities`
 
-```.py
+```py
 strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter_date_max, timezone='UTC')
 ```
 
@@ -78,7 +78,7 @@ strava_club_activities(club_ids, filter_activities_type, filter_date_min, filter
 
 #### `strava_club_members`
 
-```.py
+```py
 strava_club_members(club_ids, club_members_teams=None, timezone='UTC')
 ```
 
@@ -94,7 +94,7 @@ strava_club_members(club_ids, club_members_teams=None, timezone='UTC')
 
 Example of `club_members_teams`:
 
-```.py
+```py
 club_members_teams={
     'Team A': ['1234, 5678'],
     'Team B': ['1234, 12345'],
@@ -105,7 +105,7 @@ club_members_teams={
 
 #### `strava_club_leaderboard`
 
-```.py
+```py
 strava_club_leaderboard(club_ids, filter_date_min, filter_date_max, timezone='UTC')
 ```
 
@@ -124,7 +124,7 @@ strava_club_leaderboard(club_ids, filter_date_min, filter_date_max, timezone='UT
 
 #### `strava_club_to_google_sheets`
 
-```.py
+```py
 strava_club_to_google_sheets(df, sheet_id, sheet_name)
 ```
 
@@ -142,7 +142,7 @@ strava_club_to_google_sheets(df, sheet_id, sheet_name)
 
 #### `execution_time_to_google_sheets`
 
-```.py
+```py
 execution_time_to_google_sheets(sheet_id, sheet_name, timezone='UTC')
 ```
 
@@ -160,7 +160,7 @@ execution_time_to_google_sheets(sheet_id, sheet_name, timezone='UTC')
 
 #### `strava_export_gpx`
 
-```.py
+```py
 strava_export_activities(activities_id, file_type)
 ```
 
@@ -177,7 +177,7 @@ strava_export_activities(activities_id, file_type)
 
 #### `selenium_webdriver_quit`
 
-```.py
+```py
 selenium_webdriver_quit()
 ```
 
@@ -191,7 +191,7 @@ selenium_webdriver_quit()
 
 ### Code Workflow Example
 
-```.py
+```py
 # Import packages
 import configparser
 import os

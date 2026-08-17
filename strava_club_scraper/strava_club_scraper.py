@@ -2,35 +2,34 @@
 
 # Import packages
 
+import html
+import json
+import re
+import time
 from datetime import timedelta
 
 # import glob
 from io import StringIO
-import json
-import html
-import re
-import time
 from typing import Any
 
+import lxml.html as lh
+
+# import numpy as np
+import pandas as pd
 from dateutil import parser, relativedelta
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.discovery import Resource
+from googleapiclient.discovery import Resource, build
 from janitor import clean_names
-import lxml.html as lh
 from natsort import natsorted, ns
-
-# import numpy as np
-import pandas as pd
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from .selenium_utils import selenium_webdriver
 
+from .selenium_utils import selenium_webdriver
 
 # Functions
 
@@ -484,12 +483,14 @@ def strava_club_activities(*, strava_login: str, strava_password: str, club_ids:
     if 'elapsed_time' in club_activities_df.columns:
         club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].apply(
             lambda row: (
-                re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row, flags=0)
-                if len(row.split(sep=':')) == 1
-                else (re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0) if len(row.split(sep=':')) == 2 else row)
-            )
-            if not pd.isna(row)
-            else row,
+                (
+                    re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row, flags=0)
+                    if len(row.split(sep=':')) == 1
+                    else (re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0) if len(row.split(sep=':')) == 2 else row)
+                )
+                if not pd.isna(row)
+                else row
+            ),
         )
 
         club_activities_df['elapsed_time'] = club_activities_df['elapsed_time'].apply(
@@ -500,12 +501,14 @@ def strava_club_activities(*, strava_login: str, strava_password: str, club_ids:
     if 'moving_time' in club_activities_df.columns:
         club_activities_df['moving_time'] = club_activities_df['moving_time'].apply(
             lambda row: (
-                re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row, flags=0)
-                if len(row.split(sep=':')) == 1
-                else (re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0) if len(row.split(sep=':')) == 2 else row)
-            )
-            if not pd.isna(row)
-            else row,
+                (
+                    re.sub(pattern=r'^([0-9]+)s$', repl=r'00:00:\1', string=row, flags=0)
+                    if len(row.split(sep=':')) == 1
+                    else (re.sub(pattern=r'^(.*)$', repl=r'00:\1', string=row, flags=0) if len(row.split(sep=':')) == 2 else row)
+                )
+                if not pd.isna(row)
+                else row
+            ),
         )
 
         club_activities_df['moving_time'] = club_activities_df['moving_time'].apply(lambda row: get_seconds(time_str=str(row)) if not pd.isna(row) else row)
@@ -683,19 +686,19 @@ def strava_club_members(*, strava_login: str, strava_password: str, club_ids: li
 
     # Create 'athlete_geolocation' column
     club_members_geolocation['athlete_geolocation'] = club_members_geolocation.apply(
-        lambda row: (geocode(row['athlete_location'], language='en', exactly_one=True, addressdetails=True, namedetails=True, timeout=None) if pd.notna(row['athlete_location']) else None),
+        lambda row: geocode(row['athlete_location'], language='en', exactly_one=True, addressdetails=True, namedetails=True, timeout=None) if pd.notna(row['athlete_location']) else None,
         axis=1,
     )
 
     # Create 'athlete_location_country_code' column
     club_members_geolocation['athlete_location_country_code'] = club_members_geolocation.apply(
-        lambda row: (row['athlete_geolocation'].raw.get('address').get('country_code') if pd.notna(row['athlete_geolocation']) else None),
+        lambda row: row['athlete_geolocation'].raw.get('address').get('country_code') if pd.notna(row['athlete_geolocation']) else None,
         axis=1,
     )
 
     # Create 'athlete_location_country' column
     club_members_geolocation['athlete_location_country'] = club_members_geolocation.apply(
-        lambda row: (row['athlete_geolocation'].raw.get('address').get('country') if pd.notna(row['athlete_geolocation']) else None),
+        lambda row: row['athlete_geolocation'].raw.get('address').get('country') if pd.notna(row['athlete_geolocation']) else None,
         axis=1,
     )
 
@@ -798,7 +801,7 @@ def strava_club_leaderboard(*, strava_login: str, strava_password: str, club_ids
 
         # Get current week Strava Club Leaderboard
         try:
-            driver.find_element(by=By.XPATH, value='//div[@class="leaderboard"]//h4[@class="empty-results"]').text
+            driver.find_element(by=By.XPATH, value='//div[@class="leaderboard"]//h4[@class="empty-results"]')
 
             club_leaderboard_import_df = pd.DataFrame(data=None, index=None, dtype='str')
 
@@ -835,7 +838,7 @@ def strava_club_leaderboard(*, strava_login: str, strava_password: str, club_ids
         driver.find_element(by=By.XPATH, value='//span[@class="button last-week"]').click()
 
         try:
-            driver.find_element(by=By.XPATH, value='//div[@class="leaderboard"]//h4[@class="empty-results"]').text
+            driver.find_element(by=By.XPATH, value='//div[@class="leaderboard"]//h4[@class="empty-results"]')
 
             club_leaderboard_import_df = pd.DataFrame(data=None, index=None, dtype='str')
 
@@ -872,13 +875,13 @@ def strava_club_leaderboard(*, strava_login: str, strava_password: str, club_ids
             club_leaderboard_import_df = (
                 club_leaderboard_import_df
                 # Create 'club_id' column
-                .assign(club_id=lambda row: club_id)
+                .assign(club_id=lambda row, club_id=club_id: club_id)
                 # Create 'club_name' column
-                .assign(club_name=lambda row: club_name)
+                .assign(club_name=lambda row, club_name=club_name: club_name)
                 # Create 'club_activity_type' column
-                .assign(club_activity_type=lambda row: club_activity_type)
+                .assign(club_activity_type=lambda row, club_activity_type=club_activity_type: club_activity_type)
                 # Create 'club_location' column
-                .assign(club_location=lambda row: club_location)
+                .assign(club_location=lambda row, club_location=club_location: club_location)
             )
 
             # Rename columns
@@ -1014,18 +1017,18 @@ def strava_club_leaderboard_manual(
     )
 
     # leaderboard_date_start
-    club_leaderboard_manual_df['leaderboard_date_start'] = club_leaderboard_manual_df.apply(lambda row: (row['activity_date'].floor(freq='d') + relativedelta.relativedelta(weekday=relativedelta.MO(-1))), axis=1)
+    club_leaderboard_manual_df['leaderboard_date_start'] = club_leaderboard_manual_df.apply(lambda row: row['activity_date'].floor(freq='d') + relativedelta.relativedelta(weekday=relativedelta.MO(-1)), axis=1)
 
     # leaderboard_date_end
     club_leaderboard_manual_df['leaderboard_date_end'] = club_leaderboard_manual_df.apply(
-        lambda row: (row['activity_date'].floor(freq='d') + relativedelta.relativedelta(weekday=relativedelta.MO(-1)) + relativedelta.relativedelta(weekday=relativedelta.SU(+1))),
+        lambda row: row['activity_date'].floor(freq='d') + relativedelta.relativedelta(weekday=relativedelta.MO(-1)) + relativedelta.relativedelta(weekday=relativedelta.SU(+1)),
         axis=1,
     )
 
     club_leaderboard_manual_df = (
         club_leaderboard_manual_df
         # Create 'leaderboard_week' column
-        .assign(leaderboard_week=lambda row: (row['leaderboard_date_start'].dt.strftime(date_format='%Y-%m-%d') + ' to ' + row['leaderboard_date_end'].dt.strftime(date_format='%Y-%m-%d')))
+        .assign(leaderboard_week=lambda row: row['leaderboard_date_start'].dt.strftime(date_format='%Y-%m-%d') + ' to ' + row['leaderboard_date_end'].dt.strftime(date_format='%Y-%m-%d'))
         # Create 'rank' column
         .assign(rank=999)
         # Aggregate rows
